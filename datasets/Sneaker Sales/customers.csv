@@ -1,0 +1,101 @@
+CustomerID,FirstName,LastName,Email,PhoneNumber,City,State
+C001,Rahul, Sharma,rahul.sharma@email.com,+91 98765 43210, bangalore,Karnataka
+C002,priya ,Patel,priya.patel@email.com,+91 87654 32109, Delhi,Delhi
+C003,amit,Singh,amit.singh@email.com,+91 76543 21098,mumbai,Maharashtra
+C004, Neha,Gupta,neha.gupta@email.com,+91 65432 10987,Chennai ,Tamil Nadu
+C005,Vikram,Reddy,vikram.reddy@email.com,+91 54321 09876, Hyderabad,Telangana
+C006,Anita, Desai,anita.desai@email.com,+91 43210 98765,kolkata,West Bengal
+C007, Rajesh,Kumar,rajesh.kumar@email.com,+91 32109 87654,ahmedabad,Gujarat
+C008,Sunita,Verma ,sunita.verma@email.com,+91 21098 76543,Pune,Maharashtra
+C009, Karthik, Nair,karthik.nair@email.com,+91 10987 65432, jaipur,Rajasthan
+C010,Meera,Joshi,meera.joshi@email.com,+91 09876 54321,Lucknow,Uttar Pradesh
+C011,Arjun,Rao,arjun.rao@email.com,+91 98765 43211,Bangalore,Karnataka
+C012,nisha,iyer,nisha.iyer@email.com,+91 87654 32110, delhi,Delhi
+C013,Divya,Malhotra,divya.malhotra@email.com,+91 76543 21099,Mumbai,Maharashtra
+C014,Sanjay,Mehta,sanjay.mehta@email.com,+91 65432 10986, chennai,Tamil Nadu
+C015, Preeti,Choudhury,preeti.choudhury@email.com,+91 54321 09875,hyderabad,Telangana
+C016,anjali, Menon,anjali.menon@email.com,+91 43210 98766,kolkata,West Bengal
+C017,Arun,Kapoor,arun.kapoor@email.com,+91 32109 87653,Ahmedabad,Gujarat
+C018,vikrant,singhania,vikrant.singhania@email.com,+91 21098 76542,pune,Maharashtra
+C019,Rahul,Sharma,rahul.sharma@email.com,+91 10987 65433,Jaipur,Rajasthan
+C020,Divya,Patel,priya.patel@email.com,+91 09876 54320, lucknow,Uttar Pradesh
+C021,Sanjay,Singh,amit.singh@email.com,+91 98765 43212, Bangalore,Karnataka
+C022,Preeti,Gupta,neha.gupta@email.com,+91 87654 32111, Delhi,Delhi
+C023,Anjali, Reddy,vikram.reddy@email.com,+91 76543 21100, mumbai,Maharashtra
+C024, Arun,Desai,anita.desai@email.com,+91 65432 10985,chennai,Tamil Nadu
+C025,vikrant,Kumar,rajesh.kumar@email.com,+91 54321 09874,hyderabad,Telangana
+C026,rahul, Verma,sunita.verma@email.com,+91 43210 98767, kolkata,West Bengal
+C027,Divya,Nair,karthik.nair@email.com,+91 32109 87652,Ahmedabad,Gujarat
+C028,Sanjay, Joshi,meera.joshi@email.com,+91 21098 76541, pune,Maharashtra
+C029, Preeti, Rao,arjun.rao@email.com,+91 10987 65434,jaipur,Rajasthan
+C030,anjali,iyer,nisha.iyer@email.com,+91 09876 54319,lucknow,Uttar Pradesh
+C031,Arun,Malhotra,divya.malhotra@email.com,+91 98765 43213,Bangalore,Karnataka
+C032,vikrant,Mehta,sanjay.mehta@email.com,+91 87654 32112,delhi,Delhi
+C033,Rahul, Choudhury,preeti.choudhury@email.com,+91 76543 21101, Mumbai,Maharashtra
+C034,Divya,Menon,anjali.menon@email.com,+91 65432 10984,chennai,Tamil Nadu
+C035, Sanjay,Kapoor,arun.kapoor@email.com,+91 54321 09873,hyderabad,Telangana
+C036,Preeti,singhania,vikrant.singhania@email.com,+91 43210 98768,kolkata,West Bengal
+C037,anjali,Sharma,rahul.sharma@email.com,+91 32109 87651, Ahmedabad,Gujarat
+C038,Arun,Patel,priya.patel@email.com,+91 21098 76540,Pune,Maharashtra
+C039,vikrant,Singh,amit.singh@email.com,+91 10987 65435,jaipur,Rajasthan
+C040,rahul,Gupta,neha.gupta@email.com,+91 09876 54318,Lucknow ,Uttar Pradesh
+C041,Divya,Reddy,vikram.reddy@email.com,+91 98765 43214, Bangalore,Karnataka
+C042,Sanjay,Desai,anita.desai@email.com,+91 87654 32113,delhi,Delhi
+C043, Preeti,Kumar,rajesh.kumar@email.com,+91 76543 21102,Mumbai ,Maharashtra
+C044,Anjali, Verma,sunita.verma@email.com,+91 65432 10983,chennai,Tamil Nadu
+C045,Arun,Nair,karthik.nair@email.com,+91 54321 09872, Hyderabad,Telangana
+C046,vikrant, Joshi,meera.joshi@email.com,+91 43210 98769, kolkata,West Bengal
+C047,rahul,Rao,arjun.rao@email.com,+91 32109 87650,Ahmedabad,Gujarat
+C048,Divya,iyer,nisha.iyer@email.com,+91 21098 76539, pune,Maharashtra
+C049,Sanjay,Malhotra,divya.malhotra@email.com,+91 10987 65436,jaipur,Rajasthan
+C050,Preeti,Mehta,sanjay.mehta@email.com,+91 09876 54317,lucknow,Uttar Pradesh
+C051,Anjali,Choudhury,preeti.choudhury@email.com,+91 98765 43215,Bangalore,Karnataka
+C052,Arun,Menon,anjali.menon@email.com,+91 87654 32114, Delhi,Delhi
+C053,vikrant, Kapoor,arun.kapoor@email.com,+91 76543 21103,mumbai,Maharashtra
+C054,rahul,singhania,vikrant.singhania@email.com,+91 65432 10982,chennai,Tamil Nadu
+C055,Divya, Sharma,rahul.sharma@email.com,+91 54321 09871,hyderabad,Telangana
+C056,Sanjay,Patel,priya.patel@email.com,+91 43210 98770,kolkata,West Bengal
+C057,Preeti,Singh,amit.singh@email.com,+91 32109 87649, Ahmedabad,Gujarat
+C058,anjali,Gupta,neha.gupta@email.com,+91 21098 76538,Pune,Maharashtra
+C059,Arun,Reddy,vikram.reddy@email.com,+91 10987 65437,jaipur ,Rajasthan
+C060,vikrant,Desai,anita.desai@email.com,+91 09876 54316,Lucknow,Uttar Pradesh
+C061,rahul,Kumar,rajesh.kumar@email.com,+91 98765 43216,Bangalore,Karnataka
+C062,Divya, Verma,sunita.verma@email.com,+91 87654 32115,delhi,Delhi
+C063,Sanjay,Nair,karthik.nair@email.com,+91 76543 21104,Mumbai,Maharashtra
+C064,Preeti, Joshi,meera.joshi@email.com,+91 65432 10981,chennai,Tamil Nadu
+C065,anjali, Rao,arjun.rao@email.com,+91 54321 09870,hyderabad,Telangana
+C066,Arun,iyer,nisha.iyer@email.com,+91 43210 98771,kolkata,West Bengal
+C067,vikrant,Malhotra,divya.malhotra@email.com,+91 32109 87648, Ahmedabad,Gujarat
+C068,rahul,Mehta,sanjay.mehta@email.com,+91 21098 76537,Pune,Maharashtra
+C069,Divya,Choudhury,preeti.choudhury@email.com,+91 10987 65438,jaipur,Rajasthan
+C070,Sanjay, Menon,anjali.menon@email.com,+91 09876 54315, Lucknow,Uttar Pradesh
+C071,Preeti,Kapoor,arun.kapoor@email.com,+91 98765 43217,Bangalore ,Karnataka
+C072,Anjali,singhania,vikrant.singhania@email.com,+91 87654 32116,Delhi,Delhi
+C073,Arun, Sharma,rahul.sharma@email.com,+91 76543 21105,mumbai,Maharashtra
+C074,vikrant,Patel,priya.patel@email.com,+91 65432 10980,chennai,Tamil Nadu
+C075,rahul,Singh,amit.singh@email.com,+91 54321 09869, Hyderabad,Telangana
+C076,Divya,Gupta,neha.gupta@email.com,+91 43210 98772,kolkata,West Bengal
+C077,Sanjay, Reddy,vikram.reddy@email.com,+91 32109 87647, Ahmedabad,Gujarat
+C078,Preeti,Desai,anita.desai@email.com,+91 21098 76536,Pune,Maharashtra
+C079,Anjali,Kumar,rajesh.kumar@email.com,+91 10987 65439,jaipur,Rajasthan
+C080,Arun, Verma,sunita.verma@email.com,+91 09876 54314,Lucknow,Uttar Pradesh
+C081,vikrant,Nair,karthik.nair@email.com,+91 98765 43218,Bangalore,Karnataka
+C082,rahul, Joshi,meera.joshi@email.com,+91 87654 32117, delhi,Delhi
+C083,Divya, Rao,arjun.rao@email.com,+91 76543 21106,mumbai,Maharashtra
+C084,Sanjay,iyer,nisha.iyer@email.com,+91 65432 10979,Chennai,Tamil Nadu
+C085,Preeti,Malhotra,divya.malhotra@email.com,+91 54321 09868, Hyderabad,Telangana
+C086,anjali,Mehta,sanjay.mehta@email.com,+91 43210 98773,kolkata,West Bengal
+C087,Arun,Choudhury,preeti.choudhury@email.com,+91 32109 87646,Ahmedabad,Gujarat
+C088,vikrant,Menon,anjali.menon@email.com,+91 21098 76535,pune,Maharashtra
+C089,rahul,Kapoor,arun.kapoor@email.com,+91 10987 65440,Jaipur,Rajasthan
+C090,Divya,singhania,vikrant.singhania@email.com,+91 09876 54313, lucknow,Uttar Pradesh
+C091,Sanjay,Sharma,rahul.sharma@email.com,+91 98765 43219, Bangalore,Karnataka
+C092,Preeti,Patel,priya.patel@email.com,+91 87654 32118, delhi,Delhi
+C093,anjali,Singh,amit.singh@email.com,+91 76543 21107, mumbai,Maharashtra
+C094,Arun,Gupta,neha.gupta@email.com,+91 65432 10978,chennai,Tamil Nadu
+C095,vikrant, Reddy,vikram.reddy@email.com,+91 54321 09867,hyderabad,Telangana
+C096,rahul,Desai,anita.desai@email.com,+91 43210 98774, kolkata,West Bengal
+C097,Divya,Kumar,rajesh.kumar@email.com,+91 32109 87645,Ahmedabad,Gujarat
+C098,Sanjay,Verma ,sunita.verma@email.com,+91 21098 76534, pune,Maharashtra
+C099,Preeti, Nair,karthik.nair@email.com,+91 10987 65441,jaipur,Rajasthan
+C100,anjali,Joshi,meera.joshi@email.com,+91 09876 54312,lucknow,Uttar Pradesh

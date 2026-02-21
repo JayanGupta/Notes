@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to SQL: Professional Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body { 
+            background-color: #020617; /* Slate-950 */
+            color: #e2e8f0; 
+            font-family: 'Inter', sans-serif; 
+            overflow: hidden; 
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 3px; }
+
+        /* Animations */
+        @keyframes pulse-ring { 
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); } 
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); } 
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); } 
+        }
+        .animate-pulse-ring { animation: pulse-ring 3s infinite; }
+
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-6px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 4s ease-in-out infinite; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Custom Keyframe for Dash Flow (for KeysViz) --- */
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -100;
+            }
+        }
+        
+        .animate-dash-flow {
+            animation: dash 5s linear infinite;
+        }
+        /* --------------------------------------------------- */
+    </style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- Visualization Components ---
+
+    // Slide 2: Data Warehouse (Professional Stacking)
+    const WarehouseViz = () => {
+        const [blocks, setBlocks] = useState([]);
+        
+        useEffect(() => {
+            const interval = setInterval(() => {
+                setBlocks(prev => {
+                    if (prev.length >= 12) return [];
+                    return [...prev, { id: Date.now() }];
+                });
+            }, 600);
+            return () => clearInterval(interval);
+        }, []);
+
+        return (
+            <div className="flex flex-col items-center justify-center h-full">
+                <div className="text-xs text-slate-500 font-mono mb-4">STORAGE_OPTIMIZATION_PROTOCOL</div>
+                <div className="w-48 h-64 border-2 border-slate-700 rounded-lg bg-slate-900/50 flex flex-col-reverse p-2 gap-1 relative overflow-hidden shadow-2xl">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-blue-500/20"></div>
+                    {blocks.map(b => (
+                        <div key={b.id} className="w-full h-4 bg-blue-600/80 rounded-sm border border-blue-400/30 animate-fade-in shadow-[0_0_10px_rgba(37,99,235,0.3)]"></div>
+                    ))}
+                    {blocks.length === 0 && <div className="absolute inset-0 flex items-center justify-center text-slate-600 text-xs">Initializing...</div>}
+                </div>
+                <div className="mt-4 flex gap-4 text-xs text-slate-400 font-mono">
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-blue-500"></div> Structured</div>
+                    <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-green-500"></div> Indexed</div>
+                </div>
+            </div>
+        );
+    };
+
+    // Slide 3: What is a Table (Interactive Highlighter)
+    const TableStructureViz = () => {
+        const [hoverType, setHoverType] = useState(null); // 'row', 'col', 'cell'
+
+        return (
+            <div className="flex flex-col items-center justify-center h-full">
+                 <div className="text-xs text-slate-500 font-mono mb-4 uppercase">Interactive Schema Explorer</div>
+                 
+                 <div className="bg-slate-900 rounded-lg border border-slate-700 overflow-hidden shadow-2xl w-full max-w-md">
+                    {/* Header (Columns) */}
+                    <div className="grid grid-cols-3 bg-slate-800 border-b border-slate-700">
+                        {['ID (PK)', 'Name (VarChar)', 'Dept (VarChar)'].map((h, i) => (
+                            <div 
+                                key={i}
+                                onMouseEnter={() => setHoverType('col')}
+                                onMouseLeave={() => setHoverType(null)}
+                                className={`p-3 text-xs font-bold text-slate-300 border-r border-slate-700 last:border-0 cursor-crosshair transition-colors
+                                    ${hoverType === 'col' ? 'bg-blue-900/50 text-blue-200' : ''}`}
+                            >
+                                {h}
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Body (Rows) */}
+                    {[
+                        { id: 101, name: "Alice", dept: "Eng" },
+                        { id: 102, name: "Bob", dept: "HR" },
+                        { id: 103, name: "Charlie", dept: "Sales" }
+                    ].map((row, i) => (
+                        <div 
+                            key={i}
+                            onMouseEnter={() => setHoverType('row')}
+                            onMouseLeave={() => setHoverType(null)}
+                            className={`grid grid-cols-3 border-b border-slate-800 last:border-0 transition-colors cursor-pointer
+                                ${hoverType === 'row' ? 'bg-green-900/30' : ''}`}
+                        >
+                            <div className="p-3 text-xs text-slate-400 font-mono border-r border-slate-800">{row.id}</div>
+                            <div className="p-3 text-xs text-slate-300 border-r border-slate-800">{row.name}</div>
+                            <div className="p-3 text-xs text-slate-300">{row.dept}</div>
+                        </div>
+                    ))}
+                 </div>
+
+                 <div className="mt-6 h-8 text-sm font-mono font-bold text-white transition-all">
+                     {hoverType === 'col' && <span className="text-blue-400">COLUMN (Attribute): Defines the data type.</span>}
+                     {hoverType === 'row' && <span className="text-green-400">ROW (Record): A single data entry.</span>}
+                     {!hoverType && <span className="text-slate-500">Hover over the table to inspect.</span>}
+                 </div>
+            </div>
+        );
+    };
+
+    // Slide 4: Database vs Table (Hierarchy)
+    const HierarchyViz = () => {
+        const [activeTable, setActiveTable] = useState(0);
+
+        return (
+            <div className="flex flex-col items-center justify-center h-full relative">
+                {/* Database Container */}
+                <div className="border-2 border-dashed border-slate-600 rounded-xl p-6 w-full max-w-sm bg-slate-900/30 relative">
+                    <div className="absolute -top-3 left-4 bg-slate-950 px-2 text-xs text-slate-400 font-mono">DATABASE (Container)</div>
+                    
+                    <div className="flex flex-col gap-3">
+                        {['Employees', 'Products', 'Orders'].map((name, i) => (
+                            <div 
+                                key={i}
+                                onMouseEnter={() => setActiveTable(i)}
+                                className={`p-3 rounded border flex items-center justify-between cursor-pointer transition-all
+                                    ${activeTable === i 
+                                        ? 'bg-blue-900/40 border-blue-500 scale-105 shadow-lg' 
+                                        : 'bg-slate-800 border-slate-700 text-slate-500'}`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <i className="fa-solid fa-table text-xs"></i>
+                                    <span className="text-sm font-bold">{name}</span>
+                                </div>
+                                {activeTable === i && <span className="text-[10px] text-blue-300 animate-pulse">● Active</span>}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="mt-8 text-center text-sm text-slate-300">
+                    <i className="fa-solid fa-layer-group text-blue-500 mr-2"></i>
+                    One Database holds <strong>Multiple Tables</strong>.
+                </div>
+            </div>
+        );
+    };
+
+    // Slide 5: What is Schema (Blueprint Viz)
+    const SchemaViz = () => {
+        return (
+            <div className="flex flex-col items-center justify-center h-full relative overflow-hidden bg-slate-900/30">
+                {/* Blueprint Grid Background */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none" 
+                     style={{backgroundImage: 'linear-gradient(#3b82f6 1px, transparent 1px), linear-gradient(90deg, #3b82f6 1px, transparent 1px)', backgroundSize: '30px 30px'}}>
+                </div>
+                
+                <div className="relative z-10 bg-slate-900 p-8 rounded-xl border-2 border-blue-500/30 shadow-2xl w-80 group hover:border-blue-400 transition-colors">
+                    <div className="absolute -top-3 -left-1 bg-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded tracking-widest shadow-lg">SCHEMA: HR_SYSTEM</div>
+                    
+                    {/* Abstract Tables in Blueprint */}
+                    <div className="flex flex-col gap-6 mt-2">
+                        <div className="relative border border-slate-600 border-dashed p-3 rounded bg-slate-800/50">
+                            <div className="text-[10px] text-slate-400 uppercase mb-1">Table: Employees</div>
+                            <div className="h-1 w-3/4 bg-slate-600 rounded mb-1"></div>
+                            <div className="h-1 w-1/2 bg-slate-600 rounded"></div>
+                            {/* Connector Line */}
+                            <div className="absolute left-1/2 -bottom-6 w-0.5 h-6 bg-blue-500/50"></div>
+                        </div>
+                        
+                        <div className="relative border border-slate-600 border-dashed p-3 rounded bg-slate-800/50">
+                            <div className="text-[10px] text-slate-400 uppercase mb-1">Table: Payroll</div>
+                            <div className="h-1 w-2/3 bg-slate-600 rounded mb-1"></div>
+                            <div className="h-1 w-1/2 bg-slate-600 rounded"></div>
+                        </div>
+                    </div>
+                    
+                    <div className="absolute top-1/2 -right-4 w-4 h-4 bg-blue-500 rounded-full blur-md opacity-50 animate-pulse"></div>
+                </div>
+
+                <div className="mt-8 text-sm text-blue-300 font-mono flex items-center gap-2 bg-blue-900/20 px-4 py-2 rounded-full border border-blue-500/20">
+                    <i className="fa-solid fa-compass-drafting"></i>
+                    <span>Logical Organization Plan</span>
+                </div>
+            </div>
+        );
+    };
+
+    // Slide 6: SQL Categories
+    const CategoriesViz = () => {
+        return (
+            <div className="grid grid-cols-2 gap-4 h-full content-center">
+                <div className="p-4 bg-slate-800/50 rounded border border-blue-500/30 hover:bg-blue-900/20 transition group">
+                    <h3 className="text-blue-400 font-bold mb-1 group-hover:scale-105 transition-transform inline-block">DDL</h3>
+                    <p className="text-[10px] text-slate-400 font-mono mb-2">DEFINITION</p>
+                    <div className="text-xs text-slate-300">CREATE, ALTER, DROP</div>
+                </div>
+                <div className="p-4 bg-slate-800/50 rounded border border-green-500/30 hover:bg-green-900/20 transition group">
+                    <h3 className="text-green-400 font-bold mb-1 group-hover:scale-105 transition-transform inline-block">DML</h3>
+                    <p className="text-[10px] text-slate-400 font-mono mb-2">MANIPULATION</p>
+                    <div className="text-xs text-slate-300">INSERT, UPDATE, DELETE</div>
+                </div>
+                <div className="p-4 bg-slate-800/50 rounded border border-purple-500/30 hover:bg-purple-900/20 transition group">
+                    <h3 className="text-purple-400 font-bold mb-1 group-hover:scale-105 transition-transform inline-block">DQL</h3>
+                    <p className="text-[10px] text-slate-400 font-mono mb-2">QUERY</p>
+                    <div className="text-xs text-slate-300">SELECT</div>
+                </div>
+                <div className="p-4 bg-slate-800/50 rounded border border-yellow-500/30 hover:bg-yellow-900/20 transition group">
+                    <h3 className="text-yellow-400 font-bold mb-1 group-hover:scale-105 transition-transform inline-block">TCL</h3>
+                    <p className="text-[10px] text-slate-400 font-mono mb-2">CONTROL</p>
+                    <div className="text-xs text-slate-300">COMMIT, ROLLBACK</div>
+                </div>
+            </div>
+        );
+    };
+
+    // Slide 7: Keys Viz
+    const KeysViz = () => {
+        return (
+            <div className="flex flex-col items-center justify-center h-full relative">
+                <svg className="absolute inset-0 w-full h-full pointer-events-none">
+                    {/* Draw a dashed line from USERS.ID (PK) to ORDERS.User_ID (FK) */}
+                    {/* Coordinates are approximate visual centers of the key elements in the layout for a clear connection */}
+                    <line x1="140" y1="110" x2="330" y2="195" 
+                          stroke="#3b82f6" strokeWidth="2" strokeDasharray="8 4" 
+                          className="opacity-70 animate-dash-flow" />
+                </svg>
+                
+                <div className="flex gap-16 items-start relative z-10">
+                    <div className="w-40 bg-slate-800 rounded border border-slate-600 shadow-xl">
+                        <div className="bg-slate-700 p-2 text-xs font-bold text-center border-b border-slate-600">USERS Table</div>
+                        <div className="p-2 flex justify-between items-center bg-yellow-900/30 border-l-2 border-yellow-500">
+                            <span className="text-xs text-slate-300">ID</span>
+                            <i className="fa-solid fa-key text-[10px] text-yellow-400"></i>
+                        </div>
+                        <div className="p-2 text-xs text-slate-500">Name</div>
+                    </div>
+
+                    <div className="w-40 bg-slate-800 rounded border border-slate-600 shadow-xl mt-12">
+                        <div className="bg-slate-700 p-2 text-xs font-bold text-center border-b border-slate-600">ORDERS Table</div>
+                        <div className="p-2 text-xs text-slate-500">Order_ID</div>
+                        <div className="p-2 flex justify-between items-center bg-purple-900/30 border-l-2 border-purple-500">
+                            <span className="text-xs text-slate-300">User_ID</span>
+                            <i className="fa-solid fa-link text-[10px] text-purple-400"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="absolute top-[40%] text-xs font-mono text-slate-500 bg-slate-900 px-2 py-1 rounded border border-slate-800">
+                    RELATIONSHIP
+                </div>
+            </div>
+        );
+    };
+
+    // Slide 12: Terminal Playground
+    const PlaygroundViz = () => {
+        const [input, setInput] = useState("SELECT * FROM products;");
+        const [logs, setLogs] = useState([{ type: 'info', msg: 'Database initialized. Ready.' }]);
+
+        const run = () => {
+            setLogs(p => [...p, { type: 'cmd', msg: `> ${input}` }]);
+            setTimeout(() => {
+                if(input.toLowerCase().includes('select')) {
+                    setLogs(p => [...p, { type: 'success', msg: 'Fetched 5 rows in 0.02s' }]);
+                } else if(input.toLowerCase().includes('create')) {
+                    setLogs(p => [...p, { type: 'success', msg: 'Table "products" created.' }]);
+                } else if(input.toLowerCase().includes('insert')) {
+                     setLogs(p => [...p, { type: 'success', msg: '1 row inserted.' }]);
+                } else {
+                    setLogs(p => [...p, { type: 'success', msg: 'Command executed successfully.' }]);
+                }
+            }, 300);
+        };
+
+        return (
+            <div className="h-full bg-slate-950 rounded border border-slate-800 font-mono text-xs flex flex-col shadow-2xl">
+                <div className="bg-slate-900 p-2 border-b border-slate-800 flex gap-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                </div>
+                <div className="flex-grow p-3 text-slate-300 overflow-y-auto custom-scroll space-y-1">
+                    {logs.map((l, i) => (
+                        <div key={i} className={l.type === 'cmd' ? 'text-blue-400' : l.type === 'success' ? 'text-green-400' : 'text-slate-500'}>
+                            {l.msg}
+                        </div>
+                    ))}
+                </div>
+                <div className="p-3 border-t border-slate-800 flex gap-2">
+                    <span className="text-blue-500">sql&gt;</span>
+                    <input 
+                        className="bg-transparent border-none outline-none flex-grow text-white" 
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && run()}
+                    />
+                    <button onClick={run} className="text-xs bg-blue-600 px-2 rounded text-white">RUN</button>
+                </div>
+            </div>
+        );
+    };
+
+    // --- Main Application ---
+
+    const App = () => {
+        const [currentSlide, setCurrentSlide] = useState(0);
+
+        const slides = [
+            {
+                layout: "center",
+                content: (
+                    <div className="text-center animate-fade-in">
+                        <div className="inline-block p-2 px-4 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-300 text-xs font-mono mb-8">
+                            MODULE: DATABASE_FUNDAMENTALS
+                        </div>
+                        <h1 className="text-6xl md:text-8xl font-black text-white mb-6 tracking-tight">
+                            Introduction to <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-600">SQL</span>
+                        </h1>
+                        <p className="text-2xl text-slate-400 font-light mb-12">
+                            The Standard Language of Data
+                        </p>
+                        <div className="flex justify-center gap-4 text-sm font-mono text-slate-500">
+                            <span>Presenter: Jayan</span>
+                            <span>•</span>
+                            <span>v2.1 Professional</span>
+                        </div>
+                    </div>
+                )
+            },
+            {
+                layout: "split",
+                title: "What is a Database?",
+                subtitle: "Structured Storage at Scale",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>A <strong className="text-white">Database</strong> is an organized collection of structured information, or data, typically stored electronically in a computer system.</p>
+                        
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                            <strong className="text-blue-400">Analogy: The Filing Cabinet</strong>
+                            <p className="text-sm text-slate-400 mt-1">Think of the entire database as the **main filing cabinet** for an organization. It holds all the different types of records, organized for quick access.</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 gap-4">
+                            <div className="flex items-start gap-3">
+                                <i className="fa-solid fa-server mt-1 text-blue-500"></i>
+                                <div>
+                                    <strong className="text-white block text-sm">Centralized Storage</strong>
+                                    <span className="text-xs">Stores millions or billions of records efficiently.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ),
+                viz: <WarehouseViz />
+            },
+            {
+                layout: "split",
+                title: "What is a Table?",
+                subtitle: "The Building Block of Data",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>A <strong className="text-white">Table</strong> is the fundamental structure within a database used to store data in a grid format.</p>
+                        
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                            <strong className="text-green-400">Analogy: The Individual Folder</strong>
+                            <p className="text-sm text-slate-400 mt-1">Each table is a specific **folder** inside the filing cabinet, holding records of only one type (e.g., the 'Employees' folder).</p>
+                        </div>
+
+                        <div className="mt-4">
+                            <span className="text-blue-400 font-bold text-sm uppercase">Columns (Attributes)</span>
+                            <p className="text-xs text-slate-400 mt-1">Vertical pillars. They define the <em>type</em> of data (e.g., Name, Age).</p>
+                        </div>
+                    </div>
+                ),
+                viz: <TableStructureViz />
+            },
+            {
+                layout: "split",
+                title: "Database vs. Table",
+                subtitle: "Container vs. Content Structure",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>This hierarchy defines relational database management systems:</p>
+                        <ul className="space-y-4">
+                            <li className="flex items-center gap-4 p-3 bg-slate-900/50 rounded border border-slate-700">
+                                <div className="p-2 bg-slate-800 rounded"><i className="fa-solid fa-database text-blue-500"></i></div>
+                                <div>
+                                    <strong className="block text-white text-sm">Database</strong>
+                                    <span className="text-xs text-slate-400">The entire Filing Cabinet (Container).</span>
+                                </div>
+                            </li>
+                            <li className="flex items-center gap-4 p-3 bg-slate-900/50 rounded border border-slate-700">
+                                <div className="p-2 bg-slate-800 rounded"><i className="fa-solid fa-table text-green-500"></i></div>
+                                <div>
+                                    <strong className="block text-white text-sm">Table</strong>
+                                    <span className="text-xs text-slate-400">A specific Folder inside the cabinet (Structure).</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                ),
+                viz: <HierarchyViz />
+            },
+            {
+                layout: "split",
+                title: "What is a Schema?",
+                subtitle: "The Blueprint of the Database",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>The <strong className="text-white">Schema</strong> is the formal description of how the data is organized and related within the database.</p>
+                        
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                            <strong className="text-purple-400">Analogy: The Index and Floor Plan</strong>
+                            <p className="text-sm text-slate-400 mt-1">The Schema is the **master index and floor plan** that shows how all the folders (tables) are structured, what information is in them (columns), and how they connect to each other.</p>
+                        </div>
+
+                        <ul className="space-y-4">
+                            <li className="flex gap-4 p-3 bg-slate-900/50 rounded border border-slate-700">
+                                <div className="p-2 bg-slate-800 rounded h-fit"><i className="fa-solid fa-compass-drafting text-blue-400"></i></div>
+                                <div>
+                                    <strong className="block text-white text-sm">Logical Grouping</strong>
+                                    <span className="text-xs text-slate-400">It groups related tables, views, and procedures for easy management and clarity.</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                ),
+                viz: <SchemaViz />
+            },
+            {
+                layout: "split",
+                title: "What is SQL?",
+                subtitle: "Structured Query Language",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>SQL is the standard language for dealing with Relational Databases.</p>
+                        
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                            <strong className="text-yellow-400">Analogy: The Instruction Manual</strong>
+                            <p className="text-sm text-slate-400 mt-1">SQL is the **set of instructions** you use to talk to the filing cabinet—to ask for specific documents, add new ones, or change the labels on the folders.</p>
+                        </div>
+
+                        <div className="space-y-2 mt-4">
+                            <h4 className="font-bold text-white text-sm">Core Capabilities:</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm marker:text-blue-500">
+                                <li>Create and modify database structures.</li>
+                                <li>Insert, update, and delete records.</li>
+                            </ul>
+                        </div>
+                    </div>
+                ),
+                viz: (
+                    <div className="flex flex-col items-center justify-center h-full gap-4">
+                        <div className="flex items-center gap-4 text-slate-400">
+                            <span className="text-sm font-mono">User Request</span>
+                            <i className="fa-solid fa-arrow-right"></i>
+                            <div className="bg-blue-600 text-white px-4 py-2 rounded font-mono font-bold shadow-[0_0_15px_rgba(37,99,235,0.5)]">SQL</div>
+                            <i className="fa-solid fa-arrow-right"></i>
+                            <span className="text-sm font-mono">Database</span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-8 font-mono bg-slate-900 p-2 rounded">SELECT * FROM data;</div>
+                    </div>
+                )
+            },
+            {
+                layout: "split",
+                title: "SQL Command Categories",
+                subtitle: "The 5 Pillars of SQL",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>SQL commands are grouped by their functionality.</p>
+                        <div className="bg-slate-900/50 p-4 rounded border-l-2 border-blue-500">
+                            <strong className="text-blue-400">DDL (Definition)</strong>
+                            <p className="text-xs text-slate-400">Defines the structure (tables, schemas).</p>
+                        </div>
+                        <div className="bg-slate-900/50 p-4 rounded border-l-2 border-green-500">
+                            <strong className="text-green-400">DML (Manipulation)</strong>
+                            <p className="text-xs text-slate-400">Manages the data itself (rows).</p>
+                        </div>
+                    </div>
+                ),
+                viz: <CategoriesViz />
+            },
+            {
+                layout: "split",
+                title: "Keys in SQL",
+                subtitle: "Establishing Relationships",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>Keys are used to identify records and link tables together.</p>
+                        
+                        <div className="mb-4">
+                            <div className="flex items-center gap-2 mb-1">
+                                <i className="fa-solid fa-key text-yellow-400 text-sm"></i>
+                                <strong className="text-white text-sm">Primary Key (PK)</strong>
+                            </div>
+                            <p className="text-sm text-slate-400 pl-6">Unique identifier for a record (e.g., ID). Cannot be NULL. (Like a unique employee badge number)</p>
+                        </div>
+
+                        <div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <i className="fa-solid fa-link text-purple-400 text-sm"></i>
+                                <strong className="text-white text-sm">Foreign Key (FK)</strong>
+                            </div>
+                            <p className="text-sm text-slate-400 pl-6">Links to a PK in another table. Creates the relationship. (Like linking a purchase order back to a customer's badge number)</p>
+                        </div>
+                    </div>
+                ),
+                viz: <KeysViz />
+            },
+            {
+                layout: "split",
+                title: "Basic SQL Syntax",
+                subtitle: "Code Examples",
+                text: (
+                    <div className="space-y-4 text-sm font-mono">
+                        <div className="bg-slate-900/80 p-4 rounded border border-slate-700">
+                            <div className="text-slate-500 mb-1">// 1. Create a Table</div>
+                            <div className="text-blue-300">CREATE TABLE</div> employees (<br/>
+                            &nbsp;&nbsp;id <span className="text-purple-400">INT PRIMARY KEY</span>,<br/>
+                            &nbsp;&nbsp;name <span className="text-purple-400">VARCHAR(50)</span><br/>
+                            );
+                        </div>
+                        
+                        <div className="bg-slate-900/80 p-4 rounded border border-slate-700">
+                            <div className="text-slate-500 mb-1">// 2. Insert Data</div>
+                            <div className="text-green-300">INSERT INTO</div> employees <br/>
+                            <div className="text-green-300">VALUES</div> (1, 'Rita');
+                        </div>
+                    </div>
+                ),
+                viz: (
+                    <div className="h-full flex flex-col justify-center gap-4">
+                        <div className="bg-slate-900/80 p-4 rounded border border-slate-700 text-sm font-mono">
+                            <div className="text-slate-500 mb-1">// 3. Query Data</div>
+                            <div className="text-yellow-300">SELECT</div> * <div className="text-yellow-300">FROM</div> employees;
+                        </div>
+                        <div className="bg-black/40 p-3 rounded border border-slate-800 text-xs font-mono text-slate-400">
+                            > Query executed successfully.<br/>
+                            > 1 row returned.
+                        </div>
+                    </div>
+                )
+            },
+            {
+                layout: "split",
+                title: "Filtering & Sorting",
+                subtitle: "Refining Results",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>SQL provides powerful keywords to narrow down data.</p>
+                        
+                        <div className="bg-slate-900/50 border border-slate-700 p-4 rounded-lg">
+                            <strong className="text-yellow-400">Analogy: Advanced Retrieval</strong>
+                            <p className="text-sm text-slate-400 mt-1">This is like telling the filing clerk: "Retrieve only the 'Employee' folders (Table), where the salary field is over $50,000 (WHERE), and hand them to me sorted alphabetically (ORDER BY)."</p>
+                        </div>
+
+                        <ul className="space-y-4">
+                            <li className="p-2 border-b border-slate-800">
+                                <strong className="text-white font-mono text-sm block mb-1">WHERE</strong>
+                                <span className="text-sm text-slate-400">Filters records based on a condition.</span>
+                            </li>
+                        </ul>
+                    </div>
+                ),
+                viz: (
+                     <div className="flex items-center justify-center h-full">
+                         <div className="w-full max-w-xs space-y-2">
+                             {[10000, 60000, 25000, 90000, 45000].map((val, i) => (
+                                 <div key={i} className={`p-2 rounded font-mono text-xs flex justify-between items-center transition-all duration-500
+                                    ${val > 50000 ? 'bg-green-900/30 border border-green-500/50 text-green-300' : 'bg-slate-800/50 border border-slate-700 text-slate-600 opacity-50'}`}>
+                                     <span>Salary: ${val}</span>
+                                     {val > 50000 && <i className="fa-solid fa-check"></i>}
+                                 </div>
+                             ))}
+                             <div className="text-center text-xs text-yellow-500 font-mono mt-2">WHERE salary > 50000</div>
+                         </div>
+                     </div>
+                )
+            },
+            {
+                layout: "split",
+                title: "Why SQL is Fast",
+                subtitle: "Engine Optimization",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <ul className="space-y-4">
+                            <li className="flex gap-3">
+                                <div className="text-blue-500 font-bold">01.</div>
+                                <div>
+                                    <strong className="text-white text-sm block">Indexing</strong>
+                                    <span className="text-sm text-slate-400">Like a book's index, finds data instantly without scanning the whole table.</span>
+                                </div>
+                            </li>
+                            <li className="flex gap-3">
+                                <div className="text-blue-500 font-bold">02.</div>
+                                <div>
+                                    <strong className="text-white text-sm block">Relational Algebra</strong>
+                                    <span className="text-sm text-slate-400">Processes entire sets of rows at once, not row-by-row loops.</span>
+                                </div>
+                            </li>
+                            <li className="flex gap-3">
+                                <div className="text-blue-500 font-bold">03.</div>
+                                <div>
+                                    <strong className="text-white text-sm block">Optimizers</strong>
+                                    <span className="text-sm text-slate-400">Cost-based execution plans determine the most efficient path.</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                ),
+                viz: (
+                    <div className="h-full flex flex-col justify-center px-8">
+                         <div className="mb-2 text-xs font-mono text-slate-400">PERFORMANCE_METRIC</div>
+                         <div className="w-full bg-slate-800 h-4 rounded-full overflow-hidden mb-4">
+                             <div className="h-full bg-blue-500 w-[95%] shadow-[0_0_15px_#3b82f6]"></div>
+                         </div>
+                         <div className="flex justify-between text-xs text-slate-500">
+                             <span>Query Cost: Low</span>
+                             <span>Speed: 0.04ms</span>
+                         </div>
+                    </div>
+                )
+            },
+             {
+                layout: "center",
+                content: (
+                    <div className="text-center max-w-4xl animate-fade-in">
+                        <h2 className="text-4xl font-bold mb-12 text-white">Real-Life Applications</h2>
+                        
+                        <div className="grid grid-cols-4 gap-6 text-left">
+                            <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg hover:border-blue-500 transition">
+                                <i className="fa-solid fa-building-columns text-2xl text-blue-400 mb-4"></i>
+                                <h3 className="font-bold text-white mb-2">Banking</h3>
+                                <p className="text-xs text-slate-400">Transactions & Consistency</p>
+                            </div>
+                            <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg hover:border-green-500 transition">
+                                <i className="fa-solid fa-cart-shopping text-2xl text-green-400 mb-4"></i>
+                                <h3 className="font-bold text-white mb-2">E-Commerce</h3>
+                                <p className="text-xs text-slate-400">Inventory & Orders</p>
+                            </div>
+                            <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg hover:border-purple-500 transition">
+                                <i className="fa-solid fa-chart-line text-2xl text-purple-400 mb-4"></i>
+                                <h3 className="font-bold text-white mb-2">Analytics</h3>
+                                <p className="text-xs text-slate-400">Business Intelligence</p>
+                            </div>
+                             <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg hover:border-pink-500 transition">
+                                <i className="fa-solid fa-notes-medical text-2xl text-pink-400 mb-4"></i>
+                                <h3 className="font-bold text-white mb-2">Healthcare</h3>
+                                <p className="text-xs text-slate-400">Patient Records</p>
+                            </div>
+                        </div>
+                    </div>
+                )
+            },
+            {
+                layout: "split",
+                title: "Live Demo",
+                subtitle: "Mini SQL Playground",
+                text: (
+                    <div className="space-y-6 text-lg text-slate-300">
+                        <p>Use the integrated playground to test basic commands and see immediate feedback.</p>
+                        <ul className="text-sm space-y-3">
+                            <li className="flex items-center gap-3">
+                                <span className="bg-slate-800 px-2 py-1 rounded border border-slate-700 font-mono text-xs">CREATE</span>
+                                <span>Define the structure.</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="bg-slate-800 px-2 py-1 rounded border border-slate-700 font-mono text-xs">INSERT</span>
+                                <span>Populate data.</span>
+                            </li>
+                            <li className="flex items-center gap-3">
+                                <span className="bg-slate-800 px-2 py-1 rounded border border-slate-700 font-mono text-xs">SELECT</span>
+                                <span>Retrieve results.</span>
+                            </li>
+                        </ul>
+                    </div>
+                ),
+                viz: <PlaygroundViz />
+            }
+        ];
+
+        // Navigation
+        useEffect(() => {
+            const handleKey = (e) => {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+            };
+            window.addEventListener('keydown', handleKey);
+            return () => window.removeEventListener('keydown', handleKey);
+        }, [slides.length]);
+
+        const CurrentContent = slides[currentSlide];
+
+        return (
+            <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950">
+                {/* Background ambient light */}
+                <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-900/10 rounded-full blur-[120px] pointer-events-none animate-pulse-ring"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-indigo-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                {/* Progress Bar */}
+                <div className="w-full h-1 bg-slate-900 z-50">
+                    <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                </div>
+
+                <div className="flex-1 flex items-center justify-center p-8 z-10">
+                    {CurrentContent.layout === 'center' && (
+                        <div className="w-full flex justify-center animate-fade-in">{CurrentContent.content}</div>
+                    )}
+                    {CurrentContent.layout === 'split' && (
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 w-full max-w-7xl h-[80vh] items-center">
+                            {/* Left Text Column */}
+                            <div className="flex flex-col justify-center h-full space-y-6 animate-fade-in">
+                                <div>
+                                    <h2 className="text-4xl md:text-5xl font-bold text-white mb-2 tracking-tight">{CurrentContent.title}</h2>
+                                    <h3 className="text-xl text-blue-400 font-mono">{CurrentContent.subtitle}</h3>
+                                </div>
+                                <div className="h-1 w-16 bg-blue-500 rounded"></div>
+                                <div className="text-slate-300 leading-relaxed">
+                                    {CurrentContent.text}
+                                </div>
+                            </div>
+                            
+                            {/* Right Viz Column */}
+                            <div className="h-full bg-slate-900/40 rounded-2xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-8 glass-panel animate-fade-in">
+                                {CurrentContent.viz}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Controls */}
+                <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
+                    <button onClick={() => setCurrentSlide(s => Math.max(0, s-1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition">PREV</button>
+                    <span className="self-center text-slate-300">{currentSlide + 1} / {slides.length}</span>
+                    <button onClick={() => setCurrentSlide(s => Math.min(slides.length-1, s+1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition">NEXT</button>
+                </div>
+            </div>
+        );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jayan's SQL Server - Enterprise Edition</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alasql@1.7.3/dist/alasql.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#020617',
+                            panel: '#0f172a',
+                            primary: '#8b5cf6', // Violet
+                            secondary: '#06b6d4', // Cyan
+                            accent: '#d946ef', // Fuchsia
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+
+        body { 
+            background-color: #020617;
+            color: #e2e8f0; 
+            font-family: 'Space Grotesk', sans-serif; 
+            overflow: hidden; 
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-header {
+            background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .text-gradient {
+            background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 50%, #d946ef 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .animate-slide-in { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 3px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: rgba(139, 92, 246, 0.6); }
+
+        .code-editor {
+            background: #0b0f19;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- PROFESSIONAL DATA: IT ASSET INVENTORY ---
+        const ASSET_DATA = [
+            { id: 101, product_name: "Dell Precision 7680", category: "Workstation", vendor: "Dell Tech", performance: 94, cost: 2800, msrp: 3200, stock: 15, tags: "High-End,Dev" },
+            { id: 102, product_name: "MacBook Pro M3 Max", category: "Mobile", vendor: "Apple Inc", performance: 92, cost: 3100, msrp: 3499, stock: 42, tags: "Creative,Premium" },
+            { id: 103, product_name: "Logitech MX Master 3S", category: "Peripheral", vendor: "Logitech", performance: 15, cost: 75, msrp: 99, stock: 120, tags: "Ergo,Office" },
+            { id: 104, product_name: "Cisco Catalyst 9300", category: "Networking", vendor: "Cisco Systems", performance: 85, cost: 4200, msrp: 5100, stock: 5, tags: "Infrastructure" },
+            { id: 105, product_name: "NVIDIA RTX 6000 Ada", category: "GPU", vendor: "NVIDIA", performance: 99, cost: 6800, msrp: 6800, stock: 3, tags: "AI/ML,Compute" },
+            { id: 106, product_name: "Generic USB-C Hub", category: "Peripheral", vendor: "AssetSupply", performance: 5, cost: 15, msrp: 25, stock: 500, tags: "Utility" },
+            { id: 107, product_name: "Dell UltraSharp 32 4K", category: "Monitor", vendor: "Dell Tech", performance: 82, cost: 850, msrp: 1100, stock: 28, tags: "Creative" },
+            { id: 108, product_name: "AWS Snowball Edge", category: "Storage", vendor: "AWS", performance: 95, cost: 15000, msrp: 18500, stock: 2, tags: "Cloud,Storage" },
+            { id: 110, product_name: "Lenovo ThinkPad X1", category: "Mobile", vendor: "Lenovo", performance: 88, cost: 1600, msrp: 1850, stock: 65, tags: "Management" },
+            { id: 111, product_name: "Jira Enterprise Seat", category: "SaaS", vendor: "Atlassian", performance: 0, cost: 450, msrp: 450, stock: 500, tags: "Software" },
+            { id: 112, product_name: "FortiGate 60F", category: "Networking", vendor: "Fortinet", performance: 78, cost: 650, msrp: 850, stock: 12, tags: "Security" }
+        ];
+
+        // --- SQL ENGINE SETUP ---
+        alasql("CREATE TABLE assets (id INT, product_name STRING, category STRING, vendor STRING, performance INT, cost INT, msrp INT, stock INT, tags STRING)");
+        alasql.tables.assets.data = ASSET_DATA;
+
+        const Slide = ({ title, subtitle, query, explanation, tip, slideIndex, totalSlides }) => {
+            const [currentQuery, setCurrentQuery] = useState(query);
+            const [result, setResult] = useState([]);
+            const [error, setError] = useState(null);
+            const [isRunHovered, setIsRunHovered] = useState(false);
+
+            useEffect(() => {
+                setCurrentQuery(query);
+                runQuery(query);
+            }, [query]);
+
+            const runQuery = (q) => {
+                try {
+                    setError(null);
+                    if (!q.toLowerCase().includes("select")) throw new Error("Security Alert: Only DQL (SELECT) operations permitted.");
+                    const res = alasql(q);
+                    setResult(res);
+                } catch (err) {
+                    setError(err.message);
+                    setResult([]);
+                }
+            };
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                    runQuery(currentQuery);
+                }
+            };
+
+            const getHeaders = (data) => data.length > 0 ? Object.keys(data[0]) : [];
+
+            return (
+                <div className="flex flex-col lg:flex-row h-full gap-6 p-4 max-w-[1600px] mx-auto">
+                    
+                    {/* LEFT PANEL */}
+                    <div className="w-full lg:w-[35%] flex flex-col gap-6 animate-slide-in">
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 text-cyber-secondary mb-2">
+                                <span className="text-xs font-mono px-2 py-0.5 rounded border border-cyan-500/30 bg-cyan-500/10 uppercase">Module {slideIndex + 1}/{totalSlides}</span>
+                            </div>
+                            <h2 className="text-4xl font-bold text-white tracking-tight">{title}</h2>
+                            <p className="text-purple-200 text-lg leading-relaxed font-light">{subtitle}</p>
+                        </div>
+
+                        <div className="glass-panel p-6 rounded-2xl border-l-4 border-cyber-primary relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                <i className="fa-solid fa-briefcase text-6xl text-white"></i>
+                            </div>
+                            <h3 className="text-cyber-primary font-bold mb-3 flex items-center gap-2">
+                                <i className="fa-solid fa-circle-info"></i> ENTERPRISE BRIEF
+                            </h3>
+                            <div className="text-slate-300 text-sm leading-7">
+                                {explanation}
+                            </div>
+                        </div>
+
+                        {tip && (
+                            <div className="bg-gradient-to-r from-cyan-900/40 to-blue-900/40 border border-cyan-500/30 p-4 rounded-xl flex gap-3 items-start">
+                                <i className="fa-solid fa-lightbulb text-cyan-400 mt-1"></i>
+                                <p className="text-xs text-cyan-100/80 italic">{tip}</p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* RIGHT PANEL: The Terminal */}
+                    <div className="w-full lg:w-[65%] flex flex-col gap-4 animate-slide-in" style={{animationDelay: '0.1s'}}>
+                        
+                        {/* 1. EDITOR */}
+                        <div className="glass-panel rounded-xl overflow-hidden shadow-2xl flex flex-col h-[40%] min-h-[250px] border border-slate-700/50">
+                            <div className="glass-header px-4 py-2 flex justify-between items-center">
+                                <div className="flex items-center gap-2">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                                        <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                                    </div>
+                                    <span className="ml-3 text-xs font-mono text-slate-400">ASSET_AUDIT.sql</span>
+                                </div>
+                                <button 
+                                    onClick={() => runQuery(currentQuery)}
+                                    onMouseEnter={() => setIsRunHovered(true)}
+                                    onMouseLeave={() => setIsRunHovered(false)}
+                                    className="group relative px-4 py-1.5 rounded-lg bg-gradient-to-r from-cyber-primary to-cyber-accent hover:from-violet-500 hover:to-fuchsia-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-900/20"
+                                >
+                                    <span className="flex items-center gap-2">
+                                        <i className={`fa-solid fa-play transition-transform ${isRunHovered ? 'scale-125' : ''}`}></i> 
+                                        EXECUTE
+                                    </span>
+                                </button>
+                            </div>
+                            <div className="flex-1 relative code-editor">
+                                <textarea 
+                                    value={currentQuery}
+                                    onChange={(e) => setCurrentQuery(e.target.value)}
+                                    onKeyDown={handleKeyDown}
+                                    spellCheck="false"
+                                    className="w-full h-full bg-transparent p-5 font-mono text-sm md:text-base text-cyan-100 outline-none resize-none z-10 relative"
+                                    style={{lineHeight: '1.6'}}
+                                />
+                                <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 font-mono select-none pointer-events-none uppercase">
+                                    CTRL + ENTER TO RUN
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 2. RESULTS */}
+                        <div className="glass-panel rounded-xl overflow-hidden shadow-2xl flex flex-col flex-1 border border-slate-700/50">
+                            <div className="glass-header px-4 py-2 flex justify-between items-center bg-slate-900/90">
+                                <span className="font-mono text-xs text-cyber-secondary font-bold tracking-wider">
+                                    <i className="fa-solid fa-table-list mr-2"></i>OUTPUT_STREAM
+                                </span>
+                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded border ${error ? 'border-red-500/30 bg-red-500/10 text-red-400' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'}`}>
+                                    {error ? 'ERROR' : `STATUS: 200 OK • ${result.length} ROWS`}
+                                </span>
+                            </div>
+
+                            <div className="flex-1 overflow-auto custom-scroll bg-[#0f172a]/80">
+                                {error ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-red-400 p-8 text-center font-mono">
+                                        <i className="fa-solid fa-triangle-exclamation text-4xl mb-4 opacity-50"></i>
+                                        <p className="bg-red-950/30 border border-red-500/20 p-3 rounded text-sm">{error}</p>
+                                    </div>
+                                ) : result.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-slate-600 font-mono">
+                                        <i className="fa-solid fa-magnifying-glass text-3xl mb-3 opacity-20"></i>
+                                        <p className="text-sm">No records found</p>
+                                    </div>
+                                ) : (
+                                    <table className="w-full text-left text-sm border-collapse">
+                                        <thead className="sticky top-0 z-10">
+                                            <tr className="bg-slate-900/95 backdrop-blur shadow-sm">
+                                                {getHeaders(result).map((head, i) => (
+                                                    <th key={i} className="p-3 font-mono text-xs uppercase text-slate-400 border-b border-slate-700/80 tracking-wider whitespace-nowrap">
+                                                        {head.replace('_', ' ')}
+                                                    </th>
+                                                ))}
+                                            </tr>
+                                        </thead>
+                                        <tbody className="font-mono text-xs md:text-sm divide-y divide-slate-800/50">
+                                            {result.map((row, i) => (
+                                                <tr key={i} className="hover:bg-cyber-primary/10 transition-colors group">
+                                                    {Object.values(row).map((val, j) => (
+                                                        <td key={j} className={`p-3 text-slate-300 whitespace-nowrap group-hover:text-white transition-colors ${typeof val === 'number' ? 'text-right text-cyber-secondary' : ''}`}>
+                                                            {val}
+                                                        </td>
+                                                    ))}
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+            const App = () => {
+                const [currentIndex, setCurrentIndex] = useState(0);
+
+                const slides = [
+                    {
+                        title: "SELECT *",
+                        subtitle: "Full Asset Audit",
+                        query: "SELECT * FROM assets;",
+                        explanation: <div>The <code>SELECT *</code> command is your starting point. It retrieves <strong>every column</strong> and <strong>every row</strong> from the assets table. In production environments with millions of items, this is usually avoided to save bandwidth.</div>,
+                        tip: "Only use SELECT * for initial exploration or small tables."
+                    },
+                    {
+                        title: "Specific Columns",
+                        subtitle: "Asset Specifications",
+                        query: "SELECT product_name, vendor, performance FROM assets;",
+                        explanation: "By naming specific columns, we create a leaner report focused purely on product capabilities, ignoring financial and stock data. This is much faster and cleaner for technical audits."
+                    },
+                    {
+                        title: "WHERE Clause",
+                        subtitle: "Performance Thresholds",
+                        query: "SELECT * FROM assets \nWHERE performance > 90;",
+                        explanation: "Filtering allows us to identify high-performance equipment. The database only returns rows where the condition is TRUE—in this case, our high-end workstations and GPUs.",
+                        tip: "Use > (greater), < (less), = (equal), and != (not equal) for filtering."
+                    },
+                    {
+                        title: "Logical Filters",
+                        subtitle: "Procurement Variance",
+                        query: "SELECT * FROM assets \nWHERE msrp > cost;",
+                        explanation: "You can compare two columns against each other. Here we identify assets where the Market Price (MSRP) is higher than our cost, showing where we are getting a margin.",
+                    },
+                    {
+                        title: "Exact Matches",
+                        subtitle: "Vendor Isolation",
+                        query: "SELECT * FROM assets \nWHERE vendor = 'Dell Tech';",
+                        explanation: "To find exact text matches, use the = operator. Text strings in SQL must always be wrapped in single quotes ('Like This') to distinguish them from column names.",
+                    },
+                    {
+                        title: "ORDER BY",
+                        subtitle: "Sorting High-Value Assets",
+                        query: "SELECT product_name, cost FROM assets \nORDER BY cost DESC;",
+                        explanation: "RAW data is messy. ORDER BY sorts your result set. DESC (Descending) puts the most expensive assets at the top, creating a cost leaderboard.",
+                    },
+                    {
+                        title: "LIMIT",
+                        subtitle: "Top Procurement Needs",
+                        query: "SELECT product_name, stock FROM assets \nORDER BY stock ASC \nLIMIT 3;",
+                        explanation: "By combining sorting (ASC = Low to High) and LIMIT, we efficiently generate a 'Low Stock Alert' report showing the 3 items that need reordering immediately.",
+                    },
+                    {
+                        title: "Aggregations",
+                        subtitle: "Portfolio Summary",
+                        query: "SELECT \n  COUNT(*) AS total_assets, \n  AVG(cost) AS avg_cost, \n  MAX(performance) AS peak_perf \nFROM assets;",
+                        explanation: "Aggregate functions crunch multiple rows into summary statistics—essential for building executive dashboards and high-level reports.",
+                    },
+                    {
+                        title: "GROUP BY",
+                        subtitle: "Departmental Breakdown",
+                        query: "SELECT category, COUNT(*) AS asset_count \nFROM assets \nGROUP BY category \nORDER BY asset_count DESC;",
+                        explanation: "GROUP BY buckets the data. This allows us to see how many items we have in each category (Networking, Mobile, SaaS, etc.) rather than listing individual items.",
+                    },
+                    {
+                        title: "Pattern Matching",
+                        subtitle: "Fuzzy Searching with LIKE",
+                        query: "SELECT * FROM assets \nWHERE product_name LIKE '%Pro%';",
+                        explanation: "The % wildcard allows us to search for partial matches. This query finds any asset with 'Pro' in the name (MacBook Pro, UltraSharp Pro, etc.).",
+                        tip: "'%Pro%' looks for the word anywhere. 'Pro%' looks at the start."
+                    },
+                    {
+                        title: "Derived Fields",
+                        subtitle: "Instant Margin Analysis",
+                        query: "SELECT \n  product_name, \n  msrp, \n  cost, \n  msrp - cost AS potential_savings \nFROM assets;",
+                        explanation: "We can perform math on-the-fly to create new columns that don't physically exist in the database. This allows for dynamic financial analysis.",
+                    },
+                    {
+                        title: "Pattern Scan",
+                        subtitle: "Multi-tag Search",
+                        query: "SELECT * FROM assets \nWHERE tags LIKE '%Office%';",
+                        explanation: "For columns containing lists or multiple attributes (like our tags), LIKE is the primary tool for finding specific keywords hidden within a string.",
+                    }
+                ];
+
+                const nextSlide = () => setCurrentIndex(prev => Math.min(slides.length - 1, prev + 1));
+                const prevSlide = () => setCurrentIndex(prev => Math.max(0, prev - 1));
+
+                return (
+                    <div className="h-screen w-screen flex flex-col bg-[#020617] relative">
+                        
+                        {/* Background Elements */}
+                        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+                        {/* Navbar */}
+                        <div className="relative z-50 px-6 py-4 border-b border-slate-800/60 bg-[#020617]/80 backdrop-blur-md flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-primary to-cyber-accent flex items-center justify-center shadow-lg shadow-purple-500/20">
+                                    <i className="fa-solid fa-server text-white text-lg"></i>
+                                </div>
+                                <div>
+                                    <h1 className="font-bold text-xl tracking-wider text-white">Jayan's <span className="text-gradient">SQL Terminal</span></h1>
+                                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        ASSET_DB ONLINE • v2.4.0
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="hidden md:flex gap-6 text-sm font-mono text-slate-500">
+                                <div className="flex items-center gap-2">
+                                    <i className="fa-solid fa-database text-cyber-secondary"></i>
+                                    <span>INVENTORY_DB</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <i className="fa-solid fa-shield-halved text-cyber-accent"></i>
+                                    <span>ADMIN_ACCESS</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Main Content Area */}
+                        <div className="relative z-10 flex-1 overflow-hidden pt-4">
+                            <Slide 
+                                key={currentIndex} 
+                                {...slides[currentIndex]} 
+                                slideIndex={currentIndex}
+                                totalSlides={slides.length}
+                            />
+                        </div>
+
+                        {/* Footer / Navigation Bar */}
+                        <div className="relative z-50 p-4 border-t border-slate-800/60 bg-[#020617]/90 backdrop-blur flex justify-between items-center">
+                            
+                            {/* Progress Bar Container */}
+                            <div className="w-1/4 flex flex-col gap-1">
+                                <div className="flex justify-between text-[10px] font-mono text-slate-500 uppercase">
+                                    <span>Module Progress</span>
+                                    <span>{Math.round(((currentIndex + 1) / slides.length) * 100)}%</span>
+                                </div>
+                                <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full">
+                                    <div 
+                                        className="h-full bg-gradient-to-r from-cyber-secondary via-cyber-primary to-cyber-accent transition-all duration-500 ease-out shadow-[0_0_10px_rgba(139,92,246,0.5)]"
+                                        style={{width: `${((currentIndex + 1) / slides.length) * 100}%`}}
+                                    ></div>
+                                </div>
+                            </div>
+
+                            {/* Navigation Controls */}
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={prevSlide} 
+                                    disabled={currentIndex === 0}
+                                    className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-3 border ${currentIndex === 0 ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:bg-slate-700 hover:border-slate-600 hover:text-white hover:shadow-lg hover:shadow-cyan-900/20'}`}
+                                >
+                                    <i className="fa-solid fa-chevron-left"></i> PREV
+                                </button>
+                                
+                                <button 
+                                    onClick={nextSlide} 
+                                    disabled={currentIndex === slides.length - 1}
+                                    className={`px-6 py-2.5 rounded-lg font-bold text-sm transition-all flex items-center gap-3 ${currentIndex === slides.length - 1 ? 'border border-slate-800 text-slate-700 cursor-not-allowed' : 'bg-gradient-to-r from-cyber-primary to-cyber-accent text-white hover:opacity-90 shadow-lg shadow-purple-900/30'}`}
+                                >
+                                    NEXT <i className="fa-solid fa-chevron-right"></i>
+                                </button>
+                            </div>
+
+                            <div className="w-1/4 text-right hidden md:block">
+                                <span className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">
+                                    SECURE CONNECTION // ENCRYPTED
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jayan's SQL Ops | Enterprise Logic</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alasql@1.7.3/dist/alasql.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#020617',
+                            panel: '#0f172a',
+                            primary: '#8b5cf6',
+                            secondary: '#06b6d4',
+                            accent: '#d946ef',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { background-color: #020617; color: #e2e8f0; font-family: 'Space Grotesk', sans-serif; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(139, 92, 246, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .glass-header { background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%); border-bottom: 1px solid rgba(139, 92, 246, 0.2); }
+        .text-gradient { background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 50%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .animate-slide-in { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 3px; }
+        .code-editor { background: #0b0f19; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        const CUSTOMER_DATA = [
+            { id: 1, name: "Alpha Tech Solutions", city: "San Francisco", segment: "Enterprise", status: "Active", tier: 3, spend: 125000 },
+            { id: 2, name: "Blue Horizon Media", city: "New York", segment: "SMB", status: "Active", tier: 1, spend: 12000 },
+            { id: 3, name: "City Logistics Co", city: "Chicago", segment: "Mid-Market", status: "Inactive", tier: 2, spend: 45000 },
+            { id: 4, name: "Delta Global Systems", city: "San Francisco", segment: "Enterprise", status: "Active", tier: 3, spend: 210000 },
+            { id: 5, name: "Echo Real Estate", city: "Austin", segment: "SMB", status: "Active", tier: 1, spend: 8000 },
+            { id: 6, name: "Falcon Aerospace", city: "Seattle", segment: "Enterprise", status: "Churned", tier: 2, spend: 95000 },
+            { id: 7, name: "Giga-Corp Int", city: "New York", segment: "Enterprise", status: "Active", tier: 3, spend: 550000 },
+            { id: 8, name: "Halo Software", city: "Austin", segment: "SMB", status: "Active", tier: 2, spend: 32000 },
+            { id: 9, name: "Iridium Labs", city: "San Francisco", segment: "Mid-Market", status: "Active", tier: 2, spend: 67000 },
+            { id: 10, name: "Juniper Retail", city: "Chicago", segment: "SMB", status: "Inactive", tier: 1, spend: 5000 }
+        ];
+
+        alasql("CREATE TABLE customers (id INT, name STRING, city STRING, segment STRING, status STRING, tier INT, spend INT)");
+        alasql.tables.customers.data = CUSTOMER_DATA;
+
+        const LEVELS = [
+            {
+                title: "Market Distribution",
+                operator: "DISTINCT",
+                brief: "Logistics needs a list of all unique cities where we have client headquarters. We don't need duplicate city names.",
+                objective: "Select all unique 'city' names from the 'customers' table.",
+                defaultQuery: "SELECT ______ city FROM customers;",
+                correctQuery: "SELECT DISTINCT city FROM customers",
+                hint: "Use DISTINCT to remove duplicate values from your results."
+            },
+            {
+                title: "Active Enterprise Targets",
+                operator: "AND",
+                brief: "Marketing wants to target Enterprise clients who are currently Active. Only include those meeting both criteria.",
+                objective: "Select all columns where segment is 'Enterprise' AND status is 'Active'.",
+                defaultQuery: "SELECT * FROM customers \nWHERE segment = 'Enterprise' ______ status = 'Active';",
+                correctQuery: "SELECT * FROM customers WHERE segment = 'Enterprise' AND status = 'Active'",
+                hint: "The AND operator filters rows that satisfy ALL conditions."
+            },
+            {
+                title: "Regional Focus",
+                operator: "OR",
+                brief: "Our sales team is targeting high-growth hubs. Find all clients located in either 'Austin' OR 'Seattle'.",
+                objective: "Select all customers where city is 'Austin' OR city is 'Seattle'.",
+                defaultQuery: "SELECT * FROM customers \nWHERE city = 'Austin' ______ city = 'Seattle';",
+                correctQuery: "SELECT * FROM customers WHERE city = 'Austin' OR city = 'Seattle'",
+                hint: "OR returns a row if at least one of the conditions is true."
+            },
+            {
+                title: "High-Spend Bracket",
+                operator: "BETWEEN",
+                brief: "Identify clients in our 'Gold' spend bracket: those who have spent between $40,000 and $100,000.",
+                objective: "Find customers where 'spend' is BETWEEN 40000 AND 100000.",
+                defaultQuery: "SELECT * FROM customers \nWHERE spend ______ 40000 ______ 100000;",
+                correctQuery: "SELECT * FROM customers WHERE spend BETWEEN 40000 AND 100000",
+                hint: "BETWEEN is inclusive, meaning it includes the boundary numbers."
+            },
+            {
+                title: "Retention Audit",
+                operator: "NOT",
+                brief: "Audit the database for all clients EXCEPT those who have already Churned. We need to focus on existing accounts.",
+                objective: "Select customers where status is NOT 'Churned'.",
+                defaultQuery: "SELECT * FROM customers \nWHERE ______ status = 'Churned';",
+                correctQuery: "SELECT * FROM customers WHERE NOT status = 'Churned'",
+                hint: "NOT reverses the result of any logical condition."
+            },
+            {
+                title: "Expansion Hubs",
+                operator: "IN",
+                brief: "Find all clients headquartered in 'New York', 'Chicago', or 'Austin' using a single operator.",
+                objective: "Use the IN operator to check if the city is in ('New York', 'Chicago', 'Austin').",
+                defaultQuery: "SELECT * FROM customers \nWHERE city ______ ('New York', 'Chicago', 'Austin');",
+                correctQuery: "SELECT * FROM customers WHERE city IN ('New York', 'Chicago', 'Austin')",
+                hint: "IN is a cleaner way to write multiple OR conditions."
+            },
+            {
+                title: "Advanced Logic",
+                operator: "AND / OR",
+                brief: "Find Active clients who are either in the 'Enterprise' segment OR have a tier of 3.",
+                objective: "Select * where status is 'Active' AND (segment = 'Enterprise' OR tier = 3).",
+                defaultQuery: "SELECT * FROM customers \nWHERE status = 'Active' \nAND (segment = 'Enterprise' ______ tier = 3);",
+                correctQuery: "SELECT * FROM customers WHERE status = 'Active' AND (segment = 'Enterprise' OR tier = 3)",
+                hint: "Use parentheses to ensure the OR logic is evaluated before the AND logic."
+            }
+        ];
+
+        const App = () => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userQuery, setUserQuery] = useState("");
+            const [result, setResult] = useState([]);
+            const [feedback, setFeedback] = useState({ type: 'neutral', msg: 'Awaiting Command...' });
+            const [showHint, setShowHint] = useState(false);
+
+            const level = LEVELS[currentIndex];
+
+            useEffect(() => {
+                setUserQuery(level.defaultQuery);
+                setResult([]);
+                setFeedback({ type: 'neutral', msg: 'System Ready. Enter Query.' });
+                setShowHint(false);
+            }, [currentIndex]);
+
+            const runQuery = () => {
+                try {
+                    if (!userQuery.toLowerCase().includes("select")) throw new Error("Security Alert: Only DQL (SELECT) operations permitted.");
+                    const res = alasql(userQuery);
+                    setResult(res);
+                    const correctRes = alasql(level.correctQuery);
+                    if (JSON.stringify(res) === JSON.stringify(correctRes)) {
+                        setFeedback({ type: 'success', msg: 'VALIDATION SUCCESS: Query Verified.' });
+                    } else {
+                        setFeedback({ type: 'error', msg: 'VALIDATION FAILED: Result set mismatch.' });
+                    }
+                } catch (err) {
+                    setResult([]);
+                    setFeedback({ type: 'error', msg: `SYNTAX ERROR: ${err.message}` });
+                }
+            };
+
+            return (
+                <div className="h-screen w-screen flex flex-col bg-[#020617] relative">
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/20 rounded-full blur-[120px] pointer-events-none"></div>
+
+                    <header className="relative z-50 px-6 py-4 border-b border-slate-800/60 bg-[#020617]/80 backdrop-blur-md flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-primary to-cyber-accent flex items-center justify-center shadow-lg shadow-purple-500/20">
+                                <i className="fa-solid fa-bolt text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h1 className="font-bold text-xl tracking-wider text-white">Jayan's <span className="text-gradient">SQL Ops</span></h1>
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    ANALYTICS_DB ACTIVE • v4.0.0
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <div className="flex-1 flex flex-col lg:flex-row p-4 gap-6 relative z-10 overflow-hidden pt-4">
+                        <div className="w-full lg:w-[35%] flex flex-col gap-6 animate-slide-in">
+                            <div className="glass-panel p-6 rounded-2xl flex-1 border-l-4 border-cyber-accent">
+                                <div className="flex justify-between items-start mb-4 border-b border-slate-700/50 pb-4">
+                                    <div>
+                                        <div className="text-cyber-accent font-mono text-xs mb-1 uppercase tracking-widest">Training Module {currentIndex + 1}</div>
+                                        <h2 className="text-3xl font-bold text-white uppercase tracking-tight">{level.title}</h2>
+                                    </div>
+                                    <div className="px-3 py-1 rounded bg-cyber-primary/10 border border-cyber-primary/30 text-cyber-primary font-mono text-sm font-bold">{level.operator}</div>
+                                </div>
+                                <div className="space-y-6">
+                                    <div>
+                                        <h3 className="text-slate-400 text-[10px] font-mono uppercase tracking-widest mb-2 flex items-center gap-2"><i className="fa-solid fa-briefcase text-cyber-secondary"></i> Business Brief</h3>
+                                        <p className="text-slate-300 text-sm leading-7">{level.brief}</p>
+                                    </div>
+                                    <div className="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                        <h3 className="text-cyber-secondary text-[10px] font-mono uppercase tracking-widest mb-1">Target Objective</h3>
+                                        <p className="text-white text-sm font-medium">{level.objective}</p>
+                                    </div>
+                                    <div className="pt-4">
+                                        {showHint ? <div className="bg-cyber-primary/10 border border-cyber-primary/20 p-4 rounded-xl text-xs text-purple-200 animate-pulse"><i className="fa-solid fa-lightbulb mr-2"></i> {level.hint}</div> : <button onClick={() => setShowHint(true)} className="text-[10px] text-slate-500 hover:text-cyber-accent uppercase tracking-widest font-bold flex items-center gap-2"><i className="fa-solid fa-key"></i> Request Hint</button>}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="w-full lg:w-[65%] flex flex-col gap-4 animate-slide-in" style={{animationDelay: '0.1s'}}>
+                            <div className="glass-panel rounded-xl overflow-hidden flex flex-col h-1/2 border border-slate-700/50">
+                                <div className="glass-header px-4 py-2 flex justify-between items-center">
+                                    <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-500/50"></div><div className="w-3 h-3 rounded-full bg-yellow-500/50"></div><div className="w-3 h-3 rounded-full bg-green-500/50"></div></div>
+                                    <button onClick={runQuery} className="bg-gradient-to-r from-cyber-primary to-cyber-accent px-6 py-1.5 rounded-lg text-white text-xs font-bold transition-all shadow-lg shadow-purple-900/20"><i className="fa-solid fa-play mr-2"></i> EXECUTE</button>
+                                </div>
+                                <div className="flex-1 relative code-editor">
+                                    <textarea value={userQuery} onChange={(e) => setUserQuery(e.target.value)} spellCheck="false" className="w-full h-full bg-transparent p-6 font-mono text-cyan-100 outline-none resize-none leading-relaxed" />
+                                    <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 font-mono uppercase pointer-events-none">CTRL + ENTER TO RUN</div>
+                                </div>
+                                <div className={`px-4 py-2 text-[10px] font-mono flex items-center gap-2 ${feedback.type === 'success' ? 'bg-emerald-500/10 text-emerald-400' : feedback.type === 'error' ? 'bg-red-500/10 text-red-400' : 'bg-slate-900/50 text-slate-500'}`}><i className={`fa-solid ${feedback.type === 'success' ? 'fa-check' : feedback.type === 'error' ? 'fa-xmark' : 'fa-terminal'}`}></i>{feedback.msg}</div>
+                            </div>
+
+                            <div className="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden border border-slate-700/50">
+                                <div className="glass-header px-4 py-2 flex justify-between items-center bg-slate-900/90 text-[10px] text-cyber-secondary font-bold uppercase tracking-widest"><span>Result_Viewer</span></div>
+                                <div className="flex-1 overflow-auto custom-scroll bg-[#0f172a]/50 p-2">
+                                    {result.length === 0 ? <div className="h-full flex flex-col items-center justify-center text-slate-600 font-mono gap-3 opacity-30"><i className="fa-solid fa-database text-4xl"></i><p className="text-xs uppercase tracking-widest">Waiting for stream...</p></div> : <table className="w-full text-left text-xs border-collapse font-mono"><thead className="bg-slate-900/80 sticky top-0"><tr>{Object.keys(result[0]).map((h, i) => <th key={i} className="p-3 text-slate-500 border-b border-slate-800 uppercase text-[10px] tracking-widest">{h}</th>)}</tr></thead><tbody className="divide-y divide-slate-800/50">{result.map((row, i) => <tr key={i} className="hover:bg-cyber-primary/5 transition-colors">{Object.values(row).map((v, j) => <td key={j} className={`p-3 text-slate-300 ${typeof v === 'number' ? 'text-right text-cyber-secondary' : ''}`}>{v}</td>)}</tr>)}</tbody></table>}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="relative z-50 p-4 border-t border-slate-800/60 bg-[#020617]/90 backdrop-blur flex justify-between items-center">
+                        <div className="w-1/4 flex flex-col gap-1">
+                            <div className="flex justify-between text-[10px] font-mono text-slate-500 uppercase"><span>Module Progress</span><span>{Math.round(((currentIndex + 1) / LEVELS.length) * 100)}%</span></div>
+                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full"><div className="h-full bg-gradient-to-r from-cyber-secondary to-cyber-accent transition-all duration-500" style={{width: `${((currentIndex + 1) / LEVELS.length) * 100}%`}}></div></div>
+                        </div>
+                        <div className="flex gap-4">
+                            <button onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} disabled={currentIndex === 0} className={`px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-3 border ${currentIndex === 0 ? 'border-slate-800 text-slate-700' : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white'}`}><i className="fa-solid fa-chevron-left"></i> PREV</button>
+                            <button onClick={() => setCurrentIndex(prev => Math.min(LEVELS.length - 1, prev + 1))} disabled={currentIndex === LEVELS.length - 1} className={`px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-3 ${currentIndex === LEVELS.length - 1 ? 'border border-slate-800 text-slate-700' : 'bg-gradient-to-r from-cyber-primary to-cyber-accent text-white shadow-lg shadow-purple-900/30'}`}>NEXT <i className="fa-solid fa-chevron-right"></i></button>
+                        </div>
+                        <div className="w-1/4 text-right hidden md:block"><span className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">Secure Data Layer</span></div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

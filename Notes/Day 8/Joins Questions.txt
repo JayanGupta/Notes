@@ -1,0 +1,45 @@
+-- =========================================
+-- SQL JOIN & SET OPERATIONS PRACTICE
+-- =========================================
+
+Q1. Write a SQL query to display EmployeeID, FirstName, LastName,
+and DepartmentName for employees who belong to a department.
+
+Q2. Write a SQL query to display EmployeeID, FirstName, and Salary
+for employees who have a salary record.
+
+Q3. Write a SQL query to display EmployeeID, FirstName,
+and DepartmentName for all employees, even if they do not belong to any department.
+
+Q4. Write a SQL query to display all departments along with employees
+working in them. Departments without employees should also appear.
+
+Q5. Write a SQL query to display EmployeeID, FirstName,
+DepartmentName, and Salary for employees who have both
+department and salary information.
+
+Q6. Write a SQL query to display all employees and their salary.
+Employees without salary should also appear.
+
+Q7. Write a SQL query to display employees who do not have a salary record.
+
+Q8. Write a SQL query to display all departments and employees working in them.
+Departments with no employees should also be displayed.
+
+Q9. Write a SQL query using UNION to combine
+the FirstName of employees and the DepartmentName from departments.
+
+Q10. Write a SQL query using UNION ALL to combine
+the FirstName of employees and DepartmentName.
+
+Q11. Write a SQL query to display EmployeeID from employees
+and EmployeeID from salaries using UNION.
+
+Q12. Write a SQL query to find employees who appear
+in both employees and salaries tables (common EmployeeID).
+
+Q13. Write a SQL query to generate all possible combinations
+of employees and departments.
+
+Q14. Write a SQL query using SELF JOIN to display pairs of employees
+who work in the same department.

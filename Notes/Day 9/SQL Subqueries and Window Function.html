@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jayan's BI Terminal | Advanced SQL</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alasql@1.7.3/dist/alasql.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#020617',
+                            panel: '#0f172a',
+                            primary: '#8b5cf6',
+                            secondary: '#06b6d4',
+                            accent: '#d946ef',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Space Grotesk', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
+        body { background-color: #020617; color: #e2e8f0; font-family: 'Space Grotesk', sans-serif; overflow: hidden; }
+        .glass-panel { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(16px); border: 1px solid rgba(139, 92, 246, 0.15); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+        .glass-header { background: linear-gradient(90deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%); border-bottom: 1px solid rgba(139, 92, 246, 0.2); }
+        .text-gradient { background: linear-gradient(135deg, #22d3ee 0%, #8b5cf6 50%, #d946ef 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .animate-slide-in { animation: slideIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+        .custom-scroll::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.3); border-radius: 3px; }
+        .code-editor { background: #0b0f19; background-image: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- GLOBAL SALES & PERFORMANCE DATA ---
+        const REVENUE_DATA = [
+            { id: 1, region: "NorthAm", rep: "Sarah", product: "SaaS Pro", revenue: 50000, date: "2026-01-01" },
+            { id: 2, region: "EMEA", rep: "Klaus", product: "SaaS Lite", revenue: 12000, date: "2026-01-05" },
+            { id: 3, region: "APAC", rep: "Jin", product: "Enterprise Suite", revenue: 85000, date: "2026-01-10" },
+            { id: 4, region: "NorthAm", rep: "Sarah", product: "Enterprise Suite", revenue: 92000, date: "2026-02-01" },
+            { id: 5, region: "EMEA", rep: "Elena", product: "SaaS Pro", revenue: 48000, date: "2026-02-15" },
+            { id: 6, region: "NorthAm", rep: "Michael", product: "SaaS Lite", revenue: 15000, date: "2026-02-20" },
+            { id: 7, region: "APAC", rep: "Jin", product: "SaaS Pro", revenue: 55000, date: "2026-03-01" },
+            { id: 8, region: "EMEA", rep: "Klaus", product: "Enterprise Suite", revenue: 78000, date: "2026-03-05" },
+            { id: 9, region: "NorthAm", rep: "Sarah", product: "SaaS Lite", revenue: 18000, date: "2026-03-10" },
+            { id: 10, region: "EMEA", rep: "Elena", product: "Enterprise Suite", revenue: 105000, date: "2026-03-15" }
+        ];
+
+        alasql("CREATE TABLE sales (id INT, region STRING, rep STRING, product STRING, revenue INT, date STRING)");
+        alasql.tables.sales.data = REVENUE_DATA;
+
+        const SLIDES = [
+            // --- SECTION 1: SUBQUERIES ---
+            {
+                topic: "Subqueries",
+                title: "The Scalar Subquery",
+                subtitle: "Finding Above-Average Performers",
+                query: "SELECT rep, revenue \nFROM sales \nWHERE revenue > (SELECT AVG(revenue) FROM sales);",
+                explanation: <div>A <strong>Subquery</strong> is a query nested inside another. Here, the inner query calculates the global average revenue first. The outer query then uses that single number to filter reps who performed above average.</div>,
+                tip: "The inner query runs exactly once, acting like a dynamic variable."
+            },
+            {
+                topic: "Subqueries",
+                title: "IN Clause Subqueries",
+                subtitle: "Filtering by Group Logic",
+                query: "SELECT * FROM sales \nWHERE region IN (SELECT region FROM sales GROUP BY region HAVING SUM(revenue) > 200000);",
+                explanation: "This identifies regions where the total revenue exceeds $200k, then pulls every individual sale for those high-performing regions. It's an efficient way to filter one dataset based on an aggregated version of itself.",
+            },
+            {
+                topic: "Subqueries",
+                title: "Correlated Subqueries",
+                subtitle: "Row-by-Row Logic",
+                query: "SELECT rep, revenue, region \nFROM sales s1 \nWHERE revenue = (SELECT MAX(revenue) FROM sales s2 WHERE s1.region = s2.region);",
+                explanation: "A correlated subquery refers to the outer query. This specific example finds the 'Top Earner' for each specific region by checking the Max revenue within that region row-by-row.",
+            },
+            {
+                topic: "Subqueries",
+                title: "The Subquery Playground",
+                subtitle: "Experiment with Nesting",
+                query: "SELECT product, SUM(revenue) \nFROM (SELECT * FROM sales WHERE revenue > 20000) AS high_value_sales \nGROUP BY product;",
+                explanation: "You can even use a subquery in the FROM clause. This treats the result of the inner query as a temporary table named 'high_value_sales'.",
+            },
+
+            // --- SECTION 2: CTEs (Common Table Expressions) ---
+            {
+                topic: "CTEs",
+                title: "Introduction to WITH",
+                subtitle: "Creating Readable Logic",
+                query: "WITH RegionalSummary AS (\n  SELECT region, SUM(revenue) as total \n  FROM sales \n  GROUP BY region\n)\nSELECT * FROM RegionalSummary WHERE total > 100000;",
+                explanation: <div>A <strong>CTE</strong> (using the <code>WITH</code> clause) defines a temporary result set that you can reference within your main query. It is much more readable than a nested subquery.</div>,
+                tip: "Think of a CTE as a temporary 'view' that only exists during the query's execution."
+            },
+            {
+                topic: "CTEs",
+                title: "Multiple CTEs",
+                subtitle: "Step-by-Step Data Prep",
+                query: "WITH \nNorthAm_Sales AS (SELECT * FROM sales WHERE region = 'NorthAm'),\nTop_NorthAm AS (SELECT * FROM NorthAm_Sales WHERE revenue > 50000)\nSELECT * FROM Top_NorthAm;",
+                explanation: "You can chain multiple CTEs together. This allows you to break down complex logic into small, testable blocks. This is the industry standard for clean, maintainable SQL.",
+            },
+            {
+                topic: "CTEs",
+                title: "CTE Aggregation",
+                subtitle: "Comparing Individuals to Totals",
+                query: "WITH GlobalStats AS (\n  SELECT AVG(revenue) as global_avg FROM sales\n)\nSELECT s.rep, s.revenue, g.global_avg \nFROM sales s, GlobalStats g \nWHERE s.revenue > g.global_avg;",
+                explanation: "CTEs are perfect for calculating a single summary statistic and then 'joining' it back to every row in your main table for comparison purposes.",
+            },
+            {
+                topic: "CTEs",
+                title: "The CTE Playground",
+                subtitle: "Build Your Pipeline",
+                query: "WITH Sales_Ranked AS (\n  SELECT rep, revenue, region FROM sales\n)\nSELECT * FROM Sales_Ranked ORDER BY revenue DESC;",
+                explanation: "Use this playground to practice defining a WITH block. Remember: the final SELECT must come immediately after the CTE definition.",
+            },
+
+            // --- SECTION 3: WINDOW FUNCTIONS ---
+            {
+                topic: "Window Functions",
+                title: "The OVER() Clause",
+                subtitle: "Running Totals on-the-fly",
+                query: "SELECT rep, revenue, \nSUM(revenue) OVER(ORDER BY date) as running_total \nFROM sales;",
+                explanation: <div><strong>Window Functions</strong> perform calculations across a set of table rows that are related to the current row. Unlike GROUP BY, they don't 'collapse' the rows; every row remains visible.</div>,
+                tip: "The OVER() clause defines the 'window' of data the function looks at."
+            },
+            {
+                topic: "Window Functions",
+                title: "PARTITION BY",
+                subtitle: "Regional Running Totals",
+                query: "SELECT region, rep, revenue, \nSUM(revenue) OVER(PARTITION BY region ORDER BY date) as regional_total \nFROM sales;",
+                explanation: "PARTITION BY acts like a GROUP BY inside the window. It resets the calculation (like a running total) every time the region changes.",
+            },
+            {
+                topic: "Window Functions",
+                title: "Ranking Functions",
+                subtitle: "Who is Number 1?",
+                query: "SELECT rep, revenue, \nRANK() OVER(ORDER BY revenue DESC) as sales_rank \nFROM sales;",
+                explanation: "Functions like RANK(), DENSE_RANK(), and ROW_NUMBER() are used to create leaderboard logic. RANK() will skip a number if there is a tie, while DENSE_RANK() will not.",
+            },
+            {
+                topic: "Window Functions",
+                title: "Window Playground",
+                subtitle: "Advanced Analytics",
+                query: "SELECT rep, revenue, \nAVG(revenue) OVER(PARTITION BY region) as avg_for_region \nFROM sales;",
+                explanation: "Try using different aggregations (MIN, MAX, AVG) with the OVER clause to see how they calculate values relative to the row's group.",
+            }
+        ];
+
+        const App = () => {
+            const [currentIndex, setCurrentIndex] = useState(0);
+            const [userQuery, setUserQuery] = useState("");
+            const [result, setResult] = useState([]);
+            const [feedback, setFeedback] = useState({ type: 'neutral', msg: 'System Ready.' });
+
+            const current = SLIDES[currentIndex];
+
+            useEffect(() => {
+                setUserQuery(current.query);
+                runInternalQuery(current.query);
+            }, [currentIndex]);
+
+            const runInternalQuery = (q) => {
+                try {
+                    const res = alasql(q);
+                    setResult(res);
+                    setFeedback({ type: 'neutral', msg: `Query executed: ${res.length} rows returned.` });
+                } catch (e) {
+                    setResult([]);
+                    setFeedback({ type: 'error', msg: e.message });
+                }
+            };
+
+            const handleRun = () => runInternalQuery(userQuery);
+
+            return (
+                <div className="h-screen w-screen flex flex-col bg-[#020617] relative">
+                    {/* Background Visuals */}
+                    <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-purple-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-cyan-900/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                    {/* Navbar */}
+                    <header className="relative z-50 px-6 py-4 border-b border-slate-800/60 bg-[#020617]/80 backdrop-blur-md flex justify-between items-center">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyber-primary to-cyber-accent flex items-center justify-center shadow-lg">
+                                <i className="fa-solid fa-chart-line text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h1 className="font-bold text-xl tracking-wider text-white">Jayan's <span className="text-gradient">BI Terminal</span></h1>
+                                <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    ANALYTICS_ENGINE v4.2 // ADVANCED_SQL
+                                </div>
+                            </div>
+                        </div>
+                        <div className="hidden md:flex gap-4">
+                            {["Subqueries", "CTEs", "Window Functions"].map((topic, i) => (
+                                <span key={i} className={`text-[10px] font-mono px-3 py-1 rounded border ${current.topic === topic ? 'border-cyber-primary bg-cyber-primary/10 text-cyber-primary' : 'border-slate-800 text-slate-600'}`}>
+                                    {topic.toUpperCase()}
+                                </span>
+                            ))}
+                        </div>
+                    </header>
+
+                    {/* Main Workspace */}
+                    <main className="flex-1 flex flex-col lg:flex-row p-4 gap-6 relative z-10 overflow-hidden pt-4">
+                        
+                        {/* Information Panel */}
+                        <div className="w-full lg:w-[35%] flex flex-col gap-6 animate-slide-in">
+                            <div className="glass-panel p-6 rounded-2xl flex-1 border-l-4 border-cyber-primary">
+                                <div className="mb-6">
+                                    <div className="text-cyber-secondary font-mono text-xs mb-1 uppercase tracking-widest">{current.topic} // Module {currentIndex + 1}</div>
+                                    <h2 className="text-3xl font-bold text-white uppercase tracking-tight">{current.title}</h2>
+                                    <p className="text-purple-200 text-lg font-light mt-1">{current.subtitle}</p>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    <div className="text-slate-300 text-sm leading-7">
+                                        {current.explanation}
+                                    </div>
+                                    {current.tip && (
+                                        <div className="bg-cyber-primary/10 border border-cyber-primary/20 p-4 rounded-xl text-xs text-purple-200">
+                                            <i className="fa-solid fa-lightbulb mr-2 text-cyber-accent"></i> PRO TIP: {current.tip}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Terminal Panel */}
+                        <div className="w-full lg:w-[65%] flex flex-col gap-4 animate-slide-in" style={{animationDelay: '0.1s'}}>
+                            
+                            {/* Editor */}
+                            <div className="glass-panel rounded-xl overflow-hidden flex flex-col h-1/2 border border-slate-700/50">
+                                <div className="glass-header px-4 py-2 flex justify-between items-center">
+                                    <div className="flex gap-1.5">
+                                        <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
+                                        <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                                        <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+                                    </div>
+                                    <button onClick={handleRun} className="bg-gradient-to-r from-cyber-primary to-cyber-accent px-6 py-1.5 rounded-lg text-white text-xs font-bold shadow-lg shadow-purple-900/20 active:scale-95 transition-all">
+                                        <i className="fa-solid fa-play mr-2"></i> EXECUTE
+                                    </button>
+                                </div>
+                                <div className="flex-1 relative code-editor">
+                                    <textarea 
+                                        value={userQuery} 
+                                        onChange={(e) => setUserQuery(e.target.value)}
+                                        spellCheck="false"
+                                        className="w-full h-full bg-transparent p-6 font-mono text-cyan-100 outline-none resize-none leading-relaxed text-sm md:text-base"
+                                    />
+                                    <div className="absolute bottom-2 right-4 text-[10px] text-slate-600 font-mono uppercase">Interactive Playground</div>
+                                </div>
+                                <div className={`px-4 py-2 text-[10px] font-mono border-t border-slate-800 ${feedback.type === 'error' ? 'text-red-400 bg-red-900/10' : 'text-slate-500 bg-slate-900/50'}`}>
+                                    <i className="fa-solid fa-terminal mr-2"></i> {feedback.msg}
+                                </div>
+                            </div>
+
+                            {/* Result Viewer */}
+                            <div className="glass-panel rounded-xl flex-1 flex flex-col overflow-hidden border border-slate-700/50">
+                                <div className="glass-header px-4 py-2 bg-slate-900/90 text-[10px] text-cyber-secondary font-bold uppercase tracking-widest">
+                                    Analytics_Output_Stream
+                                </div>
+                                <div className="flex-1 overflow-auto custom-scroll bg-[#0f172a]/50 p-2">
+                                    {result.length > 0 ? (
+                                        <table className="w-full text-left text-xs border-collapse font-mono">
+                                            <thead>
+                                                <tr className="bg-slate-900/80 sticky top-0">
+                                                    {Object.keys(result[0]).map((h, i) => (
+                                                        <th key={i} className="p-3 text-slate-500 border-b border-slate-800 uppercase text-[10px] tracking-widest">{h}</th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-800/50">
+                                                {result.map((row, i) => (
+                                                    <tr key={i} className="hover:bg-cyber-primary/5 transition-colors group">
+                                                        {Object.values(row).map((v, j) => (
+                                                            <td key={j} className={`p-3 text-slate-300 group-hover:text-white ${typeof v === 'number' ? 'text-right text-cyber-secondary' : ''}`}>
+                                                                {typeof v === 'number' && !Number.isInteger(v) ? v.toFixed(2) : v}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    ) : (
+                                        <div className="h-full flex items-center justify-center text-slate-700 font-mono text-xs italic uppercase">No Data Returned</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Navigation Footer */}
+                    <footer className="relative z-50 p-4 border-t border-slate-800/60 bg-[#020617]/90 backdrop-blur flex justify-between items-center">
+                        <div className="w-1/4 flex flex-col gap-1">
+                            <div className="flex justify-between text-[10px] font-mono text-slate-500 uppercase">
+                                <span>Curriculum Progress</span>
+                                <span>{Math.round(((currentIndex + 1) / SLIDES.length) * 100)}%</span>
+                            </div>
+                            <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden w-full">
+                                <div className="h-full bg-gradient-to-r from-cyber-secondary to-cyber-accent transition-all duration-500" style={{width: `${((currentIndex + 1) / SLIDES.length) * 100}%`}}></div>
+                            </div>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <button 
+                                onClick={() => setCurrentIndex(prev => Math.max(0, prev - 1))} 
+                                disabled={currentIndex === 0}
+                                className={`px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-3 border ${currentIndex === 0 ? 'border-slate-800 text-slate-700' : 'border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white'}`}
+                            >
+                                <i className="fa-solid fa-chevron-left"></i> PREV
+                            </button>
+                            <button 
+                                onClick={() => setCurrentIndex(prev => Math.min(SLIDES.length - 1, prev + 1))} 
+                                disabled={currentIndex === SLIDES.length - 1}
+                                className={`px-6 py-2.5 rounded-lg font-bold text-sm flex items-center gap-3 ${currentIndex === SLIDES.length - 1 ? 'border border-slate-800 text-slate-700' : 'bg-gradient-to-r from-cyber-primary to-cyber-accent text-white shadow-lg'}`}
+                            >
+                                NEXT <i className="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
+
+                        <div className="w-1/4 text-right hidden md:block">
+                            <span className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">
+                                Enterprise Analytics Node // Secure
+                            </span>
+                        </div>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

@@ -17,7 +17,7 @@ This repository is a structured notes of my deep-dives into the Data Science and
 | **01** | **SQL Mastery** | Window Functions & Ranking | [Visualized Logic](https://algoarchitect.onrender.com/) |
 | **02** | **Python Logic** | List Comprehensions vs Map | [AlgoArchitect Animation](https://algoarchitect.onrender.com/) |
 | **03** | **Excel Analysis**| Advanced Lookups & Power Query | Practice Dataset Included |
-| **04** | **Power BI** | DAX Measures & Time Intelligence | Interactive Dashboard Link |
+| **04** | **Power BI** |Dashborading & KPIs | Interactive Dashboard Link |
 | **05** | **Statistics** | Hypothesis Testing in Action | R/Python Implementation |
 
 ---

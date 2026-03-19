@@ -1,5 +1,3 @@
-![Banner](assets/banner.png)
-
 <div align="center">
   
   # 🚀 Data Science & Analytics Journey
@@ -33,10 +31,6 @@ This repository documents my deep-dives into data exploration, statistical analy
 | **02** | **Python Logic** | List Comprehensions vs Map | Python, [AlgoArchitect](https://algoarchitect.onrender.com/) |
 | **03** | **Excel Analysis**| Advanced Lookups & Power Query | Excel, Practice Datasets |
 | **04** | **Power BI** | Dashboarding & KPIs | Power BI, Visualization |
-| **05** | **Statistics** | Hypothesis Testing | Python, Scipy |
-| **06** | **SQL Operators** | Fundamental & Advanced Ops | SQL, Restaurant Datasets |
-| **07-09**| **Advanced Case Studies**| Deep Dives & EDA | Multi-tool integration |
-| **10** | **Swiggy Case Study**| Window Functions in Action | SQL Swiggy Project |
 
 ---
 

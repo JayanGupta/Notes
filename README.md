@@ -37,7 +37,6 @@ This repository documents my deep-dives into data exploration, statistical analy
 ## 📂 Repository Structure
 ```text
 .
-├── 📁 assets/                 # Repository visual assets
 ├── 📁 datasets/               # High-value practice datasets
 │   ├── airbnb.csv
 │   ├── netflix_titles.csv

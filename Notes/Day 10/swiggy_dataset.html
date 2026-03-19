@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Dataset: Analysis Masterclass</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #f59e0b;
+            border-radius: 3px;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- VISUALIZATION COMPONENTS ---
+
+        // 1. DATA EXPLORER (Live Table Simulation)
+        const DataExplorerViz = () => {
+            const [filter, setFilter] = useState('all');
+
+            const rawData = [
+                { id: 211, name: "Tandoor Hut", city: "Bangalore", rating: 4.3, rating_count: 100, cuisine: "Biryani", cost: 300 },
+                { id: 218, name: "Anand Sweets", city: "Bangalore", rating: 4.4, rating_count: 1000, cuisine: "Sweets", cost: 300 },
+                { id: 219, name: "Anjappar", city: "Bangalore", rating: 3.9, rating_count: 500, cuisine: "Chettinad", cost: 600 },
+                { id: 223, name: "Truffles", city: "Bangalore", rating: 4.4, rating_count: 5000, cuisine: "American", cost: 450 },
+                { id: 577660, name: "Maa Ke Rasoi", city: "Gurgaon", rating: 4.7, rating_count: 20, cuisine: "North Indian", cost: 100 },
+                { id: 577790, name: "Sitopia", city: "Hyderabad", rating: 5.0, rating_count: 20, cuisine: "Healthy Food", cost: 600 },
+            ];
+
+            const displayData = filter === 'all'
+                ? rawData
+                : filter === 'high_rated'
+                    ? rawData.filter(r => r.rating >= 4.5)
+                    : rawData.filter(r => r.city === 'Bangalore');
+
+            return (
+                <div className="flex flex-col h-full gap-4">
+                    <div className="flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-700">
+                        <div className="text-xs font-mono text-slate-400">restaurants.csv</div>
+                        <div className="flex gap-2">
+                            <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'all' ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>All Data</button>
+                            <button onClick={() => setFilter('bangalore')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'bangalore' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>City: Bangalore</button>
+                            <button onClick={() => setFilter('high_rated')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'high_rated' ? 'bg-green-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Rating > 4.5</button>
+                        </div>
+                    </div>
+
+                    <div className="flex-1 bg-white rounded-lg overflow-hidden relative shadow-xl">
+                        <table className="w-full text-left text-sm text-slate-800">
+                            <thead className="bg-slate-100 border-b border-slate-200">
+                                <tr>
+                                    <th className="p-3 font-bold">ID</th>
+                                    <th className="p-3 font-bold">Restaurant Name</th>
+                                    <th className="p-3 font-bold">City</th>
+                                    <th className="p-3 font-bold">Cuisine</th>
+                                    <th className="p-3 font-bold">Rating</th>
+                                    <th className="p-3 font-bold">Cost</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-100">
+                                {displayData.map((row) => (
+                                    <tr key={row.id} className="hover:bg-slate-50 transition-colors animate-fade-in">
+                                        <td className="p-3 text-xs text-slate-500 font-mono">{row.id}</td>
+                                        <td className="p-3 font-bold text-slate-700">{row.name}</td>
+                                        <td className="p-3 text-blue-600">{row.city}</td>
+                                        <td className="p-3 text-purple-600">{row.cuisine}</td>
+                                        <td className={`p-3 font-bold ${row.rating >= 4.5 ? 'text-green-600' : 'text-amber-600'}`}>
+                                            {row.rating} <span className="text-xs text-slate-400 font-normal">({row.rating_count})</span>
+                                        </td>
+                                        <td className="p-3 font-mono">₹{row.cost}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. RELATIONSHIP VIZ (City/Cuisine)
+        const RelationshipViz = () => {
+            const [view, setView] = useState('city'); // 'city' or 'cuisine'
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8 relative">
+                    <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-amber-900 via-slate-900 to-slate-950"></div>
+
+                    <div className="flex gap-4 z-10">
+                        <button onClick={() => setView('city')} className={`px-4 py-2 rounded-full font-bold ${view === 'city' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`}>View by City</button>
+                        <button onClick={() => setView('cuisine')} className={`px-4 py-2 rounded-full font-bold ${view === 'cuisine' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'}`}>View by Cuisine</button>
+                    </div>
+
+                    <div className="relative w-full max-w-3xl h-64 flex items-center justify-center">
+                        {/* Parent Node */}
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
+                            <div className={`w-32 h-32 bg-slate-900 border-2 rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-500 ${view === 'city' ? 'border-blue-500' : 'border-purple-500'}`}>
+                                <div className="text-3xl mb-1">{view === 'city' ? '🏙️' : '🍲'}</div>
+                                <div className="font-bold text-white">{view === 'city' ? 'Bangalore' : 'Biryani'}</div>
+                                <div className="text-[10px] text-slate-400 font-mono">Aggregation Key</div>
+                            </div>
+                        </div>
+
+                        {/* Children Nodes */}
+                        {(view === 'city' ?
+                            [{ label: 'Tandoor Hut', sub: 'Biryani' }, { label: 'Truffles', sub: 'American' }, { label: 'Anand Sweets', sub: 'Sweets' }] :
+                            [{ label: 'Tandoor Hut', sub: 'Bangalore' }, { label: 'Meghana Foods', sub: 'Bangalore' }, { label: 'Paradise', sub: 'Hyderabad' }]
+                        ).map((item, i) => {
+                            const angle = (i * 120 - 90) * (Math.PI / 180);
+                            const radius = 220;
+                            const x = Math.cos(angle) * radius;
+                            const y = Math.sin(angle) * radius;
+
+                            return (
+                                <div
+                                    key={i}
+                                    className="absolute left-1/2 top-1/2 transition-all duration-700 ease-out flex flex-col items-center"
+                                    style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
+                                >
+                                    <div
+                                        className="absolute top-1/2 left-1/2 h-0.5 origin-left z-0 transition-colors duration-500"
+                                        style={{
+                                            width: `${radius}px`,
+                                            backgroundColor: view === 'city' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(147, 51, 234, 0.5)',
+                                            transform: `rotate(${i * 120 - 90}deg) translate(-100%, -50%)`,
+                                            left: '50%', top: '50%'
+                                        }}
+                                    ></div>
+
+                                    <div className="w-32 h-24 bg-slate-800 border border-slate-600 rounded-xl flex flex-col items-center justify-center shadow-lg z-10 relative animate-fade-in p-2">
+                                        <div className="text-sm font-bold text-white text-center leading-tight mb-1">{item.label}</div>
+                                        <div className="text-xs text-slate-400">{item.sub}</div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. DQ SCANNER (Logic & Cleaning)
+        const DQScanner = () => {
+            const [mode, setMode] = useState('scan');
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8">
+                    <div className="flex bg-slate-900 p-1 rounded-full border border-slate-700">
+                        <button onClick={() => setMode('scan')} className={`px-6 py-2 rounded-full font-bold transition-all ${mode === 'scan' ? 'bg-red-600 text-white' : 'text-slate-400'}`}>1. Scan Issues</button>
+                        <button onClick={() => setMode('fix')} className={`px-6 py-2 rounded-full font-bold transition-all ${mode === 'fix' ? 'bg-green-600 text-white' : 'text-slate-400'}`}>2. Apply Fixes</button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
+                        {/* Issue 1: Rating Logic */}
+                        <div className="glass-panel p-6 rounded-xl border-l-4 border-red-500">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-white">Rating Anomalies</h3>
+                                <span className="text-xs bg-red-500/20 text-red-500 px-2 py-1 rounded">Logic</span>
+                            </div>
+                            {mode === 'scan' ? (
+                                <p className="text-sm text-slate-300">Found rows where Rating > 5.0 (Scale is 1-5). <br />Found rows with RatingCount = 0 but Rating > 0.</p>
+                            ) : (
+                                <div className="text-sm text-green-300">
+                                    <span className="font-bold">✅ FIX: Correction</span>
+                                    <p className="text-slate-400 mt-1">Cap ratings at 5.0. Set Rating to 0 if count is 0.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Issue 2: Cuisine Text */}
+                        <div className="glass-panel p-6 rounded-xl border-l-4 border-blue-500">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-white">Cuisine Standardization</h3>
+                                <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">Text</span>
+                            </div>
+                            {mode === 'scan' ? (
+                                <p className="text-sm text-slate-300">"North Indian", "North-Indian", "north indian" treated as distinct categories.</p>
+                            ) : (
+                                <div className="text-sm text-green-300">
+                                    <span className="font-bold">✅ FIX: Cleaning</span>
+                                    <p className="text-slate-400 mt-1">Normalize text: Lowercase, remove hyphens/spaces.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Issue 3: Cost Outliers */}
+                        <div className="glass-panel p-6 rounded-xl border-l-4 border-yellow-500">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-white">Cost Outliers</h3>
+                                <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">Numeric</span>
+                            </div>
+                            {mode === 'scan' ? (
+                                <p className="text-sm text-slate-300">Cost for two = ₹10 or ₹50,000. Likely data entry errors.</p>
+                            ) : (
+                                <div className="text-sm text-green-300">
+                                    <span className="font-bold">✅ FIX: Filtering</span>
+                                    <p className="text-slate-400 mt-1">Define valid range (e.g., ₹50 to ₹10,000). Flag or remove anomalies.</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Issue 4: City Names */}
+                        <div className="glass-panel p-6 rounded-xl border-l-4 border-purple-500">
+                            <div className="flex justify-between items-start mb-2">
+                                <h3 className="font-bold text-white">City Grouping</h3>
+                                <span className="text-xs bg-purple-500/20 text-purple-500 px-2 py-1 rounded">Categorical</span>
+                            </div>
+                            {mode === 'scan' ? (
+                                <p className="text-sm text-slate-300">"Bangalore" vs "Bengaluru". Same city, different labels.</p>
+                            ) : (
+                                <div className="text-sm text-green-300">
+                                    <span className="font-bold">✅ FIX: Mapping</span>
+                                    <p className="text-slate-400 mt-1">Map all variants to a standard list of cities.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 4. LEVELS OF ANALYSIS
+        const AnalysisLevelsViz = () => {
+            const [level, setLevel] = useState(1);
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8">
+                    <div className="flex gap-4">
+                        <button onClick={() => setLevel(1)} className={`px-4 py-2 rounded-lg border transition-all ${level === 1 ? 'bg-amber-600 border-amber-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>1. Uni-variate</button>
+                        <button onClick={() => setLevel(2)} className={`px-4 py-2 rounded-lg border transition-all ${level === 2 ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>2. Bi-variate</button>
+                        <button onClick={() => setLevel(3)} className={`px-4 py-2 rounded-lg border transition-all ${level === 3 ? 'bg-green-600 border-green-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>3. Multi-variate</button>
+                    </div>
+
+                    <div className="glass-panel p-8 rounded-2xl w-full max-w-3xl min-h-[300px] flex items-center justify-center relative overflow-hidden">
+                        {level === 1 && (
+                            <div className="text-center animate-fade-in">
+                                <div className="text-4xl mb-4">📊</div>
+                                <h3 className="text-2xl font-bold text-amber-400 mb-2">Analyzing ONE Variable</h3>
+                                <p className="text-slate-300 mb-4">"What is the most common Cost for two?"</p>
+                                <div className="flex items-end justify-center gap-1 h-24">
+                                    {[10, 30, 60, 90, 40, 20].map((h, i) => (
+                                        <div key={i} className="w-8 bg-amber-500 rounded-t" style={{ height: `${h}%` }}></div>
+                                    ))}
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">Cost Histogram</p>
+                            </div>
+                        )}
+
+                        {level === 2 && (
+                            <div className="text-center animate-fade-in">
+                                <div className="text-4xl mb-4">📉</div>
+                                <h3 className="text-2xl font-bold text-blue-400 mb-2">Analyzing TWO Variables</h3>
+                                <p className="text-slate-300 mb-4">"Does Cuisine affect Rating?"</p>
+                                <div className="flex justify-center gap-4 h-24 items-end">
+                                    <div className="text-xs text-center"><div className="w-12 h-20 bg-blue-500 rounded-t mb-1"></div>Italian</div>
+                                    <div className="text-xs text-center"><div className="w-12 h-16 bg-slate-600 rounded-t mb-1"></div>Fast Food</div>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">Boxplot: Rating by Cuisine</p>
+                            </div>
+                        )}
+
+                        {level === 3 && (
+                            <div className="text-center animate-fade-in">
+                                <div className="text-4xl mb-4">🧊</div>
+                                <h3 className="text-2xl font-bold text-green-400 mb-2">Analyzing MANY Variables</h3>
+                                <p className="text-slate-300 mb-4">"Best City for Affordable North Indian Food?"</p>
+                                <div className="grid grid-cols-2 gap-2 w-48 mx-auto">
+                                    <div className="bg-green-900/50 p-2 rounded border border-green-500">City</div>
+                                    <div className="bg-green-900/50 p-2 rounded border border-green-500">Cuisine</div>
+                                    <div className="bg-green-900/50 p-2 rounded border border-green-500">Cost</div>
+                                    <div className="bg-white text-black p-2 rounded font-bold">Rating ⬆</div>
+                                </div>
+                                <p className="text-xs text-slate-500 mt-2">Pivot Table / Heatmap</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+
+            const slides = [
+                {
+                    layout: "center",
+                    content: (
+                        <div className="text-center animate-fade-in max-w-4xl">
+                            <div className="inline-block p-2 px-4 rounded-full bg-amber-900/30 border border-amber-500/30 text-amber-300 text-xs font-mono mb-8">
+                                DATASET_REVIEW_SESSION
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
+                                The Restaurant Dataset
+                            </h1>
+                            <h2 className="text-2xl md:text-4xl font-light text-slate-400 mb-12">
+                                Understanding <span className="text-amber-500 font-bold">Dining Trends</span> & <span className="text-blue-500 font-bold">Market Gaps</span>
+                            </h2>
+
+                            <div className="flex justify-center gap-8">
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-white mb-1">~600</div>
+                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Restaurants</div>
+                                </div>
+                                <div className="w-px bg-slate-800"></div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-white mb-1">8</div>
+                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Key Columns</div>
+                                </div>
+                                <div className="w-px bg-slate-800"></div>
+                                <div className="text-center">
+                                    <div className="text-3xl font-bold text-white mb-1">Multi</div>
+                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Cities</div>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    layout: "split",
+                    title: "Dataset Snapshot",
+                    subtitle: "What are we looking at?",
+                    text: (
+                        <div className="space-y-6">
+                            <p className="text-lg text-slate-300">
+                                This dataset captures restaurant listings, likely from a food delivery platform. It enables us to analyze dining options across different cities.
+                            </p>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                <li><strong>Name & ID:</strong> Identification of the venue.</li>
+                                <li><strong>City:</strong> Geographical location.</li>
+                                <li><strong>Cuisine:</strong> Type of food served.</li>
+                                <li><strong>Cost:</strong> Approximate price for two people.</li>
+                                <li><strong>Rating:</strong> Customer feedback score (1-5).</li>
+                            </ul>
+                        </div>
+                    ),
+                    viz: <DataExplorerViz />
+                },
+                {
+                    layout: "split",
+                    title: "Relational View",
+                    subtitle: "Grouping by City or Cuisine",
+                    text: (
+                        <div className="space-y-6">
+                            <p className="text-lg text-slate-300">
+                                Data can be aggregated in multiple ways to find patterns.
+                            </p>
+                            <div className="space-y-4">
+                                <div className="p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+                                    <h4 className="text-blue-400 font-bold mb-1">By City 🏙️</h4>
+                                    <p className="text-sm text-slate-400">Bangalore vs. Hyderabad. Which city has more expensive food?</p>
+                                </div>
+                                <div className="p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
+                                    <h4 className="text-purple-400 font-bold mb-1">By Cuisine 🍲</h4>
+                                    <p className="text-sm text-slate-400">Biryani vs. Chinese. Which cuisine gets better ratings?</p>
+                                </div>
+                            </div>
+                        </div>
+                    ),
+                    viz: <RelationshipViz />
+                },
+                {
+                    layout: "split",
+                    title: "Data Quality & Logic",
+                    subtitle: "Scanning & Fixing Issues",
+                    text: (
+                        <div className="space-y-6">
+                            <p className="text-lg text-slate-300">
+                                Restaurant data is prone to user-entry errors and inconsistencies.
+                            </p>
+                            <ul className="space-y-3 text-sm text-slate-400">
+                                <li><strong>Logic:</strong> Ratings > 5 or Ratings without votes must be fixed.</li>
+                                <li><strong>Text:</strong> "North Indian" and "North-Indian" are the same cuisine.</li>
+                                <li><strong>Outliers:</strong> ₹50,000 for a snack is likely an error.</li>
+                            </ul>
+                        </div>
+                    ),
+                    viz: <DQScanner />
+                },
+                {
+                    layout: "split",
+                    title: "Levels of Analysis",
+                    subtitle: "From Simple to Complex",
+                    text: (
+                        <div className="space-y-6">
+                            <p className="text-lg text-slate-300">
+                                How do we find the best insights?
+                            </p>
+                            <ol className="space-y-4 text-sm text-slate-400 list-decimal pl-4">
+                                <li><strong>Uni-variate:</strong> What is the average cost of a meal? (Histogram)</li>
+                                <li><strong>Bi-variate:</strong> Is there a correlation between Cost and Rating? (Scatter Plot)</li>
+                                <li><strong>Multi-variate:</strong> Which City + Cuisine combination offers the best value for money? (Heatmap)</li>
+                            </ol>
+                        </div>
+                    ),
+                    viz: <AnalysisLevelsViz />
+                },
+                {
+                    layout: "center",
+                    title: "Potential Dashboards",
+                    subtitle: "What can we build?",
+                    content: (
+                        <div className="h-full flex flex-col justify-center gap-8">
+                            <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
+                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-amber-500 transition-all rounded-xl group">
+                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">⭐</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Top Rated Eats</h3>
+                                    <p className="text-sm text-slate-400">Leaderboard of best restaurants by city and cuisine.</p>
+                                </div>
+                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-green-500 transition-all rounded-xl group">
+                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">💸</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Budget Finder</h3>
+                                    <p className="text-sm text-slate-400">Map of affordable dining options (&lt; ₹300) with high ratings.</p>
+                                </div>
+                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-blue-500 transition-all rounded-xl group">
+                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🏙️</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">City Comparison</h3>
+                                    <p className="text-sm text-slate-400">Compare cost of living/dining between Bangalore, Hyderabad, etc.</p>
+                                </div>
+                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-purple-500 transition-all rounded-xl group">
+                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🍲</div>
+                                    <h3 className="text-xl font-bold text-white mb-2">Cuisine Trends</h3>
+                                    <p className="text-sm text-slate-400">Which cuisines are most popular (by rating count) in each region?</p>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            ];
+
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [slides.length]);
+
+            const CurrentContent = slides[currentSlide];
+
+            return (
+                <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950">
+                    {/* Background Decor */}
+                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-amber-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-1 bg-slate-900 z-50">
+                        <div className="h-full bg-gradient-to-r from-amber-500 to-blue-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 flex items-center justify-center p-8 z-10">
+                        {CurrentContent.layout === 'center' ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in">
+                                {CurrentContent.title && (
+                                    <div className="text-center mb-8">
+                                        <h2 className="text-4xl font-bold text-white mb-2">{CurrentContent.title}</h2>
+                                        <h3 className="text-xl text-amber-400 font-mono">{CurrentContent.subtitle}</h3>
+                                    </div>
+                                )}
+                                {CurrentContent.content}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center">
+                                <div className="flex flex-col justify-center h-full space-y-6">
+                                    <div>
+                                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">{CurrentContent.title}</h2>
+                                        <h3 className="text-2xl text-amber-400 font-light">{CurrentContent.subtitle}</h3>
+                                    </div>
+                                    <div className="h-1 w-20 bg-amber-500 rounded"></div>
+                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4">
+                                        {CurrentContent.text}
+                                    </div>
+                                </div>
+                                <div className="h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6">
+                                    {CurrentContent.viz}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Navigation Controls */}
+                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
+                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">PREV</button>
+                        <span className="self-center text-slate-300 min-w-[3rem] text-center">{currentSlide + 1} / {slides.length}</span>
+                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">NEXT</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>

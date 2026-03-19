@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced SQL Engine | Subqueries & CTEs</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: { dark: '#020617', panel: '#0b1222', primary: '#8b5cf6', secondary: '#0ea5e9', accent: '#d946ef', success: '#10b981' }
+                    },
+                    fontFamily: { 
+                        sans: ['Inter', 'sans-serif'], 
+                        mono: ['JetBrains Mono', 'monospace'] 
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        
+        body { background-color: #020617; color: #f1f5f9; font-family: 'Inter', sans-serif; overflow: hidden; }
+        .glass-card { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); }
+        .text-gradient { background: linear-gradient(to right, #0ea5e9, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .code-cursor { display: inline-block; width: 8px; height: 1.2em; background: #0ea5e9; margin-left: 2px; animation: blink 1s step-end infinite; vertical-align: middle; }
+        @keyframes blink { 50% { opacity: 0; } }
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .row-highlight { background: rgba(14, 165, 233, 0.05); border-left: 2px solid #0ea5e9; }
+        .result-glow { color: #10b981; text-shadow: 0 0 10px rgba(16, 185, 129, 0.3); font-weight: 600; }
+        .keyword { color: #d946ef; font-weight: 700; }
+        .function { color: #0ea5e9; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const motion = window.Motion.motion;
+        const AnimatePresence = window.Motion.AnimatePresence;
+
+        // Deterministic Data Engine
+        const SLIDES = [
+            {
+                title: "The 'Inside-Out' Rule",
+                subtitle: "Scalar Subqueries",
+                desc: "Uncorrelated subqueries are independent. The SQL engine executes the innermost query first. It takes that single result (e.g., the average salary) and treats it as a constant variable for the outer query.",
+                code: "-- 1. Engine calculates AVG() = $85,000\n-- 2. Engine runs outer query: WHERE salary > 85000\n\nSELECT emp_name, role, salary \nFROM ai_division \nWHERE salary > (\n    SELECT AVG(salary) FROM ai_division\n);",
+                columns: ["emp_name", "role", "salary", "status"],
+                data: [
+                    { emp_name: "Sarah", role: "ML Engineer", salary: 110000, status: "Above Avg" },
+                    { emp_name: "David", role: "Data Scientist", salary: 125000, status: "Above Avg" }
+                ]
+            },
+            {
+                title: "List Generation",
+                subtitle: "Multi-Row Subqueries (IN)",
+                desc: "Sometimes the inner query returns a 1-dimensional array (a column of values). We use the `IN` operator to tell the outer query to filter against any value in that generated list.",
+                code: "-- Inner query returns: ('Research', 'Deployment')\n\nSELECT emp_name, department, salary \nFROM employees \nWHERE department IN (\n    SELECT department FROM budgets \n    WHERE allocation > 500000\n);",
+                columns: ["emp_name", "department", "salary"],
+                data: [
+                    { emp_name: "Sarah", department: "Research", salary: 110000 },
+                    { emp_name: "Alex", department: "Deployment", salary: 95000 },
+                    { emp_name: "David", department: "Research", salary: 125000 }
+                ]
+            },
+            {
+                title: "The 'For Loop' Query",
+                subtitle: "Correlated Subqueries",
+                desc: "This is the hardest concept. If the inner query references a table from the outer query, it is 'Correlated'. The engine cannot run it just once. It must act like a FOR EACH loop, running the inner query repeatedly for every single row in the outer table.",
+                code: "-- Finds employees earning more than their specific dept average\n\nSELECT outer_emp.emp_name, outer_emp.dept, outer_emp.salary \nFROM employees outer_emp \nWHERE salary > (\n    SELECT AVG(salary) FROM employees inner_emp \n    WHERE inner_emp.dept = outer_emp.dept  -- The Correlation\n);",
+                columns: ["emp_name", "dept", "salary", "dept_avg"],
+                data: [
+                    { emp_name: "David", dept: "Research", salary: 125000, dept_avg: 117500 },
+                    { emp_name: "Elena", dept: "Analytics", salary: 90000, dept_avg: 82000 }
+                ]
+            },
+            {
+                title: "Derived Tables",
+                subtitle: "Subqueries in the FROM Clause",
+                desc: "You can place a subquery in the FROM clause. For Data Scientists, think of this as creating a temporary DataFrame on the fly. You MUST give this temporary table an alias.",
+                code: "-- We create a temporary table called 'dept_summary'\n\nSELECT dept, max_salary \nFROM (\n    SELECT dept, MAX(salary) as max_salary \n    FROM employees \n    GROUP BY dept\n) AS dept_summary \nWHERE max_salary > 100000;",
+                columns: ["dept", "max_salary"],
+                data: [
+                    { dept: "Research", max_salary: 125000 },
+                    { dept: "Engineering", max_salary: 115000 }
+                ]
+            },
+            {
+                title: "The Architecture Shift",
+                subtitle: "Introducing CTEs",
+                desc: "Subqueries get messy when nested deeply. Common Table Expressions (CTEs) using the `WITH` clause pull those nested queries to the top of your script. They do the exact same job but read linearly from top to bottom.",
+                code: "-- Exactly the same logic as the previous slide\n\nWITH DeptSummary AS (\n    SELECT dept, MAX(salary) as max_salary \n    FROM employees \n    GROUP BY dept\n)\nSELECT dept, max_salary \nFROM DeptSummary \nWHERE max_salary > 100000;",
+                columns: ["dept", "max_salary"],
+                data: [
+                    { dept: "Research", max_salary: 125000 },
+                    { dept: "Engineering", max_salary: 115000 }
+                ]
+            },
+            {
+                title: "Data Pipelines",
+                subtitle: "Chaining Multiple CTEs",
+                desc: "CTEs shine when building analytical pipelines. You can chain multiple `WITH` blocks together separated by commas. Each subsequent block can reference the ones above it, creating a clean, modular flow.",
+                code: "WITH RegionalSales AS (\n    SELECT region, SUM(revenue) as total FROM sales GROUP BY region\n),\nTopRegions AS (\n    SELECT region FROM RegionalSales WHERE total > 1000000\n)\nSELECT e.emp_name, e.region \nFROM employees e \nJOIN TopRegions t ON e.region = t.region;",
+                columns: ["emp_name", "region", "pipeline_status"],
+                data: [
+                    { emp_name: "Sarah", region: "NorthAm", pipeline_status: "Merged" },
+                    { emp_name: "Jin", region: "APAC", pipeline_status: "Merged" },
+                    { emp_name: "Alex", region: "NorthAm", pipeline_status: "Merged" }
+                ]
+            }
+        ];
+
+        // Robust Typewriter with SQL Highlighting
+        const TypewriterCode = ({ code, onComplete }) => {
+            const [displayCode, setDisplayCode] = useState("");
+            const [isDone, setIsDone] = useState(false);
+            
+            useEffect(() => {
+                setDisplayCode("");
+                setIsDone(false);
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i < code.length) {
+                        setDisplayCode(prev => prev + code.charAt(i));
+                        i++;
+                    } else {
+                        clearInterval(interval);
+                        setIsDone(true);
+                        onComplete();
+                    }
+                }, 12); // Fast typing
+                return () => clearInterval(interval);
+            }, [code]);
+
+            const highlightSQL = (text) => {
+                const keywords = ['SELECT', 'FROM', 'WHERE', 'GROUP BY', 'HAVING', 'IN', 'WITH', 'AS', 'JOIN', 'ON'];
+                const funcs = ['AVG', 'MAX', 'MIN', 'SUM', 'COUNT'];
+                let formatted = text.replace(/--.*$/gm, '<span class="text-slate-500 italic">$&</span>'); // Comments
+                
+                keywords.forEach(kw => {
+                    const regex = new RegExp(`\\b${kw}\\b`, 'g');
+                    formatted = formatted.replace(regex, `<span class="keyword">${kw}</span>`);
+                });
+                funcs.forEach(fn => {
+                    const regex = new RegExp(`\\b${fn}\\b`, 'g');
+                    formatted = formatted.replace(regex, `<span class="function">${fn}</span>`);
+                });
+                return { __html: formatted };
+            };
+
+            return (
+                <div className="font-mono text-sm text-cyan-50 leading-relaxed min-h-[160px]">
+                    <pre className="whitespace-pre-wrap">
+                        {isDone ? (
+                            <span dangerouslySetInnerHTML={highlightSQL(displayCode)} />
+                        ) : (
+                            <span>{displayCode}</span>
+                        )}
+                        {!isDone && <span className="code-cursor" />}
+                    </pre>
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [index, setIndex] = useState(0);
+            const [isTyping, setIsTyping] = useState(true);
+            const [activeRow, setActiveRow] = useState(0);
+            
+            const current = SLIDES[index];
+            const rows = current.data; 
+            const columns = current.columns;
+
+            // Reset state robustly when slide changes
+            useEffect(() => {
+                setIsTyping(true);
+                setActiveRow(0);
+            }, [index]);
+
+            // Scanner interval only runs when typing is done
+            useEffect(() => {
+                let interval;
+                if (!isTyping && rows.length > 0) {
+                    interval = setInterval(() => {
+                        setActiveRow(prev => (prev + 1) % rows.length);
+                    }, 1800);
+                }
+                return () => clearInterval(interval);
+            }, [isTyping, rows.length]);
+
+            return (
+                <div className="h-screen w-screen flex flex-col bg-cyber-dark overflow-hidden selection:bg-cyber-secondary/30">
+                    
+                    {/* Header */}
+                    <header className="px-8 py-5 border-b border-white/5 flex justify-between items-center z-50 bg-cyber-dark/80 backdrop-blur-xl">
+                        <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 bg-gradient-to-br from-cyber-primary to-cyber-secondary rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                                <i className="fa-solid fa-code-branch text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h1 className="text-xl font-bold tracking-tight uppercase"><span className="text-gradient">SQL Core: Subqueries & CTEs</span></h1>
+                                <p className="text-[10px] font-mono text-slate-500 tracking-[0.2em]">ANALYTICS_NODE // AUTH: JAYAN_GUPTA</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-1.5">
+                            {SLIDES.map((_, i) => (
+                                <div key={i} className={`h-1.5 rounded-full transition-all duration-500 ${i === index ? 'w-8 bg-cyber-secondary shadow-[0_0_8px_rgba(14,165,233,0.8)]' : i < index ? 'w-3 bg-cyber-primary/50' : 'w-3 bg-slate-800'}`} />
+                            ))}
+                        </div>
+                    </header>
+
+                    <main className="flex-1 flex p-8 gap-8 overflow-hidden relative">
+                        {/* Background Decor */}
+                        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-cyber-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+                        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-cyber-secondary/5 rounded-full blur-[120px] -z-10 pointer-events-none" />
+
+                        {/* Concept Panel */}
+                        <div className="w-[45%] flex flex-col gap-6">
+                            <AnimatePresence mode="wait">
+                                <motion.div 
+                                    key={index}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="flex flex-col flex-1"
+                                >
+                                    <div className="mb-6">
+                                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyber-primary/10 border border-cyber-primary/20 text-cyber-primary font-mono text-[10px] font-bold uppercase tracking-widest mb-4">
+                                            <i className="fa-solid fa-microchip"></i> Module 0{index + 1}
+                                        </div>
+                                        <h2 className="text-4xl font-bold text-white leading-tight">{current.title}</h2>
+                                        <p className="text-cyber-secondary font-medium text-lg mt-2">{current.subtitle}</p>
+                                    </div>
+                                    
+                                    <p className="text-slate-300 leading-relaxed text-[15px] mb-8">{current.desc}</p>
+                                    
+                                    <div className="mt-auto">
+                                        <div className="glass-card rounded-2xl p-6 border-l-4 border-cyber-secondary shadow-2xl relative">
+                                            <div className="text-[10px] font-mono text-slate-500 uppercase mb-4 flex justify-between items-center tracking-widest border-b border-white/5 pb-2">
+                                                <span><i className="fa-solid fa-terminal text-cyber-secondary mr-2"></i> Query Editor</span>
+                                                <span>SQL dialect: Standard</span>
+                                            </div>
+                                            <TypewriterCode 
+                                                code={current.code} 
+                                                onComplete={() => setIsTyping(false)} 
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Execution Panel */}
+                        <div className="w-[55%] flex flex-col">
+                            <div className="glass-card rounded-3xl p-8 flex-1 flex flex-col border border-white/10 shadow-2xl overflow-hidden relative bg-slate-900/40">
+                                
+                                <div className="flex justify-between items-center mb-6 border-b border-white/5 pb-4">
+                                    <h3 className="font-mono text-xs text-slate-300 flex items-center gap-3 uppercase tracking-widest">
+                                        <div className={`w-2.5 h-2.5 rounded-full ${isTyping ? 'bg-amber-500 animate-pulse' : 'bg-cyber-success shadow-[0_0_10px_rgba(16,185,129,0.5)]'}`} />
+                                        {isTyping ? 'Parsing Syntax Tree...' : 'Query Result Set'}
+                                    </h3>
+                                    {!isTyping && (
+                                        <span className="text-[10px] font-mono text-slate-500 uppercase">Rows Returned: {rows.length}</span>
+                                    )}
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto custom-scroll pr-2">
+                                    {/* Table Headers */}
+                                    <div className="grid gap-4 px-5 py-3 text-[10px] text-slate-400 font-mono uppercase tracking-widest bg-black/20 rounded-t-lg" style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}>
+                                        {columns.map((col, i) => (
+                                            <div key={i}>{col.replace(/_/g, ' ')}</div>
+                                        ))}
+                                    </div>
+                                    
+                                    {/* Table Rows */}
+                                    <div className="mt-2 space-y-1.5">
+                                        {rows.map((row, i) => (
+                                            <div 
+                                                key={`${index}-${i}`}
+                                                className={`grid gap-4 px-5 py-4 rounded-xl transition-all duration-300 border border-transparent ${!isTyping && i === activeRow ? 'bg-cyber-secondary/10 border-cyber-secondary/30 shadow-lg scale-[1.01]' : 'bg-white/5'}`}
+                                                style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+                                            >
+                                                {columns.map((col, j) => (
+                                                    <div key={j} className="flex items-center">
+                                                        {!isTyping ? (
+                                                            <motion.span 
+                                                                initial={{ opacity: 0, x: -5 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                transition={{ delay: j * 0.08 }}
+                                                                className={`font-mono text-[13px] ${typeof row[col] === 'number' ? 'text-cyber-secondary font-bold' : 'text-slate-200'}`}
+                                                            >
+                                                                {typeof row[col] === 'number' && row[col] > 1000 ? `$${row[col].toLocaleString()}` : row[col]}
+                                                            </motion.span>
+                                                        ) : (
+                                                            <div className="h-3 w-16 bg-white/10 rounded animate-pulse" />
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+
+                    {/* Footer Controls */}
+                    <footer className="px-8 py-5 bg-cyber-dark/90 border-t border-white/5 flex justify-between items-center z-50 backdrop-blur-xl">
+                        <button 
+                            onClick={() => setIndex(prev => Math.max(0, prev - 1))}
+                            disabled={index === 0}
+                            className={`px-6 py-3 rounded-xl font-bold text-xs flex items-center gap-3 transition-all ${index === 0 ? 'opacity-30 cursor-not-allowed text-slate-500' : 'bg-slate-800 text-white hover:bg-slate-700'}`}
+                        >
+                            <i className="fa-solid fa-arrow-left"></i> PREVIOUS
+                        </button>
+                        
+                        <div className="text-[10px] font-mono text-slate-600 uppercase tracking-widest text-center">
+                            Enterprise Data Engine <br/>
+                            <span className="text-slate-700 mt-1 block">Jayan's Environment // Safe</span>
+                        </div>
+
+                        <button 
+                            onClick={() => setIndex(prev => Math.min(SLIDES.length - 1, prev + 1))}
+                            className={`px-8 py-3 rounded-xl font-bold text-xs transition-all flex items-center gap-3 ${index === SLIDES.length - 1 ? 'bg-cyber-success text-cyber-dark cursor-default' : 'bg-gradient-to-r from-cyber-secondary to-cyber-primary text-white shadow-lg shadow-cyber-primary/20 hover:scale-105 active:scale-95'}`}
+                        >
+                            {index === SLIDES.length - 1 ? 'COMPLETED' : 'NEXT MODULE'} 
+                            <i className={`fa-solid ${index === SLIDES.length - 1 ? 'fa-check-circle' : 'fa-arrow-right'}`}></i>
+                        </button>
+                    </footer>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

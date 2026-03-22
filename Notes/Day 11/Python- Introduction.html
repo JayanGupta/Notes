@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Masterclass: From Basics to Advanced</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .font-code {
+            font-family: 'Fira Code', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-line {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .code-line.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #60a5fa;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Stack Frame Animation */
+        .stack-enter {
+            animation: stackEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes stackEnter {
+            from {
+                opacity: 0;
+                transform: translateY(-20px) scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Smooth memory updates */
+        .memory-item {
+            transition: all 0.3s ease;
+        }
+
+        .memory-updated {
+            animation: flashGreen 1s ease-out;
+        }
+
+        @keyframes flashGreen {
+            0% {
+                background-color: rgba(34, 197, 94, 0.3);
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- SHARED COMPONENTS ---
+
+        const CodeBlock = ({ code, activeLine }) => (
+            <div className="bg-slate-950 rounded-lg p-4 font-code text-xs md:text-sm border border-slate-700 shadow-inner overflow-hidden overflow-x-auto h-full">
+                {code.split('\n').map((line, i) => (
+                    <div key={i} className={`code-line px-2 py-1 flex ${activeLine === i ? 'active' : ''}`}>
+                        <span className="text-slate-600 w-6 select-none text-right mr-4">{i + 1}</span>
+                        <span className="text-slate-200 whitespace-pre">{line}</span>
+                    </div>
+                ))}
+            </div>
+        );
+
+        const ControlPanel = ({ onReset, onPrev, onNext, canPrev, canNext }) => (
+            <div className="flex gap-2 mt-4">
+                <button onClick={onReset} className="p-2 px-4 rounded bg-slate-800 text-slate-400 hover:text-white border border-slate-700 text-xs font-mono transition-colors">↺ Reset</button>
+                <button onClick={onPrev} disabled={!canPrev} className="p-2 px-4 rounded bg-slate-800 text-slate-400 hover:text-white border border-slate-700 disabled:opacity-30 text-xs font-mono transition-colors">← Back</button>
+                <button onClick={onNext} disabled={!canNext} className="flex-1 p-2 px-4 rounded bg-blue-600 text-white font-bold hover:bg-blue-500 shadow-lg disabled:opacity-50 disabled:shadow-none transition-all text-xs font-mono">
+                    {canNext ? 'Next Step →' : 'Finished ✓'}
+                </button>
+            </div>
+        );
+
+        // --- VISUALIZATION ENGINES ---
+
+        // 1. GENERIC STEP-BY-STEP EXECUTOR (Loops, Logic, Etc.)
+        const StepByStepViz = ({ scenario }) => {
+            const [step, setStep] = useState(0);
+            const current = scenario.steps[step];
+
+            return (
+                <div className="flex flex-col h-full gap-4">
+                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 min-h-0">
+                        {/* Left: Code */}
+                        <div className="flex flex-col min-h-0">
+                            <div className="text-xs text-blue-400 font-bold mb-2 uppercase tracking-wider flex items-center gap-2">
+                                <span>🐍 Source Code</span>
+                            </div>
+                            <CodeBlock code={scenario.code} activeLine={current.line} />
+                        </div>
+
+                        {/* Right: Memory & State */}
+                        <div className="flex flex-col gap-4 min-h-0">
+
+                            {/* Memory Box */}
+                            <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 flex-1 overflow-y-auto custom-scroll">
+                                <div className="text-xs font-bold text-green-400 uppercase tracking-wider mb-4 border-b border-slate-800 pb-2 flex items-center gap-2">
+                                    <span>🧠 Memory</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {Object.entries(current.vars).map(([key, val]) => (
+                                        <div key={key} className="flex justify-between items-center p-2 rounded bg-slate-800/50 memory-item border border-slate-700/50">
+                                            <span className="font-code text-xs text-pink-300">{key}</span>
+                                            <span className="font-code text-xs text-blue-300">{val}</span>
+                                        </div>
+                                    ))}
+                                    {Object.keys(current.vars).length === 0 && (
+                                        <div className="text-xs text-slate-600 italic">Memory empty...</div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Visual Representation (Optional custom visual passed in scenario) */}
+                            {scenario.visual && (
+                                <div className="h-32 bg-slate-900 border border-slate-700 rounded-lg p-2 flex items-center justify-center relative overflow-hidden">
+                                    {scenario.visual(current)}
+                                </div>
+                            )}
+
+                            {/* Console Output */}
+                            <div className="h-24 bg-black rounded-lg border border-slate-800 p-3 font-code text-xs overflow-y-auto">
+                                <div className="text-slate-500 mb-1 border-b border-slate-800 pb-1">Console Output:</div>
+                                {scenario.steps.slice(0, step + 1).map((s, i) => s.output && (
+                                    <div key={i} className="text-green-400 animate-fade-in">> {s.output}</div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <ControlPanel
+                        onReset={() => setStep(0)}
+                        onPrev={() => setStep(s => Math.max(0, s - 1))}
+                        onNext={() => setStep(s => Math.min(scenario.steps.length - 1, s + 1))}
+                        canPrev={step > 0}
+                        canNext={step < scenario.steps.length - 1}
+                    />
+                </div>
+            );
+        };
+
+        // 2. TERMINAL (Interactive)
+        const TerminalViz = () => {
+            const [history, setHistory] = useState([
+                { type: 'output', text: 'Python 3.10.0 (default, Oct 25 2021)' },
+                { type: 'output', text: 'Type "help", "copyright", "credits" or "license" for more information.' }
+            ]);
+            const [input, setInput] = useState('');
+
+            const handleEnter = (e) => {
+                if (e.key === 'Enter') {
+                    const newHistory = [...history, { type: 'input', text: input }];
+                    const cleanInput = input.trim();
+
+                    if (cleanInput.startsWith('print(') && cleanInput.endsWith(')')) {
+                        const content = cleanInput.slice(6, -1).replace(/['"]/g, '');
+                        newHistory.push({ type: 'output', text: content });
+                    } else if (cleanInput === 'help') {
+                        newHistory.push({ type: 'output', text: 'Type help() for interactive help, or help(object) for help about object.' });
+                    } else if (cleanInput.includes('=')) {
+                        newHistory.push({ type: 'output', text: '' }); // Silent assignment simulation
+                    } else if (cleanInput !== '') {
+                        newHistory.push({ type: 'output', text: `NameError: name '${cleanInput}' is not defined` });
+                    }
+
+                    setHistory(newHistory);
+                    setInput('');
+                }
+            };
+
+            return (
+                <div className="flex flex-col h-full font-code text-sm">
+                    <div className="bg-slate-900 border border-slate-700 rounded-t-lg p-2 flex gap-2 items-center">
+                        <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span className="text-xs text-slate-500 ml-2">Terminal - Interactive</span>
+                    </div>
+                    <div className="flex-1 bg-black p-4 overflow-y-auto font-mono text-slate-300 custom-scroll">
+                        {history.map((line, i) => (
+                            <div key={i} className={`mb-1 break-words ${line.type === 'error' ? 'text-red-400' : line.type === 'input' ? 'text-white' : 'text-slate-400'}`}>
+                                {line.type === 'input' ? '>>> ' : ''}{line.text}
+                            </div>
+                        ))}
+                        <div className="flex items-center">
+                            <span className="text-green-500 mr-2">>>></span>
+                            <input
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleEnter}
+                                className="bg-transparent border-none outline-none flex-1 text-white placeholder-slate-700"
+                                placeholder="Try print('Hello')"
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. VARIABLE BOXES
+        const VariableViz = () => {
+            const [vars, setVars] = useState([
+                { name: 'score', val: 0, type: 'int' },
+                { name: 'player', val: "'Neo'", type: 'str' }
+            ]);
+
+            const updateScore = () => {
+                setVars(prev => prev.map(v => v.name === 'score' ? { ...v, val: v.val + 10 } : v));
+            };
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8">
+                    <div className="flex gap-4">
+                        {vars.map(v => (
+                            <div key={v.name} className="flex flex-col items-center gap-2 group">
+                                <div className="font-code text-xs text-slate-400">{v.name}</div>
+                                <div className="w-32 h-32 bg-slate-800 border-2 border-slate-600 rounded-xl flex flex-col items-center justify-center transition-all group-hover:border-blue-500 group-hover:shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+                                    <span className="text-3xl font-bold text-white mb-1 transition-all">{v.val}</span>
+                                    <span className="text-[10px] text-slate-500 bg-slate-900 px-2 rounded-full border border-slate-700">{v.type}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="bg-slate-900 p-4 rounded-lg border border-slate-700 text-center">
+                        <div className="font-code text-sm text-blue-300 mb-2">score = score + 10</div>
+                        <button onClick={updateScore} className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-xs transition-all">Execute Assignment</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // 4. FUNCTION SCOPE STACK
+        const ScopeViz = () => {
+            const [step, setStep] = useState(0);
+
+            const scenario = {
+                code: `x = "Global"
+
+def my_func():
+    y = "Local"
+    print(x + " " + y)
+
+my_func()
+print(x)`,
+                steps: [
+                    { line: 0, stack: [{ name: '<module>', vars: {} }] },
+                    { line: 2, stack: [{ name: '<module>', vars: { x: '"Global"' } }] }, // Def
+                    { line: 6, stack: [{ name: '<module>', vars: { x: '"Global"' } }] }, // Call
+                    { line: 6, stack: [{ name: '<module>', vars: { x: '"Global"' } }, { name: 'my_func', vars: {} }] }, // Enter
+                    { line: 3, stack: [{ name: '<module>', vars: { x: '"Global"' } }, { name: 'my_func', vars: { y: '"Local"' } }] }, // Assign y
+                    { line: 4, stack: [{ name: '<module>', vars: { x: '"Global"' } }, { name: 'my_func', vars: { y: '"Local"' } }], output: 'Global Local' }, // Print
+                    { line: 7, stack: [{ name: '<module>', vars: { x: '"Global"' } }], output: 'Global' }, // Return & Print x
+                ]
+            };
+
+            const current = scenario.steps[step];
+
+            return (
+                <div className="grid grid-cols-2 gap-4 h-full">
+                    <div className="flex flex-col">
+                        <CodeBlock code={scenario.code} activeLine={current.line} />
+                        <ControlPanel
+                            onReset={() => setStep(0)}
+                            onPrev={() => setStep(s => Math.max(0, s - 1))}
+                            onNext={() => setStep(s => Math.min(scenario.steps.length - 1, s + 1))}
+                            canPrev={step > 0}
+                            canNext={step < scenario.steps.length - 1}
+                        />
+                    </div>
+                    <div className="bg-slate-900 border border-slate-700 rounded-lg p-4 relative overflow-hidden flex flex-col-reverse justify-start gap-2">
+                        <div className="absolute top-2 right-2 text-xs text-slate-500 uppercase tracking-wider font-bold">Call Stack</div>
+
+                        {current.stack.map((frame, i) => (
+                            <div key={i} className="bg-slate-800 border-l-4 border-blue-500 p-2 rounded shadow-lg stack-enter w-full">
+                                <div className="flex justify-between items-center mb-1">
+                                    <div className="text-xs font-bold text-blue-300 font-mono">{frame.name}</div>
+                                    {i === current.stack.length - 1 && <span className="text-[10px] text-green-400 animate-pulse">● Active</span>}
+                                </div>
+                                <div className="space-y-1">
+                                    {Object.entries(frame.vars).length === 0 ? <span className="text-[10px] text-slate-600 italic">Empty frame</span> :
+                                        Object.entries(frame.vars).map(([k, v]) => (
+                                            <div key={k} className="text-xs font-mono text-slate-300 flex justify-between bg-black/20 p-1 rounded">
+                                                <span className="text-pink-400">{k}</span>
+                                                <span>{v}</span>
+                                            </div>
+                                        ))}
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Visual Floor */}
+                        <div className="border-t-2 border-slate-700 border-dashed w-full text-center text-[10px] text-slate-600 pt-1">OS / System</div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 5. CLASS VIZ
+        const ClassViz = () => {
+            return (
+                <div className="flex flex-col h-full p-4 items-center justify-center gap-6">
+                    <div className="bg-slate-900 border border-blue-900/50 p-4 rounded-lg w-full max-w-md relative">
+                        <div className="absolute -top-3 left-4 bg-blue-600 text-white px-2 py-0.5 rounded text-xs font-bold">Class Blueprint</div>
+                        <pre className="text-xs text-slate-300 font-code mt-2">
+                            {`class Robot:
+  def __init__(self, name):
+    self.name = name  # Instance var`}
+                        </pre>
+                    </div>
+
+                    <div className="text-2xl text-slate-600">↓↓ Creates Instances ↓↓</div>
+
+                    <div className="grid grid-cols-2 gap-4 w-full max-w-lg">
+                        <div className="bg-slate-800 p-4 rounded border-l-4 border-pink-500 shadow-lg flex flex-col items-center">
+                            <div className="text-xs text-pink-400 font-bold mb-2">self = Instance 01</div>
+                            <div className="w-12 h-12 bg-pink-900/50 rounded-full flex items-center justify-center text-xl border border-pink-500/50 mb-2">🤖</div>
+                            <div className="text-sm font-mono text-white">self.name = "R2"</div>
+                        </div>
+                        <div className="bg-slate-800 p-4 rounded border-l-4 border-purple-500 shadow-lg flex flex-col items-center">
+                            <div className="text-xs text-purple-400 font-bold mb-2">self = Instance 02</div>
+                            <div className="w-12 h-12 bg-purple-900/50 rounded-full flex items-center justify-center text-xl border border-purple-500/50 mb-2">🤖</div>
+                            <div className="text-sm font-mono text-white">self.name = "C3"</div>
+                        </div>
+                    </div>
+                    <div className="text-center text-xs text-slate-400 italic">
+                        Note: 'self' is automatically passed as the first argument when you call a method on an object.
+                    </div>
+                </div>
+            );
+        };
+
+        // 6. LAMBDA VIZ
+        const LambdaViz = () => {
+            const [input, setInput] = useState(5);
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8">
+                    <div className="bg-slate-900 p-3 rounded border border-slate-700 font-code text-sm">
+                        <span className="text-purple-400">square</span> = <span className="text-blue-400">lambda</span> x : x * x
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        {/* Input */}
+                        <div className="flex flex-col items-center gap-2">
+                            <label className="text-xs text-slate-500">Input (x)</label>
+                            <input
+                                type="number"
+                                value={input}
+                                onChange={e => setInput(Number(e.target.value))}
+                                className="w-16 bg-slate-800 border border-slate-600 rounded p-2 text-center text-white"
+                            />
+                        </div>
+
+                        <div className="text-2xl text-slate-600">→</div>
+
+                        {/* The Machine */}
+                        <div className="w-32 h-32 bg-slate-800 border-2 border-dashed border-purple-500 rounded-xl flex flex-col items-center justify-center relative">
+                            <div className="absolute -top-3 bg-purple-600 text-white px-2 py-0.5 rounded text-[10px] font-bold">Anonymous Func</div>
+                            <div className="text-lg font-bold text-white">x * x</div>
+                        </div>
+
+                        <div className="text-2xl text-slate-600">→</div>
+
+                        {/* Output */}
+                        <div className="flex flex-col items-center gap-2">
+                            <label className="text-xs text-slate-500">Return</label>
+                            <div className="w-16 h-10 bg-green-900/30 border border-green-500 rounded flex items-center justify-center text-green-400 font-bold">
+                                {input * input}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+
+            // --- SCENARIO DATA DEFINITIONS FOR STEPPER ---
+
+            const loopScenario = {
+                code: `numbers = [10, 20, 30]
+total = 0
+
+for num in numbers:
+    total = total + num
+    print(total)
+
+print("Final: " + str(total))`,
+                steps: [
+                    { line: 0, vars: {}, visual: () => null },
+                    { line: 1, vars: { numbers: '[10, 20, 30]' }, visual: () => null },
+                    { line: 3, vars: { numbers: '[10, 20, 30]', total: 0 }, visual: () => null }, // For start
+                    // Iteration 1
+                    { line: 4, vars: { numbers: '[...]', total: 0, num: 10 }, visual: (curr) => <div className="text-center"><div className="text-xs mb-1">Current Num</div><div className="text-2xl font-bold text-blue-400">{curr.vars.num}</div></div> },
+                    { line: 5, vars: { numbers: '[...]', total: 10, num: 10 }, output: '10', visual: (curr) => <div className="text-center"><div className="text-xs mb-1">New Total</div><div className="text-2xl font-bold text-green-400">{curr.vars.total}</div></div> },
+                    // Iteration 2
+                    { line: 3, vars: { numbers: '[...]', total: 10, num: 10 }, visual: () => null },
+                    { line: 4, vars: { numbers: '[...]', total: 10, num: 20 }, visual: (curr) => <div className="text-center"><div className="text-xs mb-1">Current Num</div><div className="text-2xl font-bold text-blue-400">{curr.vars.num}</div></div> },
+                    { line: 5, vars: { numbers: '[...]', total: 30, num: 20 }, output: '30', visual: (curr) => <div className="text-center"><div className="text-xs mb-1">New Total</div><div className="text-2xl font-bold text-green-400">{curr.vars.total}</div></div> },
+                    // Iteration 3
+                    { line: 3, vars: { numbers: '[...]', total: 30, num: 20 }, visual: () => null },
+                    { line: 4, vars: { numbers: '[...]', total: 30, num: 30 }, visual: (curr) => <div className="text-center"><div className="text-xs mb-1">Current Num</div><div className="text-2xl font-bold text-blue-400">{curr.vars.num}</div></div> },
+                    { line: 5, vars: { numbers: '[...]', total: 60, num: 30 }, output: '60', visual: (curr) => <div className="text-center"><div className="text-xs mb-1">New Total</div><div className="text-2xl font-bold text-green-400">{curr.vars.total}</div></div> },
+                    // End
+                    { line: 3, vars: { numbers: '[...]', total: 60, num: 30 }, visual: () => null }, // Loop check fails
+                    { line: 7, vars: { numbers: '[...]', total: 60, num: 30 }, output: 'Final: 60', visual: () => <div className="text-green-500 text-xl font-bold">DONE</div> }
+                ]
+            };
+
+            const conditionalScenario = {
+                code: `age = 18
+
+if age < 18:
+    status = "Minor"
+elif age == 18:
+    status = "Just Legal"
+else:
+    status = "Adult"
+
+print(status)`,
+                steps: [
+                    { line: 0, vars: {}, visual: () => null },
+                    { line: 2, vars: { age: 18 }, visual: (c) => <div className="text-white text-xl">Age is {c.vars.age}</div> },
+                    { line: 4, vars: { age: 18 }, visual: () => <div className="text-red-400">18 &lt; 18 is False</div> }, // Check if
+                    { line: 5, vars: { age: 18 }, visual: () => <div className="text-green-400">18 == 18 is True!</div> }, // Check elif
+                    { line: 8, vars: { age: 18, status: '"Just Legal"' }, visual: (c) => <div className="text-blue-400 font-bold">{c.vars.status}</div> }, // Exit chain
+                    { line: 8, vars: { age: 18, status: '"Just Legal"' }, output: 'Just Legal', visual: () => null }
+                ]
+            };
+
+            const passScenario = {
+                code: `def future_function():
+    pass
+
+print("Start")
+future_function()
+print("End")`,
+                steps: [
+                    { line: 3, vars: {} },
+                    { line: 4, vars: {}, output: "Start" },
+                    { line: 0, vars: {} }, // call
+                    { line: 1, vars: {} }, // pass
+                    { line: 5, vars: {}, output: "End" }
+                ]
+            };
+
+            const slides = [
+                {
+                    title: "Introduction",
+                    subtitle: "Why Python?",
+                    text: "Python is a high-level, interpreted language. It emphasizes readability and simplicity.\n\nKey features:\n• Easy to learn syntax\n• Massive ecosystem (Libraries)\n• Cross-platform",
+                    viz: <div className="flex flex-col items-center justify-center h-full gap-4 text-center">
+                        <div className="text-9xl animate-bounce">🐍</div>
+                        <div className="text-slate-400">"Executable Pseudocode"</div>
+                    </div>
+                },
+                {
+                    title: "Applications",
+                    subtitle: "What can you build?",
+                    text: "Python is a general-purpose language used in almost every domain.",
+                    viz: <div className="grid grid-cols-2 gap-4 p-8 w-full h-full content-center">
+                        {['🌐 Web Apps', '📊 Data Science', '🤖 AI & ML', '🔒 Cybersecurity', '⚙️ Automation', '🎮 Game Dev'].map(t => (
+                            <div key={t} className="bg-slate-800 flex items-center justify-center rounded-xl text-sm md:text-lg font-bold border border-slate-600 hover:border-blue-500 hover:text-blue-400 transition-colors p-4">{t}</div>
+                        ))}
+                    </div>
+                },
+                {
+                    title: "Input & Output",
+                    subtitle: "Interaction",
+                    text: "• print(): Displays information to the console.\n• input(): Pauses program to wait for user text.",
+                    viz: <TerminalViz />
+                },
+                {
+                    title: "Variables",
+                    subtitle: "Storing Data",
+                    text: "Variables are named containers. Unlike C++ or Java, Python variables are dynamic—they can change type.",
+                    viz: <VariableViz />
+                },
+                {
+                    title: "Operators",
+                    subtitle: "Performing Actions",
+                    text: "• Math: +  -  * /  // (Floor Div)  % (Modulus)\n• Comparison: ==  !=  >  <\n• Logic: and  or  not",
+                    viz: <div className="flex flex-col justify-center items-center h-full font-code text-sm md:text-xl gap-6">
+                        <div className="bg-slate-800 p-4 rounded border border-slate-600 w-full text-center">
+                            7 // 2 = <span className="text-pink-400 font-bold">3</span>
+                            <div className="text-[10px] text-slate-500 mt-1">(Floor Division)</div>
+                        </div>
+                        <div className="bg-slate-800 p-4 rounded border border-slate-600 w-full text-center">
+                            7 % 2 = <span className="text-blue-400 font-bold">1</span>
+                            <div className="text-[10px] text-slate-500 mt-1">(Remainder)</div>
+                        </div>
+                    </div>
+                },
+                {
+                    title: "Keywords",
+                    subtitle: "Reserved Words",
+                    text: "These words have special meaning in Python and cannot be used as variable names.",
+                    viz: <div className="flex flex-wrap gap-3 p-8 justify-center content-center h-full">
+                        {['False', 'None', 'True', 'and', 'as', 'assert', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield'].map(k => (
+                            <span key={k} className="text-pink-400 font-code text-xs md:text-sm bg-pink-900/20 px-2 py-1 rounded border border-pink-500/30">{k}</span>
+                        ))}
+                    </div>
+                },
+                {
+                    title: "Data Types",
+                    subtitle: "Classifying Data",
+                    text: "Common primitives:\n• Integer (int): 5\n• Float (float): 5.0\n• String (str): 'Hello'\n• Boolean (bool): True/False\n• NoneType: None",
+                    viz: <div className="flex flex-col justify-center gap-4 h-full px-8">
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded">
+                            <span className="font-mono text-white">10</span> <span className="text-xs text-slate-500">int</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded">
+                            <span className="font-mono text-white">3.14</span> <span className="text-xs text-slate-500">float</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded">
+                            <span className="font-mono text-green-400">"Python"</span> <span className="text-xs text-slate-500">str</span>
+                        </div>
+                        <div className="flex justify-between items-center bg-slate-800 p-3 rounded">
+                            <span className="font-mono text-blue-400">True</span> <span className="text-xs text-slate-500">bool</span>
+                        </div>
+                    </div>
+                },
+                {
+                    title: "Conditional Statements",
+                    subtitle: "Making Decisions",
+                    text: "Use if, elif, and else to control flow based on conditions.",
+                    viz: <StepByStepViz scenario={conditionalScenario} />
+                },
+                {
+                    title: "Loops",
+                    subtitle: "Repetition",
+                    text: "Loops allow code to repeat. The `for` loop iterates over items. The `while` loop runs as long as a condition is true.",
+                    viz: <StepByStepViz scenario={loopScenario} />
+                },
+                {
+                    title: "Functions",
+                    subtitle: "Reusable Logic",
+                    text: "Functions group code into a block. They accept inputs (arguments) and return outputs.",
+                    viz: <ScopeViz />
+                },
+                {
+                    title: "Pass Statement",
+                    subtitle: "The Null Operation",
+                    text: "The `pass` statement does nothing. It is used as a placeholder for future code to prevent syntax errors.",
+                    viz: <StepByStepViz scenario={passScenario} />
+                },
+                {
+                    title: "Global vs Local Variables",
+                    subtitle: "Scope",
+                    text: "• Local: Defined inside a function. Only visible there.\n• Global: Defined outside. Visible everywhere (read-only unless `global` keyword used).",
+                    viz: <ScopeViz />
+                },
+                {
+                    title: "'Self' Argument",
+                    subtitle: "Object Identity",
+                    text: "In Classes, `self` refers to the specific instance calling the method. It allows each object to have its own data.",
+                    viz: <ClassViz />
+                },
+                {
+                    title: "Lambda Function",
+                    subtitle: "Anonymous Functions",
+                    text: "A small anonymous function defined with the `lambda` keyword. \nSyntax: `lambda arguments : expression`",
+                    viz: <LambdaViz />
+                }
+            ];
+
+            // Navigation Key Bindings
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [slides.length]);
+
+            const CurrentContent = slides[currentSlide];
+
+            return (
+                <div className="w-screen h-screen flex flex-col relative bg-slate-950 text-white selection:bg-blue-500/30">
+                    {/* Progress Bar */}
+                    <div className="w-full h-1 bg-slate-900">
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                    </div>
+
+                    <div className="flex-1 p-4 md:p-8 flex items-center justify-center overflow-hidden">
+                        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full lg:h-[80vh]">
+
+                            {/* Left: Text Content */}
+                            <div className="flex flex-col justify-center space-y-6 animate-fade-in h-min lg:h-auto">
+                                <div>
+                                    <div className="text-xs font-mono text-blue-400 mb-2 tracking-widest">MODULE {String(currentSlide + 1).padStart(2, '0')}</div>
+                                    <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">
+                                        {CurrentContent.title}
+                                    </h1>
+                                    <h2 className="text-xl md:text-2xl text-slate-400 font-light border-b border-slate-800 pb-4">
+                                        {CurrentContent.subtitle}
+                                    </h2>
+                                </div>
+                                <div className="text-base md:text-lg text-slate-300 leading-relaxed whitespace-pre-wrap font-light">
+                                    {CurrentContent.text}
+                                </div>
+                            </div>
+
+                            {/* Right: Visualization Panel */}
+                            <div className="h-[400px] lg:h-full max-h-[600px] glass-panel rounded-2xl shadow-2xl overflow-hidden p-1 relative animate-fade-in flex flex-col w-full">
+                                <div className="absolute top-0 left-0 w-full h-8 bg-slate-900/80 border-b border-white/5 flex items-center px-4 gap-2 z-10">
+                                    <div className="w-2 h-2 rounded-full bg-red-500/50"></div>
+                                    <div className="w-2 h-2 rounded-full bg-yellow-500/50"></div>
+                                    <div className="w-2 h-2 rounded-full bg-green-500/50"></div>
+                                    <span className="ml-auto text-[10px] text-slate-500 font-mono opacity-50">interactive_session.py</span>
+                                </div>
+                                <div className="mt-8 flex-1 relative overflow-hidden p-2 md:p-4">
+                                    {CurrentContent.viz}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* Footer Controls */}
+                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 backdrop-blur z-50 shadow-xl">
+                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white hover:bg-white/10 px-3 py-1 rounded transition">PREV</button>
+                        <span className="self-center text-slate-300 w-16 text-center">{currentSlide + 1} / {slides.length}</span>
+                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white hover:bg-white/10 px-3 py-1 rounded transition">NEXT</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>

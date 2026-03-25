@@ -1,0 +1,122 @@
+PYTHON PRACTICE QUESTIONS
+
+========================
+IF-ELSE (BASIC → MEDIUM)
+========================
+
+1. Write a program to check whether a given number is positive, negative, or zero.
+
+2. Write a program to check whether a given number is even or odd.
+
+3. Write a program to check whether a person is eligible to vote based on their age.
+
+4. Write a program to find the greatest of two numbers entered by the user.
+
+5. Write a program to find the greatest of three numbers using if-else.
+
+6. Write a program to check whether a given year is a leap year or not.
+
+7. Write a program to calculate electricity bill based on the following rules:
+
+   * Units <= 100: ₹2 per unit
+   * Units <= 200: ₹3 per unit
+   * Units > 200: ₹5 per unit
+
+8. Write a program to check whether a given character is a vowel or a consonant.
+
+9. Write a program to check whether a number lies within a given range (inclusive).
+
+10. Write a program to calculate the grade of a student based on marks:
+
+    * > = 90: A
+    * > = 75: B
+    * > = 60: C
+    * < 60: D
+
+========================
+FOR LOOPS (BASIC → MEDIUM)
+==========================
+
+11. Write a program to print numbers from 1 to N using a for loop.
+
+12. Write a program to print all even numbers between 1 and N.
+
+13. Write a program to calculate the sum of first N natural numbers.
+
+14. Write a program to calculate the factorial of a given number.
+
+15. Write a program to print the multiplication table of a given number.
+
+16. Write a program to count the number of digits in a given number.
+
+17. Write a program to reverse a given number using a for loop.
+
+18. Write a program to check whether a given number is a prime number.
+
+19. Write a program to print all prime numbers between 1 and N.
+
+20. Write a program to print the Fibonacci series up to N terms.
+
+========================
+STRINGS (BASIC → MEDIUM)
+========================
+
+21. Write a program to find the length of a given string without using len().
+
+22. Write a program to count the number of vowels in a given string.
+
+23. Write a program to reverse a string.
+
+24. Write a program to check whether a given string is a palindrome.
+
+25. Write a program to count the number of words in a sentence.
+
+26. Write a program to count the frequency of a given character in a string.
+
+27. Write a program to convert all lowercase characters in a string to uppercase.
+
+28. Write a program to remove all spaces from a string.
+
+29. Write a program to replace all vowels in a string with '*'.
+
+30. Write a program to find the first non-repeating character in a string.
+
+========================
+LISTS (BASIC → MEDIUM)
+======================
+
+31. Write a program to find the sum of all elements in a list.
+
+32. Write a program to find the largest and smallest element in a list.
+
+33. Write a program to count the number of even and odd elements in a list.
+
+34. Write a program to reverse a list without using reverse().
+
+35. Write a program to remove duplicate elements from a list.
+
+36. Write a program to find the second largest element in a list.
+
+37. Write a program to check whether a given element exists in a list.
+
+38. Write a program to count the frequency of each element in a list.
+
+39. Write a program to merge two lists and sort the resulting list.
+
+40. Write a program to split a list into two lists: one containing even numbers and the other containing odd numbers.
+
+========================
+BONUS (MIXED PRACTICE)
+======================
+
+41. Write a program to find the longest word in a sentence.
+
+42. Write a program to check whether two strings are anagrams.
+
+43. Write a program to rotate a list by K positions.
+
+44. Write a program to find the common elements between two lists.
+
+45. Write a program to simulate a simple calculator using if-else and loops.
+
+--- END OF FILE ---

@@ -42,7 +42,7 @@ This repository documents my deep-dives into data exploration, statistical analy
 │   ├── netflix_titles.csv
 │   └── titanic.csv
 └── 📁 notes/                  # Day-wise learning logs
-    ├── 📁 Day 1-10            # Detailed study material
+    ├── 📁 Day 1-10           # Detailed study material
 ```
 
 ## 🚀 Getting Started

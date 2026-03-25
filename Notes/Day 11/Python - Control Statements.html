@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Control Flow: Logic & Loops</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #e2e8f0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .font-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-line {
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .code-line.active {
+            background: rgba(59, 130, 246, 0.2);
+            border-left: 3px solid #60a5fa;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 3px;
+        }
+
+        .neon-text {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // --- REUSABLE COMPONENTS ---
+
+        const CodeBlock = ({ code, activeLine }) => (
+            <div className="bg-slate-950 rounded-lg p-4 font-code text-sm border border-slate-700 shadow-inner overflow-x-auto">
+                {code.split('\n').map((line, i) => (
+                    <div key={i} className={`code-line px-2 py-1 flex ${activeLine === i + 1 ? 'active' : ''}`}>
+                        <span className="text-slate-600 w-6 select-none text-right mr-4">{i + 1}</span>
+                        <span className="text-slate-200 whitespace-pre">{line}</span>
+                    </div>
+                ))}
+            </div>
+        );
+
+        // --- VISUALIZATION ENGINES ---
+
+        // 1. CONDITIONAL LOGIC VIZ (If/Elif/Else)
+        const ConditionalViz = () => {
+            const [score, setScore] = useState(75);
+            const [step, setStep] = useState(0); // 0: Init, 1: Check If, 2: Check Elif, 3: Result
+
+            const code = `score = ${score}
+
+if score >= 90:
+    grade = "A"
+elif score >= 80:
+    grade = "B"
+elif score >= 70:
+    grade = "C"
+else:
+    grade = "F"
+
+print(f"Grade: {grade}")`;
+
+            // Determine active line based on score and step
+            const getActiveLine = () => {
+                if (step === 0) return 1;
+                if (step === 1) return 3; // if score >= 90
+
+                if (score >= 90) {
+                    if (step === 2) return 4; // grade = A
+                    if (step === 3) return 11; // print
+                } else {
+                    // Failed first check
+                    if (step === 2) return 5; // elif score >= 80
+
+                    if (score >= 80) {
+                        if (step === 3) return 6; // grade = B
+                        if (step === 4) return 11;
+                    } else {
+                        // Failed second check
+                        if (step === 3) return 7; // elif score >= 70
+
+                        if (score >= 70) {
+                            if (step === 4) return 8; // grade = C
+                            if (step === 5) return 11;
+                        } else {
+                            // Failed all checks
+                            if (step === 4) return 9; // else
+                            if (step === 5) return 10; // grade = F
+                            if (step === 6) return 11;
+                        }
+                    }
+                }
+                return 0;
+            };
+
+            const activeLine = getActiveLine();
+
+            return (
+                <div className="flex flex-col h-full gap-6">
+                    <div className="flex items-center gap-4 bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <div className="text-sm font-bold text-slate-400 uppercase">Input Variable:</div>
+                        <div className="flex items-center gap-2">
+                            <span className="font-code text-pink-400">score = </span>
+                            <input
+                                type="number"
+                                value={score}
+                                onChange={(e) => { setScore(Number(e.target.value)); setStep(0); }}
+                                className="bg-slate-800 text-white border border-slate-600 rounded px-2 py-1 w-20 font-code text-center"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setStep(s => s + 1)}
+                            className="ml-auto px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold text-sm transition-all"
+                        >
+                            Step Forward ➡️
+                        </button>
+                        <button
+                            onClick={() => setStep(0)}
+                            className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded font-bold text-sm transition-all"
+                        >
+                            Reset ↺
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-8 flex-1">
+                        <div className="flex flex-col">
+                            <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Python Code</div>
+                            <CodeBlock code={code} activeLine={activeLine} />
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center relative bg-slate-900/50 rounded-xl border border-slate-700/50">
+                            {/* Flowchart Visualization */}
+                            <div className="flex flex-col items-center gap-4">
+                                <div className={`p-3 rounded border transition-all ${activeLine === 3 ? 'bg-yellow-500/20 border-yellow-500 text-yellow-200 scale-110' : 'bg-slate-800 border-slate-600 text-slate-400'}`}>
+                                    score &ge; 90?
+                                </div>
+
+                                {activeLine > 3 && score < 90 && (
+                                    <>
+                                        <div className="h-4 w-0.5 bg-slate-600"></div>
+                                        <div className={`p-3 rounded border transition-all ${activeLine === 5 ? 'bg-yellow-500/20 border-yellow-500 text-yellow-200 scale-110' : 'bg-slate-800 border-slate-600 text-slate-400'}`}>
+                                            score &ge; 80?
+                                        </div>
+                                    </>
+                                )}
+
+                                {activeLine > 5 && score < 80 && (
+                                    <>
+                                        <div className="h-4 w-0.5 bg-slate-600"></div>
+                                        <div className={`p-3 rounded border transition-all ${activeLine === 7 ? 'bg-yellow-500/20 border-yellow-500 text-yellow-200 scale-110' : 'bg-slate-800 border-slate-600 text-slate-400'}`}>
+                                            score &ge; 70?
+                                        </div>
+                                    </>
+                                )}
+
+                                {/* Result Box */}
+                                {[4, 6, 8, 10].includes(activeLine) && (
+                                    <div className="mt-4 p-4 bg-green-500/20 border-2 border-green-500 rounded-xl animate-fade-in">
+                                        <div className="text-xs text-green-300 uppercase font-bold mb-1">Execution Match</div>
+                                        <div className="text-2xl font-code text-white">
+                                            grade = "{score >= 90 ? 'A' : score >= 80 ? 'B' : score >= 70 ? 'C' : 'F'}"
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 2. LOOP VIZ (For Loop & Range)
+        const LoopViz = () => {
+            const [step, setStep] = useState(0);
+            const rangeArgs = { start: 0, stop: 5, step: 1 }; // Simplified for demo
+
+            // Generate the sequence
+            const sequence = [];
+            for (let i = rangeArgs.start; i < rangeArgs.stop; i += rangeArgs.step) {
+                sequence.push(i);
+            }
+
+            const code = `for i in range(${rangeArgs.stop}):
+    print(f"Current number: {i}")
+    
+print("Loop Finished!")`;
+
+            // Step Logic: 
+            // 0: Init
+            // 1: Check i=0 -> Line 1
+            // 2: Print -> Line 2
+            // 3: Check i=1 -> Line 1
+            // ...
+
+            const currentIter = Math.floor((step - 1) / 2);
+            const isLooping = currentIter < sequence.length;
+            const activeLine = step === 0 ? 0 : (step > sequence.length * 2 ? 4 : (step % 2 !== 0 ? 1 : 2));
+
+            return (
+                <div className="flex flex-col h-full gap-6">
+                    <div className="flex items-center justify-between bg-slate-900 p-4 rounded-xl border border-slate-700">
+                        <div className="flex items-center gap-4">
+                            <div className="text-sm font-bold text-slate-400">Controls:</div>
+                            <button
+                                onClick={() => setStep(s => s + 1)}
+                                disabled={step > sequence.length * 2}
+                                className="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm transition-all disabled:opacity-50"
+                            >
+                                Next Step
+                            </button>
+                            <button
+                                onClick={() => setStep(0)}
+                                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-full font-bold text-sm transition-all border border-slate-600"
+                            >
+                                Reset
+                            </button>
+                        </div>
+                        <div className="font-code text-sm text-pink-400">
+                            i = {isLooping && step > 0 ? sequence[currentIter] : '-'}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-1">
+                        <div className="flex flex-col">
+                            <CodeBlock code={code} activeLine={activeLine} />
+
+                            <div className="mt-4 p-4 bg-black rounded-lg border border-slate-800 font-code text-xs h-40 overflow-y-auto custom-scroll">
+                                <div className="text-slate-500 border-b border-slate-800 mb-2 pb-1">Console Output:</div>
+                                {Array.from({ length: currentIter + (activeLine === 2 || !isLooping ? 1 : 0) }).map((_, idx) => {
+                                    if (idx >= sequence.length) return <div key="end" className="text-green-400">Loop Finished!</div>;
+                                    return <div key={idx} className="text-slate-300">Current number: {sequence[idx]}</div>;
+                                })}
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-4">
+                            {/* Range Visualizer */}
+                            <div className="bg-slate-900 p-6 rounded-xl border border-slate-700 flex flex-col justify-center items-center h-full relative">
+                                <div className="absolute top-4 left-4 text-xs font-bold text-slate-500 uppercase">Memory / Iteration</div>
+
+                                <div className="flex gap-2">
+                                    {sequence.map((val, idx) => (
+                                        <div
+                                            key={idx}
+                                            className={`w-12 h-12 flex items-center justify-center rounded-lg border-2 font-bold text-xl transition-all duration-500
+                                            ${currentIter === idx && isLooping
+                                                    ? 'bg-blue-600 border-blue-400 text-white scale-125 shadow-[0_0_20px_rgba(59,130,246,0.5)] z-10'
+                                                    : (idx < currentIter ? 'bg-slate-800 border-slate-600 text-slate-500 opacity-50' : 'bg-slate-800 border-slate-600 text-slate-400')}
+                                        `}
+                                        >
+                                            {val}
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="mt-8 text-center text-sm text-slate-400">
+                                    The loop variable <code>i</code> takes each value from the sequence, one by one.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // 3. WHILE LOOP VIZ
+        const WhileViz = () => {
+            const [count, setCount] = useState(5);
+            const [current, setCurrent] = useState(5);
+            const [isRunning, setIsRunning] = useState(false);
+
+            useEffect(() => {
+                let interval;
+                if (isRunning && current > 0) {
+                    interval = setInterval(() => {
+                        setCurrent(c => c - 1);
+                    }, 1000);
+                } else if (current === 0) {
+                    setIsRunning(false);
+                }
+                return () => clearInterval(interval);
+            }, [isRunning, current]);
+
+            const code = `count = ${count}
+
+while count > 0:
+    print(f"T-minus {count}")
+    count = count - 1
+
+print("Blastoff! 🚀")`;
+
+            // Simplistic active line mapping for demo
+            const activeLine = isRunning
+                ? (current > 0 ? 4 : 6) // Alternating roughly
+                : (current === 0 ? 7 : 1);
+
+            return (
+                <div className="flex flex-col h-full gap-6 items-center justify-center">
+                    <div className="grid grid-cols-2 gap-8 w-full max-w-4xl">
+                        <div>
+                            <CodeBlock code={code} activeLine={activeLine} />
+                            <div className="mt-4 flex gap-4">
+                                <button
+                                    onClick={() => { setCurrent(5); setIsRunning(true); }}
+                                    disabled={isRunning}
+                                    className="flex-1 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    {isRunning ? "Running..." : "Start Countdown"}
+                                </button>
+                                <button
+                                    onClick={() => { setCurrent(5); setIsRunning(false); }}
+                                    className="px-4 py-3 bg-slate-800 border border-slate-600 text-white rounded-lg hover:bg-slate-700"
+                                >
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col items-center justify-center bg-slate-900/50 rounded-xl border border-slate-700 relative overflow-hidden p-8">
+                            {/* Condition Check Visual */}
+                            <div className={`absolute top-4 right-4 px-3 py-1 rounded text-xs font-bold ${current > 0 ? 'bg-green-900/50 text-green-400 border border-green-500' : 'bg-red-900/50 text-red-400 border border-red-500'}`}>
+                                Condition: {current} &gt; 0 is {current > 0 ? 'TRUE' : 'FALSE'}
+                            </div>
+
+                            {/* Countdown Number */}
+                            <div className={`text-9xl font-black transition-all duration-300 ${current === 0 ? 'scale-150 text-orange-500 animate-bounce' : 'text-slate-200'}`}>
+                                {current === 0 ? "🚀" : current}
+                            </div>
+
+                            <div className="mt-8 text-center text-sm text-slate-400">
+                                The <code>while</code> loop continues to execute <strong>as long as</strong> the condition remains True.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MAIN APP ---
+
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+
+            const slides = [
+                {
+                    layout: "center",
+                    content: (
+                        <div className="text-center animate-fade-in max-w-4xl">
+                            <div className="inline-block p-2 px-4 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-xs font-mono mb-8">
+                                PYTHON_MODULE_02
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
+                                Control Flow
+                            </h1>
+                            <h2 className="text-2xl md:text-4xl font-light text-slate-400 mb-12">
+                                Logic, Decisions, and <span className="text-blue-500 font-bold">Loops</span>
+                            </h2>
+                            <div className="flex justify-center gap-8 text-sm text-slate-400 font-mono">
+                                <span>if / else</span>
+                                <span className="text-slate-600">•</span>
+                                <span>for loops</span>
+                                <span className="text-slate-600">•</span>
+                                <span>while loops</span>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    layout: "split",
+                    title: "1. Conditional Logic",
+                    subtitle: "Making Decisions",
+                    text: (
+                        <div className="space-y-4 text-lg text-slate-300">
+                            <p>Programs need to make choices. In Python, we use <code>if</code> statements.</p>
+                            <ul className="list-disc pl-5 space-y-2 text-base text-slate-400">
+                                <li><strong>if:</strong> Checks a condition. If True, executes the block.</li>
+                                <li><strong>elif:</strong> "Else If". Checks another condition if the first failed.</li>
+                                <li><strong>else:</strong> The catch-all. Executes if nothing else was True.</li>
+                            </ul>
+                            <div className="p-3 bg-slate-800/50 rounded border-l-4 border-yellow-500 text-sm text-yellow-200 mt-4">
+                                ⚠️ <strong>Indentation Matters!</strong> Python uses whitespace to define blocks of code.
+                            </div>
+                        </div>
+                    ),
+                    viz: <ConditionalViz />
+                },
+                {
+                    layout: "split",
+                    title: "2. The For Loop",
+                    subtitle: "Iterating Sequences",
+                    text: (
+                        <div className="space-y-4 text-lg text-slate-300">
+                            <p>Used when you know <strong>how many times</strong> you want to repeat something, or when iterating over a list.</p>
+                            <div className="bg-slate-900 p-4 rounded border border-slate-700 font-code text-sm">
+                                <span className="text-purple-400">for</span> item <span className="text-purple-400">in</span> sequence:<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;# Do something
+                            </div>
+                            <p className="text-sm text-slate-400">
+                                Commonly used with the <code>range()</code> function.
+                            </p>
+                        </div>
+                    ),
+                    viz: <LoopViz />
+                },
+                {
+                    layout: "split",
+                    title: "3. The Range Function",
+                    subtitle: "Generating Numbers",
+                    text: (
+                        <div className="space-y-4 text-lg text-slate-300">
+                            <p><code>range()</code> generates a sequence of numbers. It is lazy (generates numbers on demand).</p>
+                            <ul className="space-y-3 text-sm font-mono text-slate-400">
+                                <li>
+                                    <span className="text-white">range(5)</span><br />
+                                    <span className="text-blue-400">→ [0, 1, 2, 3, 4]</span> (Stop only)
+                                </li>
+                                <li>
+                                    <span className="text-white">range(2, 6)</span><br />
+                                    <span className="text-blue-400">→ [2, 3, 4, 5]</span> (Start, Stop)
+                                </li>
+                                <li>
+                                    <span className="text-white">range(0, 10, 2)</span><br />
+                                    <span className="text-blue-400">→ [0, 2, 4, 6, 8]</span> (Start, Stop, Step)
+                                </li>
+                            </ul>
+                        </div>
+                    ),
+                    viz: (
+                        <div className="flex items-center justify-center h-full">
+                            <div className="bg-slate-800 p-8 rounded-xl border border-slate-700 text-center">
+                                <div className="text-4xl mb-4">📏</div>
+                                <h3 className="text-xl font-bold text-white mb-2">Exclusive Stop</h3>
+                                <p className="text-slate-300">range(N) goes up to <strong className="text-pink-400">N-1</strong></p>
+                                <div className="mt-4 flex gap-1 justify-center">
+                                    <span className="px-2 py-1 bg-green-900 text-green-400 rounded">0</span>
+                                    <span className="px-2 py-1 bg-green-900 text-green-400 rounded">1</span>
+                                    <span className="px-2 py-1 bg-green-900 text-green-400 rounded">2</span>
+                                    <span className="px-2 py-1 bg-red-900 text-red-400 rounded line-through opacity-50">3</span>
+                                </div>
+                                <div className="text-xs text-slate-500 mt-1">range(3)</div>
+                            </div>
+                        </div>
+                    )
+                },
+                {
+                    layout: "split",
+                    title: "4. The While Loop",
+                    subtitle: "Condition-Based Repetition",
+                    text: (
+                        <div className="space-y-4 text-lg text-slate-300">
+                            <p>Used when you <strong>don't know</strong> how many times to loop, but you know the condition to stop.</p>
+                            <div className="bg-slate-900 p-4 rounded border border-slate-700 font-code text-sm">
+                                <span className="text-purple-400">while</span> condition:<br />
+                                &nbsp;&nbsp;&nbsp;&nbsp;# Keep going
+                            </div>
+                            <div className="p-3 bg-red-900/20 rounded border-l-4 border-red-500 text-sm text-red-200 mt-4">
+                                ⚠️ <strong>Infinite Loops:</strong> If the condition never becomes False, the loop runs forever!
+                            </div>
+                        </div>
+                    ),
+                    viz: <WhileViz />
+                },
+                {
+                    layout: "center",
+                    content: (
+                        <div className="text-center animate-fade-in max-w-3xl">
+                            <div className="text-6xl mb-6">🎓</div>
+                            <h2 className="text-5xl font-bold text-white mb-6">Module Complete</h2>
+                            <p className="text-xl text-slate-400 mb-8">
+                                You've mastered the logic that drives all software. <br />Next step: <strong>Functions & Modules</strong>.
+                            </p>
+                            <button onClick={() => setCurrentSlide(0)} className="px-8 py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-lg font-bold transition-all shadow-lg">
+                                Restart Lesson ↻
+                            </button>
+                        </div>
+                    )
+                }
+            ];
+
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [slides.length]);
+
+            const CurrentContent = slides[currentSlide];
+
+            return (
+                <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950 text-white">
+                    {/* Background Decor */}
+                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+                    <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
+
+                    {/* Progress Bar */}
+                    <div className="w-full h-1 bg-slate-900 z-50">
+                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="flex-1 flex items-center justify-center p-8 z-10">
+                        {CurrentContent.layout === 'center' ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in">
+                                {CurrentContent.content}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center">
+                                <div className="flex flex-col justify-center h-full space-y-6">
+                                    <div>
+                                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">{CurrentContent.title}</h2>
+                                        <h3 className="text-2xl text-blue-400 font-light">{CurrentContent.subtitle}</h3>
+                                    </div>
+                                    <div className="h-1 w-20 bg-blue-500 rounded"></div>
+                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4">
+                                        {CurrentContent.text}
+                                    </div>
+                                </div>
+                                <div className="h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6">
+                                    {CurrentContent.viz}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Navigation Controls */}
+                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
+                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">PREV</button>
+                        <span className="self-center text-slate-300 min-w-[3rem] text-center">{currentSlide + 1} / {slides.length}</span>
+                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">NEXT</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+
+</body>
+
+</html>

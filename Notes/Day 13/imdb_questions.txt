@@ -1,0 +1,55 @@
+# Q1. How do we load the dataset and see the first 5 rows?
+
+# Q2. What are the data types of each column?
+
+# Q3. How do we clean the `duration` column? (e.g., `'175 min'` → `175`)
+
+# Q4. How do we clean the `gross` column and `votes` column?
+
+# Q5. How many missing values are in each column?
+
+# Q6. How do we handle missing ratings?
+
+# Q7. Find the "Hidden Gems" (High Rating, Low Votes)
+
+# Q8. Find the "Overhyped" movies (Low Rating, High Gross)
+
+# Q9. What are the unique certificates in the dataset?
+
+# Q10. How many movies were released each year?
+
+# Q11. Which are the top 5 most common genres?
+
+# Q12. Which directors have directed the most movies?
+
+# Q13. Do longer movies get better ratings?
+
+# Q14. Which genre has the highest average rating?
+
+# Q15. Which genre makes the most money (Avg Gross)?
+
+# Q16. Who is the highest-grossing director of all time (in this dataset)?
+
+# Q17. How does Certificate affect Gross Income?
+
+# Q18. What is the average duration of movies by Certificate?
+
+# Q19. Are ratings improving over the years?
+
+# Q20. Which actor appears in the most movies?
+
+# Q21. What is the correlation between Votes and Gross Income?
+
+# Q22. Which Director + Actor duo is the most frequent?
+
+# Q23. Which year had the highest total industry revenue?
+
+# Q24. What is the best genre for a debut director? (Highest avg rating for 1st time directors)
+
+# Q25. Do movies with more actors (ensemble cast) earn more?
+
+# Q26. Which Director has the highest "Hit Rate"? (Percentage of movies rated > 7.5)
+
+# Q27. Analyse the "Sequel Effect" — Do movies with numbers in titles earn more?
+
+# Q28. The Ultimate Business Decision: What movie should we fund?

@@ -1,0 +1,23 @@
+# IMDB Movies Dataset — Visualisation Questions
+
+--- 
+
+# Q1. Plot the average movie rating over the years (Line Chart)
+ 
+# Q2. Plot the number of movies released per year (Line Chart)
+ 
+# Q3. Plot the distribution of movie ratings (Histogram using Matplotlib)
+ 
+# Q4. Plot the distribution of movie ratings (Histogram using Seaborn)
+ 
+# Q5. Which are the top 10 most frequent actors? (Horizontal Bar Chart)
+ 
+# Q6. Plot the relationship between year and rating (Scatter Plot)
+ 
+# Q7. Plot the distribution of Gross Income and Votes (Box Plot)
+ 
+# Q8. Plot the count of movies for the top actors (Count Plot using Seaborn)
+ 
+# Q9. Plot the correlation between Rating, Votes, and Gross Income (Heatmap)
+ 
+# Q10. Plot the correlation of all numeric columns (Full Heatmap)

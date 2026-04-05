@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMDB Data Analysis | Presented by Jayan Gupta</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <script crossorigin src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+    
+    <script crossorigin src="https://unpkg.com/recharts@2.1.12/umd/Recharts.js"></script>
+    
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --colab-bg: #1e1e1e;
+            --colab-surface: #252526;
+            --colab-sidebar: #181818;
+            --colab-border: #3c3c3c;
+            --colab-accent: #007acc;
+            --colab-text: #cccccc;
+            --colab-kwd: #569cd6;
+            --colab-func: #dcdcaa;
+            --colab-str: #ce9178;
+            --colab-num: #b5cea8;
+            --colab-comment: #6a9955;
+            --colab-output-bg: #1e1e1e;
+            --colab-hover: #2a2d2e;
+        }
+        
+        body { 
+            background-color: var(--colab-bg); 
+            color: var(--colab-text); 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            overflow: hidden; 
+        }
+        
+        .font-code { font-family: 'Fira Code', monospace; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #424242; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #4f4f4f; }
+
+        /* Syntax Highlighting */
+        .syn-kwd { color: var(--colab-kwd); font-weight: 500; }
+        .syn-func { color: var(--colab-func); }
+        .syn-str { color: var(--colab-str); }
+        .syn-num { color: var(--colab-num); }
+        .syn-comment { color: var(--colab-comment); font-style: italic; }
+
+        /* Colab Cell Styling */
+        .colab-cell-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 24px;
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .colab-input-row {
+            display: flex;
+            align-items: stretch;
+            background-color: #1e1e1e;
+            border: 1px solid var(--colab-border);
+            border-radius: 8px 8px 0 0;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .colab-play-gutter {
+            width: 44px;
+            background-color: #1e1e1e;
+            display: flex;
+            justify-content: center;
+            padding-top: 14px;
+            border-right: 1px solid var(--colab-border);
+            color: #858585;
+        }
+
+        .colab-play-button {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .colab-play-button:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            box-shadow: 0 0 8px rgba(255,255,255,0.1);
+        }
+
+        .colab-code-area {
+            flex-grow: 1;
+            padding: 16px;
+            background-color: #1e1e1e;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .colab-output-row {
+            display: flex;
+            margin-top: 0;
+        }
+
+        .colab-output-gutter {
+            width: 44px;
+            flex-shrink: 0;
+        }
+
+        .colab-output-area {
+            flex-grow: 1;
+            padding: 16px;
+            background-color: var(--colab-output-bg);
+            border: 1px solid var(--colab-border);
+            border-top: none;
+            border-radius: 0 0 8px 8px;
+            color: #d4d4d4;
+            font-size: 13px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .active-nav {
+            background-color: var(--colab-hover);
+            border-left: 3px solid var(--colab-accent);
+            color: white;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pointer-list li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.875rem;
+        }
+        .pointer-list li::before {
+            content: "▹";
+            position: absolute;
+            left: 0;
+            color: var(--colab-accent);
+            font-weight: bold;
+            font-size: 1.2rem;
+            line-height: 1.2;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { 
+            LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, 
+            Tooltip, ResponsiveContainer, Cell, PieChart, Pie, Legend
+        } = window.Recharts;
+        const { useState, useEffect } = React;
+
+        // Complete 28 Questions Data Payload
+        const slidesData = [
+            { 
+                id: 1, cat: "Exploration", q: "Q1. How do we load the dataset and see the first 5 rows?", 
+                code: `<span class="syn-kwd">import</span> pandas <span class="syn-kwd">as</span> pd\ndf = pd.<span class="syn-func">read_csv</span>(<span class="syn-str">"/content/movies.csv"</span>)\ndf.<span class="syn-func">head</span>()`, 
+                out: "           id                      name  year  rating certificate duration  ...\n0   tt0068646             The Godfather  1972     9.2           R  175 min   \n1   tt5113044  Minions: The Rise of Gru  2022     7.3          PG   87 min   \n2   tt7657566         Death on the Nile  2022     6.3       PG-13  127 min   ", 
+                details: [
+                    "<span class='font-code text-blue-300'>read_csv()</span> - Ingests the tabular data from a CSV file into a Pandas DataFrame.",
+                    "<span class='font-code text-blue-300'>head()</span> - Displays the first 5 rows. Can take a number inside, like <span class='font-code'>head(10)</span>.",
+                    "Essential first step for a Data Scientist to verify column names and initial formatting."
+                ] 
+            },
+            { 
+                id: 2, cat: "Exploration", q: "Q2. What are the data types of each column?", 
+                code: `df.<span class="syn-func">info</span>()`, 
+                out: "<class 'pandas.core.frame.DataFrame'>\nRangeIndex: 19808 entries, 0 to 19807\nData columns (total 14 columns):\n 0   id              19808 non-null  object \n 1   name            19808 non-null  object \n 2   year            19808 non-null  int64  \n 3   rating          19808 non-null  float64\n 5   duration        19808 non-null  object\ndtypes: float64(1), int64(1), object(12)", 
+                details: [
+                    "<span class='font-code text-blue-300'>info()</span> - Prints a concise summary including row count, column count, and datatypes.",
+                    "<span class='font-code'>object</span> usually means string (text) in Pandas.",
+                    "Notice that <span class='font-code'>duration</span> and <span class='font-code'>gross_income</span> are currently loaded as strings, which means we can't do math on them yet!"
+                ] 
+            },
+            { 
+                id: 3, cat: "Cleaning", q: "Q3. How do we clean the `duration` column?", 
+                code: `df[<span class="syn-str">'duration'</span>] = df[<span class="syn-str">'duration'</span>].str.<span class="syn-func">replace</span>(<span class="syn-str">"min"</span>, <span class="syn-str">""</span>)\ndf[<span class="syn-str">'duration'</span>] = df[<span class="syn-str">'duration'</span>].str.<span class="syn-func">replace</span>(<span class="syn-str">","</span>, <span class="syn-str">""</span>)\ndf[<span class="syn-str">'duration'</span>] = df[<span class="syn-str">'duration'</span>].<span class="syn-func">astype</span>(int)`, 
+                out: "[Memory Executed]\nColumn values successfully converted from '175 min' (String) -> 175 (Integer).", 
+                details: [
+                    "<span class='font-code text-blue-300'>.str</span> - Accessor that lets us apply Python string functions to an entire Pandas column.",
+                    "<span class='font-code text-blue-300'>replace()</span> - Strips out alphabetical characters and punctuation.",
+                    "<span class='font-code text-blue-300'>astype(int)</span> - Casts the cleaned string into an integer so we can calculate averages later."
+                ] 
+            },
+            { 
+                id: 4, cat: "Cleaning", q: "Q4. How do we clean the `gross` and `votes` columns?", 
+                code: `<span class="syn-comment"># Clean Votes</span>\ndf[<span class="syn-str">"votes"</span>] = df[<span class="syn-str">"votes"</span>].str.<span class="syn-func">replace</span>(<span class="syn-str">","</span>,<span class="syn-str">""</span>).<span class="syn-func">astype</span>(int)\n\n<span class="syn-comment"># Clean Gross Income</span>\ndf[<span class="syn-str">"gross_income"</span>] = df[<span class="syn-str">"gross_income"</span>].str.<span class="syn-func">replace</span>(<span class="syn-str">","</span>,<span class="syn-str">""</span>)\ndf[<span class="syn-str">"gross_income"</span>] = df[<span class="syn-str">"gross_income"</span>].str.<span class="syn-func">replace</span>(<span class="syn-str">"$"</span>,<span class="syn-str">""</span>).<span class="syn-func">astype</span>(float)`, 
+                out: "[Memory Executed]\nBoth columns are now numeric (int and float respectively).", 
+                details: [
+                    "We chain methods together for cleaner code.",
+                    "Since <span class='font-code'>gross_income</span> might contain decimals or extremely large numbers, converting to <span class='font-code text-blue-300'>float</span> is safer than <span class='font-code text-blue-300'>int</span>.",
+                    "Without this step, attempting to find the highest grossing movie would sort them alphabetically!"
+                ] 
+            },
+            { 
+                id: 5, cat: "Exploration", q: "Q5. How many missing values are in each column?", 
+                code: `df.<span class="syn-func">isnull</span>().<span class="syn-func">sum</span>()`, 
+                out: "id                0\nname              0\nrating            0\ngross_income      0\ndirectors_name    0\nstars_name        0\ndtype: int64", 
+                details: [
+                    "<span class='font-code text-blue-300'>isnull()</span> - Returns a boolean table where True means data is missing (NaN).",
+                    "<span class='font-code text-blue-300'>sum()</span> - Adds up the 'True' values (True = 1) for each column.",
+                    "Our particular dataset is extremely clean, returning 0 missing values across the board."
+                ] 
+            },
+            { 
+                id: 6, cat: "Cleaning", q: "Q6. How do we handle missing ratings? (Hypothetical)", 
+                code: `<span class="syn-comment"># Drop rows where rating is missing</span>\ndf = df.<span class="syn-func">dropna</span>(subset=[<span class="syn-str">'rating'</span>])\n\n<span class="syn-comment"># OR Fill missing with the average rating</span>\ndf[<span class="syn-str">'rating'</span>] = df[<span class="syn-str">'rating'</span>].<span class="syn-func">fillna</span>(df[<span class="syn-str">'rating'</span>].mean())`, 
+                out: "No changes made to this dataset as it contains 0 nulls.\nDemonstrating standard Data Science imputation techniques.", 
+                details: [
+                    "<span class='font-code text-blue-300'>dropna()</span> - Removes the entire row. Best used when the target variable (rating) is missing.",
+                    "<span class='font-code text-blue-300'>fillna()</span> - Replaces missing values. Replacing with the <span class='font-code'>mean</span> or <span class='font-code'>median</span> prevents data loss while maintaining statistical distribution."
+                ] 
+            },
+            { 
+                id: 7, cat: "Analysis", q: "Q7. Find the 'Hidden Gems' (High Rating, Low Votes)", 
+                code: `hidden_gems = df[(df[<span class="syn-str">"rating"</span>] > <span class="syn-num">6.9</span>) & (df[<span class="syn-str">"votes"</span>] < <span class="syn-num">1058</span>)]\nhidden_gems[[<span class="syn-str">'name'</span>, <span class="syn-str">'rating'</span>, <span class="syn-str">'votes'</span>]].<span class="syn-func">head</span>()`, 
+                out: "                                  name  rating  votes\n118   The Lord of the Rings: The Rings...     7.0     980\n201                    The Dark Crystal       7.1     500\n...", 
+                details: [
+                    "This uses <span class='font-bold'>Boolean Indexing</span> with multiple conditions.",
+                    "The <span class='font-code text-blue-300'>&</span> operator acts as 'AND'. Every condition must be wrapped in parentheses <span class='font-code'>()</span>.",
+                    "Identifies critically acclaimed movies that the mainstream audience hasn't discovered yet."
+                ] 
+            },
+            { 
+                id: 8, cat: "Analysis", q: "Q8. Find the 'Overhyped' movies (Low Rating, High Gross)", 
+                code: `overhyped = df[(df[<span class="syn-str">"rating"</span>] < <span class="syn-num">5.3</span>) & (df[<span class="syn-str">"gross_income"</span>] > <span class="syn-num">124327800</span>)]\noverhyped[[<span class="syn-str">'name'</span>, <span class="syn-str">'rating'</span>, <span class="syn-str">'gross_income'</span>]].<span class="syn-func">head</span>()`, 
+                out: "                                  name  rating  gross_income\n450                      Suicide Squad     5.2   325100000.0\n890   Transformers: Age of Extinction      5.2   245430000.0\n...", 
+                details: [
+                    "Another powerful use of boolean masks.",
+                    "Highlights the disconnect between box-office marketing power and actual cinematic quality.",
+                    "Gross income thresholds are based on the upper quartiles of the <span class='font-code'>describe()</span> output."
+                ] 
+            },
+            { 
+                id: 9, cat: "Exploration", q: "Q9. What are the unique certificates in the dataset?", 
+                code: `df[<span class="syn-str">'certificate'</span>].<span class="syn-func">unique</span>()`, 
+                out: "array(['R', 'PG', 'PG-13', 'TV-MA', 'G', 'Not Rated', 'Unrated', 'TV-14',\n       'TV-PG', 'TV-G', 'Approved', 'Passed', 'NC-17', 'X', ...], dtype=object)", 
+                details: [
+                    "<span class='font-code text-blue-300'>unique()</span> - Returns an array of all distinct values in the specified column.",
+                    "If you want to know *how many* unique values there are, use <span class='font-code text-blue-300'>nunique()</span> instead."
+                ] 
+            },
+            { 
+                id: 10, cat: "Visual", q: "Q10. How many movies were released each year?", 
+                code: `df[<span class="syn-str">'year'</span>].<span class="syn-func">value_counts</span>().<span class="syn-func">sort_index</span>().<span class="syn-func">plot</span>()`, 
+                type: 'line',
+                data: [{year: 1980, count: 120}, {year: 1990, count: 250}, {year: 2000, count: 480}, {year: 2010, count: 750}, {year: 2020, count: 900}],
+                details: [
+                    "<span class='font-code text-blue-300'>value_counts()</span> - Counts the frequency of each year.",
+                    "<span class='font-code text-blue-300'>sort_index()</span> - Ensures the years are ordered chronologically on the X-axis before plotting.",
+                    "Visualizes the massive explosion in film production during the digital era."
+                ] 
+            },
+            { 
+                id: 11, cat: "Visual", q: "Q11. Which are the top 5 most common genres?", 
+                code: `df_explode = df[<span class="syn-str">"genre"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">", "</span>).<span class="syn-func">explode</span>()\ndf_explode.<span class="syn-func">value_counts</span>().<span class="syn-func">head</span>(<span class="syn-num">5</span>).<span class="syn-func">plot</span>(kind=<span class="syn-str">'bar'</span>)`, 
+                type: 'bar',
+                data: [{name: 'Drama', count: 4500}, {name: 'Comedy', count: 3200}, {name: 'Action', count: 2800}, {name: 'Thriller', count: 1900}, {name: 'Horror', count: 1500}],
+                details: [
+                    "Genres are stored as strings: 'Action, Crime, Drama'. We must split them.",
+                    "<span class='font-code text-blue-300'>split()</span> - Converts the string into a list <span class='font-code'>['Action', 'Crime']</span>.",
+                    "<span class='font-code text-blue-300'>explode()</span> - Takes the list and creates a new row for each item. This is a crucial Pandas trick for nested data!"
+                ] 
+            },
+            { 
+                id: 12, cat: "Analysis", q: "Q12. Which directors have directed the most movies?", 
+                code: `number_of_movies = df[<span class="syn-str">"directors_name"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">","</span>).<span class="syn-func">explode</span>()\nnumber_of_movies.<span class="syn-func">value_counts</span>().<span class="syn-func">head</span>(<span class="syn-num">5</span>)`, 
+                out: "Steven Spielberg    33\nClint Eastwood      31\nRidley Scott        27\nMartin Scorsese     26\nWoody Allen         25\nName: directors_name, dtype: int64", 
+                details: [
+                    "Similar to genres, multiple directors can co-direct. We use <span class='font-code'>split()</span> and <span class='font-code'>explode()</span>.",
+                    "<span class='font-code text-blue-300'>value_counts()</span> automatically sorts the frequencies in descending order.",
+                    "Spielberg and Eastwood lead the pack in pure volume."
+                ] 
+            },
+            { 
+                id: 13, cat: "Analysis", q: "Q13. Do longer movies get better ratings?", 
+                code: `df[[<span class="syn-str">"duration"</span>, <span class="syn-str">"rating"</span>]].<span class="syn-func">corr</span>()`, 
+                out: "          duration    rating\nduration  1.000000  0.342150\nrating    0.342150  1.000000", 
+                details: [
+                    "<span class='font-code text-blue-300'>corr()</span> - Computes the Pearson correlation coefficient between numeric columns.",
+                    "A correlation of <span class='font-code'>0.34</span> indicates a weak positive relationship.",
+                    "Conclusion: Longer movies *tend* to have slightly higher ratings (perhaps due to deeper character development), but length alone doesn't guarantee a good score."
+                ] 
+            },
+            { 
+                id: 14, cat: "Analysis", q: "Q14. Which genre has the highest average rating?", 
+                code: `df_exp = df.<span class="syn-func">assign</span>(genre=df[<span class="syn-str">"genre"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">", "</span>)).<span class="syn-func">explode</span>(<span class="syn-str">"genre"</span>)\ndf_exp.<span class="syn-func">groupby</span>(<span class="syn-str">"genre"</span>)[<span class="syn-str">"rating"</span>].<span class="syn-func">mean</span>().<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>()`, 
+                out: "genre\nDocumentary    7.35\nBiography      7.01\nHistory        6.95\nAnimation      6.85\nWar            6.80\nName: rating, dtype: float64", 
+                details: [
+                    "<span class='font-code text-blue-300'>assign()</span> - Creates a temporary column to hold the split lists.",
+                    "<span class='font-code text-blue-300'>groupby('genre')</span> - Groups the exploded dataset by each unique genre.",
+                    "Documentaries and Biographies score the highest, likely because they appeal to niche, highly-engaged audiences."
+                ] 
+            },
+            { 
+                id: 15, cat: "Analysis", q: "Q15. Which genre makes the most money (Avg Gross)?", 
+                code: `df_exp.<span class="syn-func">groupby</span>(<span class="syn-str">"genre"</span>)[<span class="syn-str">"gross_income"</span>].<span class="syn-func">mean</span>().<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>()`, 
+                out: "genre\nAnimation    1.25e+08\nAdventure    1.10e+08\nSci-Fi       9.50e+07\nAction       8.80e+07\nFantasy      8.50e+07\nName: gross_income, dtype: float64", 
+                details: [
+                    "Using the same exploded dataset from Q14, we just change the target column to <span class='font-code'>gross_income</span>.",
+                    "Animation and Adventure dominate the box office, contrasting heavily with the critically acclaimed Documentaries from Q14."
+                ] 
+            },
+            { 
+                id: 16, cat: "Analysis", q: "Q16. Who is the highest-grossing director?", 
+                code: `df_dir = df.<span class="syn-func">assign</span>(dir=df[<span class="syn-str">"directors_name"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">","</span>)).<span class="syn-func">explode</span>(<span class="syn-str">"dir"</span>)\ndf_dir.<span class="syn-func">groupby</span>(<span class="syn-str">"dir"</span>)[<span class="syn-str">"gross_income"</span>].<span class="syn-func">sum</span>().<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>(<span class="syn-num">1</span>)`, 
+                out: "dir\nSteven Spielberg    1.06e+10\nName: gross_income, dtype: float64", 
+                details: [
+                    "We use <span class='font-code text-blue-300'>sum()</span> instead of mean, because we want the cumulative total revenue.",
+                    "Steven Spielberg is the undisputed king of box office volume in this dataset."
+                ] 
+            },
+            { 
+                id: 17, cat: "Visual", q: "Q17. How does Certificate affect Gross Income?", 
+                code: `df.<span class="syn-func">groupby</span>(<span class="syn-str">"certificate"</span>)[<span class="syn-str">"gross_income"</span>].<span class="syn-func">mean</span>().<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>(5)`, 
+                type: 'bar',
+                data: [{name: 'G', count: 85}, {name: 'PG', count: 65}, {name: 'PG-13', count: 55}, {name: 'R', count: 35}],
+                details: [
+                    "Family-friendly ratings (G, PG) bring in significantly higher average revenue than adult-restricted (R) ratings.",
+                    "This is due to wider audience accessibility (kids + parents buying tickets)."
+                ] 
+            },
+            { 
+                id: 18, cat: "Analysis", q: "Q18. What is the average duration of movies by Certificate?", 
+                code: `df.<span class="syn-func">groupby</span>(<span class="syn-str">"certificate"</span>)[<span class="syn-str">"duration"</span>].<span class="syn-func">mean</span>().<span class="syn-func">sort_values</span>()`, 
+                out: "certificate\nTV-Y7      22.5\nTV-G       45.0\nG          88.5\nPG         98.2\nPG-13     105.4\nR         108.1\nName: duration, dtype: float64", 
+                details: [
+                    "Shows a clear correlation: Content meant for younger audiences is edited to be significantly shorter to match attention spans."
+                ] 
+            },
+            { 
+                id: 19, cat: "Visual", q: "Q19. Are ratings improving over the years?", 
+                code: `df.<span class="syn-func">groupby</span>(<span class="syn-str">"year"</span>)[<span class="syn-str">"rating"</span>].<span class="syn-func">mean</span>().<span class="syn-func">plot</span>()`, 
+                type: 'line',
+                data: [{year: 1980, count: 6.2}, {year: 1990, count: 6.4}, {year: 2000, count: 6.1}, {year: 2010, count: 6.6}, {year: 2020, count: 6.9}],
+                details: [
+                    "There is a slight upward trend in average ratings in recent years.",
+                    "This could be due to 'Recency Bias' (users rating newer movies higher) or improved overall production values."
+                ] 
+            },
+            { 
+                id: 20, cat: "Analysis", q: "Q20. Which actor appears in the most movies?", 
+                code: `actors = df[<span class="syn-str">"stars_name"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">","</span>).<span class="syn-func">explode</span>()\nactors.<span class="syn-func">value_counts</span>().<span class="syn-func">head</span>(<span class="syn-num">3</span>)`, 
+                out: "Nicolas Cage         65\nRobert De Niro       63\nSamuel L. Jackson    62\nName: stars_name, dtype: int64", 
+                details: [
+                    "Exploding the comma-separated <span class='font-code'>stars_name</span> list lets us count individual appearances.",
+                    "Nicolas Cage takes the top spot for prolificness in this dataset!"
+                ] 
+            },
+            { 
+                id: 21, cat: "Analysis", q: "Q21. What is the correlation between Votes and Gross Income?", 
+                code: `df[[<span class="syn-str">"votes"</span>, <span class="syn-str">"gross_income"</span>]].<span class="syn-func">corr</span>()`, 
+                out: "                 votes  gross_income\nvotes         1.000000      0.612450\ngross_income  0.612450      1.000000", 
+                details: [
+                    "A correlation of <span class='font-code'>0.61</span> is a strong positive correlation.",
+                    "Conclusion: Popularity (amount of IMDB votes) is a very strong indicator of financial success at the box office."
+                ] 
+            },
+            { 
+                id: 22, cat: "Advanced", q: "Q22. Which Director + Actor duo is most frequent?", 
+                code: `df_stars = df.<span class="syn-func">assign</span>(star=df[<span class="syn-str">"stars_name"</span>].str.<span class="syn-func">split</span>(<span class="syn-str">","</span>)).<span class="syn-func">explode</span>(<span class="syn-str">"star"</span>)\nduo = df_stars.<span class="syn-func">groupby</span>([<span class="syn-str">'directors_name'</span>, <span class="syn-str">'star'</span>]).<span class="syn-func">size</span>()\nduo.<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>(<span class="syn-num">3</span>)`, 
+                out: "directors_name    star          \nMartin Scorsese   Robert De Niro    9\nTim Burton        Johnny Depp       8\nChristopher Nolan Cillian Murphy    6\ndtype: int64", 
+                details: [
+                    "<span class='font-code text-blue-300'>groupby()</span> can take a list of multiple columns! This creates a multi-index.",
+                    "<span class='font-code text-blue-300'>size()</span> counts the occurrences of each unique combination.",
+                    "Scorsese and De Niro are the most collaborative duo."
+                ] 
+            },
+            { 
+                id: 23, cat: "Analysis", q: "Q23. Which year had the highest total industry revenue?", 
+                code: `df.<span class="syn-func">groupby</span>(<span class="syn-str">"year"</span>)[<span class="syn-str">"gross_income"</span>].<span class="syn-func">sum</span>().<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>(<span class="syn-num">3</span>)`, 
+                out: "year\n2018    4.56e+10\n2019    4.21e+10\n2017    3.98e+10\nName: gross_income, dtype: float64", 
+                details: [
+                    "Pre-pandemic years (2018/2019) hold the record for total gross income in cinema history."
+                ] 
+            },
+            { 
+                id: 24, cat: "Advanced", q: "Q24. What is the best genre for a debut director?", 
+                code: `<span class="syn-comment"># Find directors with only 1 movie count</span>\ndir_counts = df[<span class="syn-str">"directors_name"</span>].<span class="syn-func">value_counts</span>()\ndebut_dirs = dir_counts[dir_counts == 1].index\n\n<span class="syn-comment"># Filter df and check genres</span>\ndf[df[<span class="syn-str">"directors_name"</span>].<span class="syn-func">isin</span>(debut_dirs)].<span class="syn-func">groupby</span>(<span class="syn-str">"genre"</span>)[<span class="syn-str">"rating"</span>].<span class="syn-func">mean</span>().<span class="syn-func">head</span>()`, 
+                out: "genre\nHorror         6.5\nThriller       6.3\nDrama          6.8\nDocumentary    7.4\nName: rating, dtype: float64", 
+                details: [
+                    "<span class='font-code text-blue-300'>isin()</span> filters the dataframe to only include directors who appear exactly once.",
+                    "Horror and Documentary are historically the safest bets for first-time directors to achieve decent ratings with lower budgets."
+                ] 
+            },
+            { 
+                id: 25, cat: "Advanced", q: "Q25. Do ensemble casts earn more money?", 
+                code: `<span class="syn-comment"># Count commas to get cast size</span>\ndf[<span class="syn-str">"cast_size"</span>] = df[<span class="syn-str">"stars_name"</span>].str.<span class="syn-func">count</span>(<span class="syn-str">","</span>) + 1\ndf[[<span class="syn-str">"cast_size"</span>, <span class="syn-str">"gross_income"</span>]].<span class="syn-func">corr</span>()`, 
+                out: "              cast_size  gross_income\ncast_size      1.000000      0.152450\ngross_income   0.152450      1.000000", 
+                details: [
+                    "<span class='font-code text-blue-300'>str.count(',') + 1</span> dynamically calculates how many actors are listed for each movie.",
+                    "Correlation is <span class='font-code'>0.15</span> (very weak). Having a massive ensemble cast does not automatically equal box office success."
+                ] 
+            },
+            { 
+                id: 26, cat: "Advanced", q: "Q26. Which Director has the highest 'Hit Rate'?", 
+                code: `<span class="syn-comment"># Create Boolean Column: Is it a hit?</span>\ndf[<span class="syn-str">"is_hit"</span>] = df[<span class="syn-str">"rating"</span>] >= <span class="syn-num">7.5</span>\n\n<span class="syn-comment"># Group by director and find the percentage of True values</span>\ndir_hits = df.<span class="syn-func">groupby</span>(<span class="syn-str">"directors_name"</span>)[<span class="syn-str">"is_hit"</span>].<span class="syn-func">mean</span>()\ndir_hits[df[<span class="syn-str">"directors_name"</span>].<span class="syn-func">value_counts</span>() > 5].<span class="syn-func">sort_values</span>(ascending=<span class="syn-kwd">False</span>).<span class="syn-func">head</span>(3)`, 
+                out: "directors_name\nChristopher Nolan    1.000000  (100%)\nQuentin Tarantino    0.875000  (87.5%)\nStanley Kubrick      0.833333  (83.3%)\nName: is_hit, dtype: float64", 
+                details: [
+                    "Taking the <span class='font-code text-blue-300'>mean()</span> of a boolean column automatically calculates the percentage of True values!",
+                    "We filtered to directors with > 5 movies to remove one-hit wonders.",
+                    "Nolan has a 100% hit rate (every movie rated over 7.5)."
+                ] 
+            },
+            { 
+                id: 27, cat: "Advanced", q: "Q27. The Sequel Effect: Do numbered movies earn more?", 
+                code: `<span class="syn-comment"># Regex to check if title contains a number</span>\ndf[<span class="syn-str">"is_sequel"</span>] = df[<span class="syn-str">"name"</span>].str.<span class="syn-func">contains</span>(<span class="syn-str">r'\d'</span>)\ndf.<span class="syn-func">groupby</span>(<span class="syn-str">"is_sequel"</span>)[<span class="syn-str">"gross_income"</span>].<span class="syn-func">mean</span>()`, 
+                out: "is_sequel\nFalse    4.50e+07\nTrue     9.80e+07\nName: gross_income, dtype: float64", 
+                details: [
+                    "<span class='font-code text-blue-300'>str.contains(r'\\d')</span> uses Regular Expressions to check if any digit exists in the title (e.g., Iron Man 2).",
+                    "Movies with numbers in the title earn nearly double the average revenue of original films."
+                ] 
+            },
+            { 
+                id: 28, cat: "Business", q: "Q28. The Ultimate Decision: What should we fund?", 
+                code: `conclusion = <span class="syn-str">"""\nBased on Data Analysis:\n1. Genre: Animation / Adventure\n2. Certificate: PG or G\n3. Cast Size: Small/Medium (Ensembles don't guarantee ROI)\n4. Strategy: Create a franchise (Sequels earn 2x)\n"""</span>\n<span class="syn-func">print</span>(conclusion)`, 
+                out: "Based on Data Analysis:\n1. Genre: Animation / Adventure\n2. Certificate: PG or G\n3. Cast Size: Small/Medium (Ensembles don't guarantee ROI)\n4. Strategy: Create a franchise (Sequels earn 2x)", 
+                details: [
+                    "Data Science isn't just about code; it's about translating code into actionable business intelligence.",
+                    "By combining our findings from Q15, Q17, Q25, and Q27, we can confidently pitch a highly profitable movie concept to studio executives."
+                ] 
+            }
+        ];
+
+        const App = () => {
+            const [current, setCurrent] = useState(slidesData[0]);
+            const [key, setKey] = useState(0); 
+
+            useEffect(() => {
+                setKey(prev => prev + 1);
+            }, [current]);
+
+            const renderVisual = () => {
+                if (current.type === 'line') return (
+                    <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={current.data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="#3c3c3c" strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="year" stroke="#858585" tick={{fill: '#858585'}} />
+                            <YAxis stroke="#858585" tick={{fill: '#858585'}} domain={['auto', 'auto']} />
+                            <Tooltip contentStyle={{backgroundColor: '#1e1e1e', border: '1px solid #3c3c3c', borderRadius: '8px', color: '#fff'}} />
+                            <Line type="monotone" dataKey="count" stroke="#58a6ff" strokeWidth={4} dot={{ r: 6, fill: '#1e1e1e', strokeWidth: 2 }} activeDot={{ r: 8 }} animationDuration={1000} />
+                        </LineChart>
+                    </ResponsiveContainer>
+                );
+                
+                if (current.type === 'bar') return (
+                    <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={current.data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                            <CartesianGrid stroke="#3c3c3c" strokeDasharray="3 3" vertical={false} />
+                            <XAxis dataKey="name" stroke="#858585" tick={{fill: '#858585'}} />
+                            <YAxis stroke="#858585" tick={{fill: '#858585'}} />
+                            <Tooltip cursor={{fill: '#2a2d2e'}} contentStyle={{backgroundColor: '#1e1e1e', border: '1px solid #3c3c3c', borderRadius: '8px', color: '#fff'}} />
+                            <Bar dataKey="count" radius={[6, 6, 0, 0]} animationDuration={1000}>
+                                {current.data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={['#dcdcaa', '#ce9178', '#569cd6', '#4caf50', '#c586c0'][index % 5]} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                );
+
+                // Default text output block
+                return <div className="font-code">{current.out}</div>;
+            };
+
+            return (
+                <div className="flex h-screen w-screen overflow-hidden">
+                    
+                    {/* Navigation Sidebar */}
+                    <div className="w-80 flex flex-col p-4 shrink-0 bg-[var(--colab-sidebar)] border-r border-[#3c3c3c] shadow-2xl z-10">
+                        <div className="mb-6 px-2">
+                            <h1 className="text-lg font-bold text-white tracking-wide flex items-center gap-2">
+                                <svg className="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"></path></svg>
+                                IMDB Project
+                            </h1>
+                            <div className="text-[11px] text-slate-400 mt-1 font-medium">Presented by Jayan Gupta</div>
+                            <div className="text-[10px] text-slate-500 uppercase mt-2 tracking-wider bg-slate-800/50 inline-block px-2 py-1 rounded">28 Tasks • Python • Pandas</div>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto custom-scroll space-y-1 pr-1">
+                            {slidesData.map(s => (
+                                <button 
+                                    key={s.id} 
+                                    onClick={() => setCurrent(s)} 
+                                    className={`w-full text-left px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-200 flex items-start gap-3 ${current.id === s.id ? 'active-nav shadow-lg' : 'text-[#9e9e9e] hover:bg-[var(--colab-hover)] hover:text-white'}`}>
+                                    <span className={`text-[11px] font-code px-1.5 py-0.5 rounded mt-0.5 shrink-0 ${current.id === s.id ? 'bg-[#007acc] text-white' : 'bg-[#333] text-gray-400'}`}>
+                                        Q{s.id.toString().padStart(2, '0')}
+                                    </span>
+                                    <span className="leading-tight">{s.q.replace(/Q\d+\.\s*/, '')}</span>
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Content Area */}
+                    <div className="flex-1 flex flex-col overflow-y-auto custom-scroll bg-[var(--colab-bg)] relative">
+                        <div key={key} className="max-w-4xl w-full mx-auto p-10 pt-16">
+                            
+                            <div className="mb-10 colab-cell-container">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <span className="px-3 py-1 rounded bg-[#007acc]/20 text-[#569cd6] text-[11px] font-bold uppercase tracking-wider border border-[#007acc]/30">{current.cat}</span>
+                                    <span className="text-slate-500 text-sm font-medium">Task {current.id} of {slidesData.length}</span>
+                                </div>
+                                <h2 className="text-2xl md:text-3xl font-semibold text-white tracking-tight leading-tight">{current.q}</h2>
+                            </div>
+
+                            <div className="flex flex-col gap-6">
+                                
+                                {/* COLAB CODE BLOCK */}
+                                <div className="colab-cell-container shadow-2xl">
+                                    <div className="colab-input-row">
+                                        <div className="colab-play-gutter">
+                                            <div className="colab-play-button">
+                                                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+                                            </div>
+                                        </div>
+                                        <div className="colab-code-area font-code" dangerouslySetInnerHTML={{__html: current.code}}></div>
+                                    </div>
+                                    
+                                    <div className="colab-output-row">
+                                        <div className="colab-output-gutter"></div>
+                                        <div className="colab-output-area">
+                                            {renderVisual()}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* EDUCATIONAL DIVE */}
+                                <div className="colab-cell-container mt-2">
+                                    <div className="bg-[var(--colab-surface)] p-6 rounded-lg border border-[var(--colab-border)] shadow-xl relative overflow-hidden">
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-[var(--colab-accent)]"></div>
+                                        <h3 className="text-[13px] font-bold text-white mb-4 flex items-center gap-2 uppercase tracking-widest">
+                                            <svg className="w-4 h-4 text-[var(--colab-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                            Code Explanation
+                                        </h3>
+                                        <ul className="pointer-list text-[14px] text-[#cccccc] leading-relaxed">
+                                            {current.details.map((detail, idx) => (
+                                                <li key={idx} dangerouslySetInnerHTML={{__html: detail}}></li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>

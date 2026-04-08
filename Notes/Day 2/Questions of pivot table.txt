@@ -1,0 +1,15 @@
+1. Find the most expensive brand as per their marked price
+
+2. Find the brand_name with maximum number of products sold
+
+3. Find the most selling product category
+
+4. Which brand among the adidas, nike & mochi has higher products sold
+
+5. Find the most popular name of product
+
+6. Find Brand with maximum Discount (%).
+
+7. Give Product Category which has negligible discount
+
+8. Find all category where average discount is more than 70%

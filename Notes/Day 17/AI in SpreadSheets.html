@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI in Google Sheets — Interactive Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background-color: #050810; /* Slightly darker, richer background */
+            color: #F1F5F9;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 15px rgba(249, 115, 22, 0.2); }
+            50% { box-shadow: 0 0 40px rgba(249, 115, 22, 0.5); }
+        }
+
+        .animate-pulse-glow {
+            animation: pulse-glow 3s infinite ease-in-out;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.5);
+            border-radius: 4px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #F97316 0%, #FBBF24 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stagger-fade > * {
+            opacity: 0;
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        .stagger-fade > *:nth-child(1) { animation-delay: 0.1s; }
+        .stagger-fade > *:nth-child(2) { animation-delay: 0.2s; }
+        .stagger-fade > *:nth-child(3) { animation-delay: 0.3s; }
+        .stagger-fade > *:nth-child(4) { animation-delay: 0.4s; }
+        .stagger-fade > *:nth-child(5) { animation-delay: 0.5s; }
+        .stagger-fade > *:nth-child(6) { animation-delay: 0.6s; }
+    </style>
+</head>
+
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // ─── SVG ICONS (Professional Replacements for Emojis) ─────────────────
+        const Icons = {
+            Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+            Table: () => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/></svg>,
+            Chart: () => <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>,
+            Check: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+            X: () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>,
+            Sparkle: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/></svg>,
+            Alert: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg>,
+            Brush: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1.08 1.1 2.49 2.02 4 2.02 2.2 0 4-1.8 4-4.04a3.01 3.01 0 0 0-3-3.02z"/></svg>,
+            Refresh: () => <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21v-5h5"/></svg>,
+            Rocket: () => <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-orange-500 mb-4 mx-auto"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+        };
+
+        // ─── MANUAL PAIN VISUALIZER ───────────────────────────────────────────
+        const ManualPainViz = () => {
+            const [activeTask, setActiveTask] = useState(0);
+            const tasks = [
+                { icon: <Icons.Clock />, label: "Cleaning Data", time: "15-30 min", color: "text-rose-400" },
+                { icon: <Icons.Table />, label: "Building Pivots", time: "20-25 min", color: "text-orange-400" },
+                { icon: <Icons.Chart />, label: "Creating Charts", time: "10-15 min", color: "text-amber-400" },
+            ];
+
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setActiveTask(prev => (prev + 1) % tasks.length);
+                }, 2000);
+                return () => clearInterval(timer);
+            }, []);
+
+            return (
+                <div className="flex flex-col items-center justify-center h-full gap-8">
+                    <div className="flex flex-wrap justify-center gap-6 items-center">
+                        {tasks.map((task, i) => (
+                            <div key={i} className={`glass-panel p-6 rounded-2xl w-48 text-center transition-all duration-500 flex flex-col items-center ${activeTask === i ? 'scale-110 border border-orange-500/50 shadow-[0_0_40px_rgba(249,115,22,0.15)] bg-slate-800/80' : 'opacity-50 scale-95'}`}>
+                                <div className={`mb-4 p-3 rounded-full bg-slate-800 border border-slate-700 ${activeTask === i ? task.color : 'text-slate-400'}`}>
+                                    {task.icon}
+                                </div>
+                                <div className="text-sm font-semibold text-white mb-2">{task.label}</div>
+                                <div className={`text-xs ${task.color} font-mono bg-slate-900/50 px-3 py-1 rounded-full`}>{task.time}</div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="text-center mt-6 animate-fade-in p-6 glass-panel rounded-2xl w-full max-w-md">
+                        <div className="text-xl font-bold text-rose-400 mb-1">Total Time: 45-90 minutes</div>
+                        <div className="text-sm text-slate-400">Highly manual, repetitive, and error-prone work.</div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ─── BEFORE / AFTER COMPARISON ────────────────────────────────────────
+        const BeforeAfterViz = () => {
+            const [view, setView] = useState('before');
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8 w-full">
+                    <div className="flex bg-slate-900/80 p-1.5 rounded-full border border-slate-800 shadow-inner">
+                        <button onClick={() => setView('before')} className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${view === 'before' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.X /> MANUAL
+                        </button>
+                        <button onClick={() => setView('after')} className={`px-8 py-2.5 rounded-full text-sm font-semibold transition-all duration-300 flex items-center gap-2 ${view === 'after' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}>
+                            <Icons.Check /> AUTOMATED
+                        </button>
+                    </div>
+
+                    <div className="w-full max-w-2xl relative min-h-[320px]">
+                        {view === 'before' ? (
+                            <div className="absolute inset-0 glass-panel p-8 rounded-2xl border border-rose-500/20 animate-fade-in">
+                                <div className="flex items-center gap-4 mb-8 pb-4 border-b border-slate-800">
+                                    <div className="text-rose-400 p-2 bg-rose-500/10 rounded-lg"><Icons.Alert /></div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">Manual Workflow</h3>
+                                        <p className="text-sm text-slate-400">The traditional, time-consuming approach</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 stagger-fade">
+                                    {["Scroll through 500+ rows to inspect data", "Manually identify and fix typos in columns", "Write nested COUNTIF/VLOOKUP formulas", "Drag fields into pivot table through trial & error", "Insert chart, manually format axis and colors"].map((text, i) => (
+                                        <div key={i} className="flex items-start gap-3 text-slate-300 text-sm">
+                                            <span className="text-rose-400 mt-0.5"><Icons.X /></span>
+                                            <span className="leading-relaxed">{text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="absolute inset-0 glass-panel p-8 rounded-2xl border border-emerald-500/20 animate-fade-in">
+                                <div className="flex items-center gap-4 mb-8 pb-4 border-b border-slate-800">
+                                    <div className="text-emerald-400 p-2 bg-emerald-500/10 rounded-lg"><Icons.Sparkle /></div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white">Gemini AI Workflow</h3>
+                                        <p className="text-sm text-slate-400">Letting AI do the heavy lifting</p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4 stagger-fade">
+                                    {["Open Gemini side panel directly in Sheets", "Prompt: 'Clean and standardize Branch & Year'", "Prompt: 'Create a summary table by Branch'", "Prompt: 'Build a pivot: Interest × Branch with slicer'", "Prompt: 'Generate a dashboard with 4 charts'"].map((text, i) => (
+                                        <div key={i} className="flex items-start gap-3 text-slate-300 text-sm">
+                                            <span className="text-emerald-400 mt-0.5"><Icons.Check /></span>
+                                            <span className="leading-relaxed">{text}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // ─── PROMPT QUALITY DEMO ──────────────────────────────────────────────
+        const PromptQualityViz = () => {
+            const [selectedPrompt, setSelectedPrompt] = useState(0);
+            const examples = [
+                {
+                    bad: "make chart",
+                    good: "Create a bar chart on a new sheet showing count of students per Branch. Title it 'Students by Branch'.",
+                    why: "Specifies chart type, location, data field, and title.",
+                    icon: <Icons.Chart />
+                },
+                {
+                    bad: "clean data",
+                    good: "Standardize the Branch column to: CSE, ECE, EE, ME, CE, or Other. Flag rows where Name is blank.",
+                    why: "Defines exact valid values and what 'clean' means.",
+                    icon: <Icons.Brush />
+                },
+                {
+                    bad: "pivot table",
+                    good: "Create a pivot on a new sheet 'Pivot - Interest by Branch'. Rows = Branch, Columns = Interest, Values = Count. Add a Year slicer.",
+                    why: "Names the sheet, defines all axes, and adds interactivity.",
+                    icon: <Icons.Refresh />
+                },
+            ];
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center gap-8 w-full">
+                    <div className="flex gap-3 mb-2">
+                        {examples.map((_, i) => (
+                            <button key={i} onClick={() => setSelectedPrompt(i)} aria-label={`View example ${i + 1}`} className={`h-2 rounded-full transition-all duration-300 ${selectedPrompt === i ? 'bg-orange-500 w-10' : 'bg-slate-700 w-4 hover:bg-slate-500'}`}></button>
+                        ))}
+                    </div>
+
+                    <div className="w-full max-w-4xl animate-fade-in">
+                        <div className="text-center mb-10 flex flex-col items-center">
+                            <div className="text-orange-400 mb-3 bg-orange-500/10 p-4 rounded-2xl border border-orange-500/20">{examples[selectedPrompt].icon}</div>
+                            <div className="text-xs text-slate-500 font-mono tracking-widest uppercase">Scenario {selectedPrompt + 1} of {examples.length}</div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* BAD */}
+                            <div className="glass-panel p-6 rounded-xl border border-rose-500/20 flex flex-col h-full">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <div className="text-rose-400"><Icons.X /></div>
+                                    <span className="text-xs font-bold text-rose-400 uppercase tracking-widest">Vague Prompt</span>
+                                </div>
+                                <div className="bg-[#050810] p-4 rounded-lg mb-4 flex-grow border border-slate-800 shadow-inner">
+                                    <code className="text-slate-400 font-mono text-sm">"{examples[selectedPrompt].bad}"</code>
+                                </div>
+                                <p className="text-xs text-slate-500 leading-relaxed">Too ambiguous. The AI lacks the context to provide an accurate or formatted output.</p>
+                            </div>
+
+                            {/* GOOD */}
+                            <div className="glass-panel p-6 rounded-xl border border-emerald-500/20 flex flex-col h-full relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-[40px]"></div>
+                                <div className="flex items-center gap-3 mb-4 relative z-10">
+                                    <div className="text-emerald-400"><Icons.Check /></div>
+                                    <span className="text-xs font-bold text-emerald-400 uppercase tracking-widest">Engineered Prompt</span>
+                                </div>
+                                <div className="bg-[#050810] p-4 rounded-lg mb-4 flex-grow border border-slate-800 shadow-inner relative z-10">
+                                    <code className="text-emerald-300 font-mono text-sm leading-relaxed">{examples[selectedPrompt].good}</code>
+                                </div>
+                                <p className="text-xs text-emerald-500/80 font-medium relative z-10">Insight: {examples[selectedPrompt].why}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ─── PROMPT FORMULA BUILDER ───────────────────────────────────────────
+        const PromptFormulaViz = () => {
+            const [activeStep, setActiveStep] = useState(null);
+            
+            const steps = [
+                { num: "01", label: "CONTEXT", color: "orange", title: "Define the Dataset", desc: "Identify the exact columns and data structure (e.g., 'This sheet contains Name, Branch...')" },
+                { num: "02", label: "ACTION", color: "teal", title: "State the Objective", desc: "Use precise verbs (e.g., 'Create a pivot table', 'Standardize the column', 'Build a chart')" },
+                { num: "03", label: "OUTPUT", color: "amber", title: "Specify the Destination", desc: "Dictate where it goes (e.g., 'On a new sheet named Dashboard', 'In column G')" },
+                { num: "04", label: "FORMAT", color: "purple", title: "Establish Boundaries", desc: "Define rules (e.g., 'Valid values are CSE/ECE', 'Highlight blank rows in red')" },
+            ];
+
+            const colorMap = {
+                orange: { bg: "bg-orange-500/10", text: "text-orange-400", border: "border-orange-500/50", glow: "shadow-[0_0_30px_rgba(249,115,22,0.15)]" },
+                teal: { bg: "bg-teal-500/10", text: "text-teal-400", border: "border-teal-500/50", glow: "shadow-[0_0_30px_rgba(20,184,166,0.15)]" },
+                amber: { bg: "bg-amber-500/10", text: "text-amber-400", border: "border-amber-500/50", glow: "shadow-[0_0_30px_rgba(245,158,11,0.15)]" },
+                purple: { bg: "bg-purple-500/10", text: "text-purple-400", border: "border-purple-500/50", glow: "shadow-[0_0_30px_rgba(168,85,247,0.15)]" },
+            };
+
+            return (
+                <div className="flex flex-col h-full items-center justify-center w-full">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-4xl">
+                        {steps.map((step, i) => {
+                            const colors = colorMap[step.color];
+                            const isActive = activeStep === i;
+                            
+                            return (
+                                <div key={i} onMouseEnter={() => setActiveStep(i)} onMouseLeave={() => setActiveStep(null)} className={`glass-panel p-6 rounded-xl cursor-pointer transition-all duration-300 ${isActive ? `border ${colors.border} -translate-y-1 ${colors.glow} bg-slate-800/60` : 'border border-slate-800/50 hover:bg-slate-800/30'}`}>
+                                    <div className="flex items-start gap-4">
+                                        <div className={`text-xs font-mono font-bold ${colors.text} pt-1`}>{step.num}</div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <span className={`text-[10px] font-bold ${colors.text} uppercase tracking-widest border ${colors.border} px-2 py-0.5 rounded`}>{step.label}</span>
+                                            </div>
+                                            <h4 className="text-sm font-semibold text-white mb-1">{step.title}</h4>
+                                            <p className="text-xs text-slate-400 leading-relaxed">{step.desc}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="mt-10 glass-panel px-8 py-4 rounded-full border border-slate-800 shadow-xl">
+                        <div className="text-xs md:text-sm text-slate-400 font-mono tracking-wide flex items-center flex-wrap justify-center gap-2">
+                            <span className="text-orange-400">Context</span> <span className="text-slate-600">+</span> 
+                            <span className="text-teal-400">Action</span> <span className="text-slate-600">+</span> 
+                            <span className="text-amber-400">Output</span> <span className="text-slate-600">+</span> 
+                            <span className="text-purple-400">Format</span> <span className="text-slate-600">=</span> 
+                            <span className="text-white font-bold ml-1 bg-white/10 px-2 py-1 rounded">High-Fidelity Result</span>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ─── ANIMATED SPREADSHEET ─────────────────────────────────────────────
+        const AnimatedSpreadsheet = () => {
+            const [highlight, setHighlight] = useState(null);
+
+            useEffect(() => {
+                const sequence = [0, 1, 2, 3, null];
+                let index = 0;
+                const timer = setInterval(() => {
+                    setHighlight(sequence[index]);
+                    index = (index + 1) % sequence.length;
+                }, 2000);
+                return () => clearInterval(timer);
+            }, []);
+
+            const headers = ["Name", "Branch", "Year", "Skill"];
+            const rows = [
+                ["Aryan", "CSE", "Junior", "Python"],
+                ["Meera", "ECE", "Senior", "Design"],
+                ["Rahul", "ME", "Freshman", "CAD"],
+                ["Priya", "CSE", "Sophomore", "React"]
+            ];
+
+            return (
+                <div className="flex items-center justify-center h-full w-full">
+                    <div className="glass-panel rounded-xl overflow-hidden border border-slate-700/50 shadow-2xl w-full">
+                        <div className="grid grid-cols-4 bg-slate-800 border-b border-slate-700">
+                            {headers.map((h, i) => (
+                                <div key={i} className={`px-4 py-3 text-xs text-slate-300 font-mono tracking-wider transition-all duration-500 border-r border-slate-700 last:border-0 ${highlight === i ? 'bg-orange-500/20 text-orange-300' : ''}`}>
+                                    {h}
+                                </div>
+                            ))}
+                        </div>
+                        {rows.map((row, ri) => (
+                            <div key={ri} className="grid grid-cols-4">
+                                {row.map((cell, ci) => (
+                                    <div key={ci} className={`px-4 py-3 text-sm text-slate-400 border-b border-r border-slate-800/50 last:border-r-0 transition-all duration-500 ${highlight === ci ? 'bg-orange-500/10 text-orange-200' : ri % 2 === 0 ? 'bg-[#050810]/40' : 'bg-[#0A0F1E]/40'}`}>
+                                        {cell}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // ─── MAIN APP ─────────────────────────────────────────────────────────
+        const App = () => {
+            const [currentSlide, setCurrentSlide] = useState(0);
+
+            const slides = [
+                // Slide 1: Title
+                {
+                    layout: "center",
+                    content: (
+                        <div className="text-center animate-fade-in">
+                            <div className="inline-flex items-center gap-2 px-5 py-1.5 bg-orange-500/10 border border-orange-500/20 rounded-full mb-8">
+                                <Icons.Sparkle />
+                                <span className="text-xs font-bold text-orange-400 uppercase tracking-widest">Google Sheets × Gemini</span>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-6 tracking-tight leading-tight">
+                                Spreadsheets,<br />
+                                <span className="gradient-text">Made Smarter.</span>
+                            </h1>
+                            <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10 font-light">
+                                Transition from manual data manipulation to AI-driven insights. Discover how Gemini drastically optimizes your analytical workflows.
+                            </p>
+                            <div className="flex items-center justify-center gap-6 text-xs text-slate-600 font-mono uppercase tracking-widest mt-12">
+                                <span>Analysis Demo</span>
+                                <span>•</span>
+                                <span>2025 Architecture</span>
+                            </div>
+                        </div>
+                    )
+                },
+
+                // Slide 2: What is Google Sheets
+                {
+                    layout: "split",
+                    title: "The Spreadsheet Paradigm",
+                    subtitle: "Navigating traditional data workflows",
+                    text: (
+                        <div className="space-y-6">
+                            <div className="glass-panel p-6 rounded-xl border-l-4 border-orange-500/80 bg-slate-800/30">
+                                <h4 className="text-sm font-bold text-white mb-2 uppercase tracking-wide">Core Utility</h4>
+                                <p className="text-slate-400 text-sm leading-relaxed">
+                                    The foundational grid-based architecture used universally for storing, organizing, and calculating structured data sets across organizations.
+                                </p>
+                            </div>
+                            <div className="pt-2">
+                                <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-4">Legacy Bottlenecks</h4>
+                                <div className="space-y-3 text-sm text-slate-300">
+                                    <div className="flex items-center gap-3"><div className="text-rose-400"><Icons.Clock /></div> Data Sanitization: 15-30 mins manually correcting anomalies.</div>
+                                    <div className="flex items-center gap-3"><div className="text-orange-400"><Icons.Table /></div> Pivot Architecture: 20-25 mins of structural trial & error.</div>
+                                    <div className="flex items-center gap-3"><div className="text-amber-400"><Icons.Chart /></div> Visual Rendering: 10-15 mins adjusting chart parameters.</div>
+                                </div>
+                            </div>
+                        </div>
+                    ),
+                    viz: <AnimatedSpreadsheet />
+                },
+
+                // Slide 3: Manual Pain Visualization
+                {
+                    layout: "center",
+                    title: "The Legacy Bottleneck",
+                    subtitle: "Quantifying structural inefficiencies",
+                    content: <ManualPainViz />
+                },
+
+                // Slide 4: Before/After
+                {
+                    layout: "center",
+                    title: "The AI Paradigm Shift",
+                    subtitle: "Compressing hours into minutes",
+                    content: <BeforeAfterViz />
+                },
+
+                // Slide 5: Good vs Bad Prompts
+                {
+                    layout: "center",
+                    title: "Prompt Engineering",
+                    subtitle: "Garbage in, Garbage out",
+                    content: <PromptQualityViz />
+                },
+
+                // Slide 6: Prompt Formula
+                {
+                    layout: "center",
+                    title: "The Prompt Architecture",
+                    subtitle: "A deterministic 4-layer methodology",
+                    content: <PromptFormulaViz />
+                },
+
+                // Slide 7: End
+                {
+                    layout: "center",
+                    content: (
+                        <div className="text-center animate-fade-in flex flex-col items-center">
+                            <Icons.Rocket />
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 tracking-tight">Initialize the Workflow</h2>
+                            <p className="text-lg text-slate-400 max-w-xl mx-auto mb-10 font-light">
+                                Access your workspace, engage the Gemini integration, and execute the architectural prompts mapped out in this module.
+                            </p>
+                            <div className="inline-block p-[1px] bg-gradient-to-r from-orange-500 to-amber-500 rounded-lg animate-pulse-glow cursor-pointer hover:scale-105 transition-transform duration-300">
+                                <div className="bg-[#0A0F1E] px-8 py-3.5 rounded-[7px] text-white font-medium text-sm flex items-center gap-2">
+                                    <Icons.Sparkle /> Deploy Smart Analysis
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+            ];
+
+            useEffect(() => {
+                const handleKey = (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+                        e.preventDefault();
+                        setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+                    }
+                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        setCurrentSlide(curr => Math.max(curr - 1, 0));
+                    }
+                };
+                window.addEventListener('keydown', handleKey);
+                return () => window.removeEventListener('keydown', handleKey);
+            }, [slides.length]);
+
+            const CurrentSlide = slides[currentSlide];
+
+            return (
+                <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-[#050810]">
+                    {/* Persistent Watermark */}
+                    <div className="fixed bottom-5 right-6 text-[10px] tracking-[0.2em] font-mono text-slate-600/40 uppercase pointer-events-none z-50 select-none">
+                        Jayan Gupta
+                    </div>
+
+                    {/* Background Ambient Orbs */}
+                    <div className="absolute top-[-20%] right-[-10%] w-[40vw] h-[40vw] bg-orange-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+                    <div className="absolute bottom-[-20%] left-[-10%] w-[40vw] h-[40vw] bg-teal-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+                    {/* Progress Indicator */}
+                    <div className="w-full h-[3px] bg-slate-900 z-50 absolute top-0 left-0">
+                        <div className="h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-500 ease-out" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
+                    </div>
+
+                    {/* Main slide content area */}
+                    <div className="flex-1 flex items-center justify-center p-6 md:p-12 z-10 w-full h-full">
+                        {CurrentSlide.layout === 'center' ? (
+                            <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in max-w-5xl">
+                                {CurrentSlide.title && (
+                                    <div className="text-center mb-10">
+                                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 tracking-tight">{CurrentSlide.title}</h2>
+                                        <h3 className="text-sm md:text-base text-orange-400/80 font-mono uppercase tracking-widest">{CurrentSlide.subtitle}</h3>
+                                    </div>
+                                )}
+                                {CurrentSlide.content}
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 md:gap-16 w-full max-w-6xl h-auto lg:h-[75vh] items-center">
+                                <div className="flex flex-col justify-center h-full space-y-6 animate-fade-in order-2 lg:order-1">
+                                    <div>
+                                        <h2 className="text-3xl md:text-5xl font-bold text-white mb-3 tracking-tight">{CurrentSlide.title}</h2>
+                                        <h3 className="text-lg md:text-xl text-orange-400/80 font-light">{CurrentSlide.subtitle}</h3>
+                                    </div>
+                                    <div className="h-[2px] w-16 bg-orange-500/50 rounded"></div>
+                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[40vh] lg:max-h-[50vh] pr-4 custom-scroll">
+                                        {CurrentSlide.text}
+                                    </div>
+                                </div>
+                                <div className="h-full w-full min-h-[300px] bg-slate-900/40 rounded-2xl border border-slate-700/30 backdrop-blur-md shadow-2xl p-6 md:p-8 animate-fade-in flex items-center justify-center order-1 lg:order-2 relative overflow-hidden">
+                                    {/* Inner subtle glow for the viz container */}
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none"></div>
+                                    <div className="w-full relative z-10">
+                                        {CurrentSlide.viz}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Navigation Bar */}
+                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 text-slate-500 text-xs font-mono z-50 bg-slate-900/60 px-4 py-2 rounded-full border border-slate-800/80 backdrop-blur-sm shadow-xl">
+                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className={`px-3 py-1 rounded-full transition-colors ${currentSlide === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-slate-800 hover:text-slate-300'}`}>PREV</button>
+                        <div className="flex items-center gap-2">
+                            {slides.map((_, i) => (
+                                <div key={i} className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${currentSlide === i ? 'bg-orange-500 w-3' : 'bg-slate-700'}`} />
+                            ))}
+                        </div>
+                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className={`px-3 py-1 rounded-full transition-colors ${currentSlide === slides.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-slate-800 hover:text-slate-300'}`}>NEXT</button>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+
+</html>

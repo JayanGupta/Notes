@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Models Part 1: Foundations</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: #030712; color: #f9fafb; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+        
+        #deck { width: 100vw; height: 100vh; background: radial-gradient(circle at 50% 50%, #0f172a 0%, #030712 100%); position: relative; overflow: hidden; }
+        
+        /* Smooth Slide Cinematic Transition */
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 4rem 6rem; display: flex; flex-direction: column; opacity: 0; transform: scale(0.96) translateY(30px); transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); pointer-events: none; z-index: 1; }
+        .slide.active { opacity: 1; transform: scale(1) translateY(0); pointer-events: all; z-index: 2; }
+        
+        /* Glow Controls */
+        .controls { position: absolute; bottom: 3rem; right: 4rem; z-index: 100; display: flex; gap: 1.5rem; }
+        .btn-nav { background: #1e293b; color: #f9fafb; border: 2px solid #334155; padding: 14px 28px; border-radius: 12px; font-size: 18px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(0,0,0,0.4); }
+        .btn-nav:hover:not(:disabled) { background: #0284c7; border-color: #38bdf8; transform: translateY(-2px); box-shadow: 0 0 15px rgba(56, 189, 248, 0.5); }
+        .btn-nav:disabled { opacity: 0.2; cursor: not-allowed; transform: none !important; box-shadow: none; }
+
+        .credit { position: absolute; bottom: 3rem; left: 4rem; z-index: 100; font-size: 14px; color: #64748b; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
+
+        h1 { font-size: 4rem; color: #f9fafb; margin-bottom: 10px; font-weight: 700; text-shadow: 0 0 30px rgba(56, 189, 248, 0.2); }
+        h1 span { color: #38bdf8; background: linear-gradient(to right, #38bdf8, #a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        h2 { font-size: 2.5rem; color: #38bdf8; margin-bottom: 25px; border-left: 6px solid #38bdf8; padding-left: 20px; text-shadow: 0 0 20px rgba(56, 189, 248, 0.1); }
+        p, li { font-size: 1.2rem; line-height: 1.7; color: #94a3b8; margin-bottom: 16px; }
+        ul { margin-left: 25px; margin-bottom: 20px; }
+        strong { color: #f3f4f6; }
+        
+        /* Responsive Split Dashboard Layout */
+        .split-layout { display: flex; gap: 4rem; height: 82%; align-items: stretch; }
+        .text-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; padding-right: 20px; }
+        
+        /* Glassmorphism Panels */
+        .interactive-panel { flex: 1.3; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.08); padding: 2rem; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+        
+        .chart-container { flex-grow: 1; position: relative; width: 100%; height: 70%; }
+        
+        .playground-controls { background: rgba(30, 41, 59, 0.7); padding: 20px; border-radius: 16px; display: flex; flex-direction: column; gap: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .slider-group { display: flex; flex-direction: column; gap: 8px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 15px; font-weight: 600; color: #cbd5e1; }
+        .slider-header span { color: #38bdf8; font-size: 18px; font-family: monospace; font-weight: bold; text-shadow: 0 0 10px rgba(56,189,248,0.3); }
+        
+        /* Fancy Sliders */
+        input[type=range] { -webkit-appearance: none; width: 100%; background: #334155; height: 8px; border-radius: 4px; outline: none; transition: background 0.3s; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: #38bdf8; border-radius: 50%; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 0 10px rgba(56,189,248,0.5); border: 2px solid #fff; }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); background: #60a5fa; box-shadow: 0 0 15px rgba(96,165,250,0.8); }
+
+        /* Dynamic Neon Mode Switches */
+        .btn-toggle { background: #1e293b; color: #94a3b8; border: 2px solid #334155; padding: 12px 24px; border-radius: 10px; font-weight: bold; font-size: 15px; cursor: pointer; transition: all 0.3s; flex: 1; text-align: center; }
+        .btn-toggle:hover { border-color: #a855f7; color: #fff; }
+        .btn-toggle.active { background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%); color: #fff; border-color: transparent; box-shadow: 0 0 20px rgba(168,85,247,0.4); }
+
+        /* Formula Blocks */
+        .formula-box { background: rgba(3, 7, 12, 0.8); border-left: 5px solid #10b981; padding: 20px; border-radius: 12px; font-family: monospace; font-size: 22px; color: #e2e8f0; margin: 20px 0; text-align: center; box-shadow: inset 0 2px 8px rgba(0,0,0,0.5); text-shadow: 0 0 10px rgba(16,185,129,0.3); }
+    </style>
+</head>
+<body>
+
+    <div id="deck">
+        <div class="credit">Linear Models Interactive Suite • Part 1</div>
+
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <h1 style="font-size: 5rem; margin-bottom: 25px;">Linear Models <span>Part 1</span></h1>
+            <p style="font-size: 1.6rem; max-width: 900px; color: #cbd5e1; line-height: 1.8;">
+                Mastering the core geometry of Data Science. Discover structural data relationships through intuitive math parameters, rules, and live implementations.
+            </p>
+            <div style="margin-top: 40px; width: 100px; height: 4px; background: linear-gradient(to right, #38bdf8, #a855f7); border-radius: 2px; animation: pulse 2s infinite;"></div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Geometric Intuition</h2>
+                    <p>Imagine guessing house costs purely based on floor square footage. More space naturally spikes the price tag.</p>
+                    <p><strong>Linear Regression</strong> functions like a laser beam searching for the ultimate trend path cut cleanly through a sea of chaotic scatter data.</p>
+                    <ul>
+                        <li>Filters away local volatility or random data fluctuations.</li>
+                        <li>Exposes the true underlying trend function.</li>
+                    </ul>
+                    <p><em>Interactive Workspace: Rotate the slider below to change the line trajectory. Balance the distribution visually between all target dots.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-intuition"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Rotate Target Predictive Line</label><span id="intuition-val">0°</span></div>
+                            <input type="range" id="intuition-slider" min="-5" max="45" value="0" oninput="updateIntuition()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Structural Equation</h2>
+                    <p>Every straight line mapping features to data coordinates is driven by two key weights:</p>
+                    <div class="formula-box">Y = (Slope × X) + Intercept</div>
+                    <ul>
+                        <li><strong>Intercept (β₀):</strong> The baseline origin marker. The point where the trajectory intersects the vertical Y-axis if independent input X is absolute zero.</li>
+                        <li><strong>Slope Coefficient (β₁):</strong> The structural pitch. Quantifies the steep rate of ascent or descent for every step of feature progress.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-anatomy"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Intercept Pivot (β₀)</label><span id="b0-val">20</span></div>
+                            <input type="range" id="b0-slider" min="0" max="70" value="20" oninput="updateAnatomy()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Slope Pitch Weight (β₁)</label><span id="b1-val">1.5</span></div>
+                            <input type="range" id="b1-slider" min="-1" max="5" step="0.1" value="1.5" oninput="updateAnatomy()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Mathematical Validation Rules</h2>
+                    <p>To safely trust linear inferences, a dataset must satisfy structural criteria:</p>
+                    <ul>
+                        <li><strong>Linearity:</strong> The global macro connection between features must mirror a predictable linear vector.</li>
+                        <li><strong>Homoscedasticity:</strong> The scale of variance or error scatter across predictions must remain completely uniform across all value spectrums.</li>
+                        <li><strong>Normality:</strong> Calculation errors (residuals) must build a clean, normal bell curve shape.</li>
+                    </ul>
+                    <p><em>Interactive Workspace: Toggle through data distribution states to see clean patterns versus structural failures.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-assumptions"></canvas></div>
+                    <div class="playground-controls" style="flex-direction: row; gap:15px;">
+                        <button class="btn-toggle active" id="btn-ideal" onclick="setAssumption('ideal')">Ideal Data Profile</button>
+                        <button class="btn-toggle" id="btn-nonlinear" onclick="setAssumption('nonlinear')">Broken Linearity</button>
+                        <button class="btn-toggle" id="btn-hetero" onclick="setAssumption('hetero')">Broken Homoscedasticity</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Domain Translation Mechanics</h2>
+                    <p>Data equations must convert cleanly into human business choices. Take this corporate pay model:</p>
+                    <div class="formula-box" style="border-color:#38bdf8;">Salary = ($45,000) + ($6,500 × Years_Experience)</div>
+                    <p>Analytical breakdown:</p>
+                    <ul>
+                        <li><strong>The Baseline Standard:</strong> A newcomer starting at entry level (0 years experience) maps to a baseline of <strong>$45,000</strong>.</li>
+                        <li><strong>The Marginal Return:</strong> Every single additional calendar year of experience safely escalates payout by exactly <strong>$6,500</strong>.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-interpret"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Simulate Experience Parameter</label><span id="exp-val">0 Years</span></div>
+                            <input type="range" id="exp-slider" min="0" max="15" value="0" oninput="updateInterpret()">
+                        </div>
+                        <div style="text-align: center; font-weight: bold; font-size: 24px; color: #10b981; margin-top: 5px; text-shadow: 0 0 15px rgba(16,185,129,0.4);">
+                            Predicted Compensation: <span id="salary-calc">$45,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-nav" id="prev-btn" onclick="nav(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // SLIDE ENGINE
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        function nav(dir) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += dir;
+            slides[currentSlide].classList.add('active');
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === slides.length - 1;
+        }
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.font.size = 14;
+
+        // PLAYGROUND 1: INTUITION
+        const ctxInt = document.getElementById('chart-intuition').getContext('2d');
+        const intPoints = [{x:10, y:25}, {x:20, y:35}, {x:30, y:55}, {x:40, y:50}, {x:50, y:75}, {x:60, y:70}, {x:70, y:95}];
+        let chartInt = new Chart(ctxInt, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Observed Transactions', data: intPoints, backgroundColor: '#f59e0b', pointRadius: 8, pointHoverRadius: 10 },
+                    { type: 'line', label: 'Adaptive Model Beam', data: [], borderColor: '#38bdf8', borderWidth: 4, fill: false, pointRadius: 0, shadowBlur: 10 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 80, grid:{color:'rgba(255,255,255,0.05)'}}, y: {min: 0, max: 120, grid:{color:'rgba(255,255,255,0.05)'}} }, animation: { duration: 200 } }
+        });
+        function updateIntuition() {
+            let val = parseInt(document.getElementById('intuition-slider').value);
+            document.getElementById('intuition-val').innerText = val + '°';
+            let slope = Math.tan(val * Math.PI / 180) * 1.5 + 0.5;
+            chartInt.data.datasets[1].data = [{x: 0, y: 15}, {x: 80, y: 15 + (80 * slope)}];
+            chartInt.update();
+        }
+        updateIntuition();
+
+        // PLAYGROUND 2: ANATOMY
+        const ctxAnat = document.getElementById('chart-anatomy').getContext('2d');
+        let chartAnat = new Chart(ctxAnat, {
+            type: 'line',
+            data: {
+                labels: [0, 10, 20, 30, 40, 50, 60, 70],
+                datasets: [{ label: 'Y = β₀ + β₁X', data: [], borderColor: '#a855f7', borderWidth: 5, fill: false, pointRadius: 0 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x:{grid:{color:'rgba(255,255,255,0.05)'}}, y: { min: -20, max: 220, grid:{color:'rgba(255,255,255,0.05)'} } }, animation: { duration: 150 } }
+        });
+        function updateAnatomy() {
+            let b0 = parseFloat(document.getElementById('b0-slider').value);
+            let b1 = parseFloat(document.getElementById('b1-slider').value);
+            document.getElementById('b0-val').innerText = b0;
+            document.getElementById('b1-val').innerText = b1;
+            chartAnat.data.datasets[0].data = [0, 10, 20, 30, 40, 50, 60, 70].map(x => b0 + b1 * x);
+            chartAnat.update();
+        }
+        updateAnatomy();
+
+        // PLAYGROUND 3: ASSUMPTIONS
+        const ctxAsm = document.getElementById('chart-assumptions').getContext('2d');
+        let dataIdeal = [], dataNonLinear = [], dataHetero = [];
+        for(let x=1; x<=25; x++) {
+            dataIdeal.push({x: x, y: x * 4.5 + 12 + (Math.random()*8 - 4)});
+            dataNonLinear.push({x: x, y: Math.pow(x - 12, 2) * 0.4 + 20 + (Math.random()*10 - 5)});
+            dataHetero.push({x: x, y: x * 4.5 + 12 + (Math.random() * (x * 2.2) - (x * 1.1))});
+        }
+        let chartAsm = new Chart(ctxAsm, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Target Field Points', data: dataIdeal, backgroundColor: '#ec4899', pointRadius: 7 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min:0, max:26, grid:{color:'rgba(255,255,255,0.05)'}}, y: {min:-10, max:150, grid:{color:'rgba(255,255,255,0.05)'}} } }
+        });
+        function setAssumption(type) {
+            document.querySelectorAll('.btn-toggle').forEach(b => b.classList.remove('active'));
+            if(type === 'ideal') {
+                chartAsm.data.datasets[0].data = dataIdeal;
+                chartAsm.data.datasets[0].backgroundColor = '#ec4899';
+                document.getElementById('btn-ideal').classList.add('active');
+            } else if(type === 'nonlinear') {
+                chartAsm.data.datasets[0].data = dataNonLinear;
+                chartAsm.data.datasets[0].backgroundColor = '#38bdf8';
+                document.getElementById('btn-nonlinear').classList.add('active');
+            } else {
+                chartAsm.data.datasets[0].data = dataHetero;
+                chartAsm.data.datasets[0].backgroundColor = '#eab308';
+                document.getElementById('btn-hetero').classList.add('active');
+            }
+            chartAsm.update();
+        }
+
+        // PLAYGROUND 4: INTERPRETATION
+        const ctxIntp = document.getElementById('chart-interpret').getContext('2d');
+        const labelsExp = Array.from({length: 16}, (_, i) => i);
+        let chartIntp = new Chart(ctxIntp, {
+            type: 'line',
+            data: {
+                labels: labelsExp,
+                datasets: [
+                    { label: 'Growth Vector', data: labelsExp.map(x => 45000 + 6500 * x), borderColor: 'rgba(255,255,255,0.15)', borderWidth: 3, pointRadius: 0 },
+                    { label: 'Evaluation Coordinates', data: [], backgroundColor: '#10b981', pointRadius: 12, pointHoverRadius: 14, showLine: false, type: 'scatter' }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x:{grid:{color:'rgba(255,255,255,0.05)'}}, y: { min: 30000, max: 160000, grid:{color:'rgba(255,255,255,0.05)'} } }, animation: { duration: 150 } }
+        });
+        function updateInterpret() {
+            let x = parseInt(document.getElementById('exp-slider').value);
+            let y = 45000 + 6500 * x;
+            document.getElementById('exp-val').innerText = x + ' Years';
+            document.getElementById('salary-calc').innerText = '$' + y.toLocaleString();
+            chartIntp.data.datasets[1].data = [{x: x, y: y}];
+            chartIntp.update();
+        }
+        updateInterpret();
+    </script>
+</body>
+</html>

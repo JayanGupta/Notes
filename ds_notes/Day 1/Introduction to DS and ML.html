@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering Data Science & Machine Learning</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CORE STYLES */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: #020617; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* PRESENTATION DECK CONTAINER */
+        #deck { width: 1280px; height: 720px; background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+        
+        /* SLIDES */
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 60px; display: flex; flex-direction: column; opacity: 0; transform: translateX(50px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 1; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; z-index: 2; }
+        
+        /* NAVIGATION CONTROLS */
+        .controls { position: absolute; bottom: 40px; right: 60px; z-index: 100; display: flex; gap: 15px; }
+        .btn-nav { background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 12px 24px; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-nav:hover:not(:disabled) { background: #334155; border-color: #10b981; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* AUTHOR CREDIT */
+        .credit { position: absolute; bottom: 40px; left: 60px; z-index: 100; font-size: 14px; color: #475569; letter-spacing: 1px; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 56px; color: #f8fafc; margin-bottom: 10px; }
+        h1 span { color: #10b981; }
+        h2 { font-size: 36px; color: #10b981; margin-bottom: 24px; border-left: 5px solid #10b981; padding-left: 20px; }
+        p, li { font-size: 20px; line-height: 1.6; color: #94a3b8; margin-bottom: 16px; }
+        ul { margin-left: 30px; margin-bottom: 20px; }
+        strong { color: #f8fafc; }
+        
+        /* LAYOUTS */
+        .split-layout { display: flex; gap: 40px; height: 100%; align-items: stretch; padding-bottom: 60px; }
+        .text-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .interactive-panel { flex: 1.2; background: #020617; border-radius: 16px; border: 1px solid #1e293b; padding: 20px; display: flex; flex-direction: column; }
+        
+        .chart-container { flex-grow: 1; position: relative; width: 100%; height: 100%; }
+        
+        /* PLAYGROUND CONTROLS */
+        .playground-controls { margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 10px; }
+        .btn-action { background: #10b981; color: #020617; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { background: #34d399; transform: translateY(-2px); }
+        .btn-action.secondary { background: #3b82f6; }
+        .btn-action.secondary:hover { background: #60a5fa; }
+        
+        .slider-group { display: flex; flex-direction: column; gap: 6px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+        .slider-header span { color: #10b981; font-size: 16px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: #334155; height: 6px; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #10b981; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* GRID FOR CHEAT SHEET */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; height: 100%; align-items: center; padding-bottom: 80px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; border-top: 4px solid #10b981; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; }
+        .card h3 { color: #f8fafc; font-size: 22px; margin-bottom: 12px; }
+        .card ul li { font-size: 16px; margin-bottom: 10px; }
+
+        /* TABLE */
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; }
+        th { padding: 15px; text-align: left; background: #0f172a; color: #10b981; font-size: 18px; }
+        td { padding: 15px; border-bottom: 1px solid #334155; font-size: 16px; color: #f8fafc; }
+    </style>
+</head>
+<body>
+
+    <div id="deck">
+        <div class="credit">Created by Jayan Gupta</div>
+
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <h1 style="font-size: 72px; margin-bottom: 20px;">What is <span>Data Science?</span></h1>
+            <p style="font-size: 26px; max-width: 800px; text-align: center; color: #cbd5e1;">A comprehensive interactive journey from basic analytics and EDA to the depths of Machine Learning.</p>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Analytics vs. Science</h2>
+                    <p>Before diving into algorithms, we must distinguish between analyzing the past and predicting the future.</p>
+                    <ul>
+                        <li><strong>Data Analytics:</strong> Explains what happened. Uses SQL, Excel, and Dashboards to report on historical facts.</li>
+                        <li><strong>Data Science:</strong> Predicts what <em>will</em> happen. Uses mathematics and ML on historical data to generate forecasts.</li>
+                    </ul>
+                    <p><em>Use the playground to see how the objective shifts from reporting averages to forecasting trends.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-analytics"></canvas></div>
+                    <div class="playground-controls" style="flex-direction: row; justify-content: space-around;">
+                        <button class="btn-action secondary" onclick="runAnalytics()">1. Run Analytics (Past)</button>
+                        <button class="btn-action" onclick="runScience()">2. Run Data Science (Future)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Most Important Step: EDA</h2>
+                    <p><strong>Exploratory Data Analysis (EDA)</strong> is non-negotiable. Real-world data is messy, incomplete, and full of noise.</p>
+                    <ul>
+                        <li>If you feed garbage data into a complex model, you get garbage predictions.</li>
+                        <li>EDA involves cleaning data, handling missing values, and spotting malicious outliers.</li>
+                    </ul>
+                    <p><em>Try it out: Move the slider to clean the anomalies. Watch how the trend line snaps into reality.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-eda"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Data Cleaning (Outlier Removal)</label><span id="eda-val">0%</span></div>
+                            <input type="range" id="eda-slider" min="0" max="100" value="0" oninput="updateEDA()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Statistical Backbone</h2>
+                    <p>Data Science is built entirely on probability and statistics. It is how we quantify uncertainty.</p>
+                    <ul>
+                        <li><strong>Mean (μ):</strong> The mathematical center of your data.</li>
+                        <li><strong>Standard Deviation (σ):</strong> How spread out or unpredictable your data is.</li>
+                    </ul>
+                    <p>The Normal Distribution (Bell Curve) below is the foundation of almost all statistical modeling. <em>Play with the parameters to shape the distribution.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-stats"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Mean (Shift Left/Right)</label><span id="mean-val">0.0</span></div>
+                            <input type="range" id="mean-slider" min="-5" max="5" step="0.5" value="0" oninput="updateStats()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Standard Deviation (Spread)</label><span id="std-val">1.0</span></div>
+                            <input type="range" id="std-slider" min="0.5" max="4" step="0.1" value="1" oninput="updateStats()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Shift to Machine Learning</h2>
+                    <p>Why did ML emerge as the supreme tool for Data Scientists?</p>
+                    <ul>
+                        <li><strong>Complexity:</strong> You cannot write an "If/Then" rule to recognize a human face.</li>
+                        <li><strong>Scale:</strong> We generate too much data for humans to manually process into rules.</li>
+                        <li><strong>Adaptability:</strong> Hardcoded rules break when the world changes. ML models learn and adapt.</li>
+                    </ul>
+                    <p style="color: #10b981; font-weight: bold; margin-top: 20px;">The Core Difference:</p>
+                    <p>Instead of giving a computer <strong>Rules + Data</strong> to get Answers... <br>We give it <strong>Answers + Data</strong> so it can figure out the Rules.</p>
+                </div>
+                <div class="interactive-panel" style="justify-content: center; align-items: center; text-align: center; background: #1e293b; border:none;">
+                    <h3 style="font-size: 28px; color: #f8fafc; margin-bottom: 20px;">Traditional Programming</h3>
+                    <div style="font-size: 20px; color: #94a3b8; background: #0f172a; padding: 15px; border-radius: 8px; width: 80%; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+                        Data + Rules = <strong>Answers</strong>
+                    </div>
+                    <div style="font-size: 30px; color: #10b981;">↓</div>
+                    <h3 style="font-size: 28px; color: #f8fafc; margin-top: 20px; margin-bottom: 20px;">Machine Learning</h3>
+                    <div style="font-size: 20px; color: #94a3b8; background: #0f172a; padding: 15px; border-radius: 8px; width: 80%; border-left: 4px solid #10b981;">
+                        Data + Answers = <strong>Rules</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>The Three Pillars of Machine Learning</h2>
+            <div class="grid-3">
+                <div class="card" style="border-color: #3b82f6;">
+                    <h3>1. Supervised Learning</h3>
+                    <p style="font-size: 16px; color: #3b82f6; font-weight: bold; margin-bottom: 10px;">"Learning with a Teacher"</p>
+                    <p style="font-size: 15px; margin-bottom: 15px;">We provide labeled data (we know the answers). The model learns the relationship to predict future instances.</p>
+                    <ul>
+                        <li><strong>Goal:</strong> Predict outcomes.</li>
+                        <li><strong>Examples:</strong> House price prediction, Spam detection.</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: #10b981;">
+                    <h3>2. Unsupervised Learning</h3>
+                    <p style="font-size: 16px; color: #10b981; font-weight: bold; margin-bottom: 10px;">"Finding Hidden Patterns"</p>
+                    <p style="font-size: 15px; margin-bottom: 15px;">We provide completely unlabeled data. The algorithm must explore and find internal structures on its own.</p>
+                    <ul>
+                        <li><strong>Goal:</strong> Discover groups.</li>
+                        <li><strong>Examples:</strong> Customer segmentation, Anomaly detection.</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: #f59e0b;">
+                    <h3>3. Reinforcement Learning</h3>
+                    <p style="font-size: 16px; color: #f59e0b; font-weight: bold; margin-bottom: 10px;">"Learning by Doing"</p>
+                    <p style="font-size: 15px; margin-bottom: 15px;">An AI agent learns to make decisions by performing actions and receiving rewards or penalties.</p>
+                    <ul>
+                        <li><strong>Goal:</strong> Maximize rewards.</li>
+                        <li><strong>Examples:</strong> Self-driving cars, Game AI (Chess/Go).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Supervised Playground</h2>
+                    <p>When training a supervised model, finding the right algorithm complexity is critical.</p>
+                    <ul>
+                        <li><strong>Underfitting:</strong> Model is too simple. Misses the trend.</li>
+                        <li><strong>Optimal:</strong> Captures the real pattern, ignoring the noise.</li>
+                        <li><strong>Overfitting:</strong> Memorizes the training data (including the noise) but will fail entirely on new, unseen data.</li>
+                    </ul>
+                    <p><em>Adjust the slider to see how the model's "brain" changes its prediction line.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-supervised"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Algorithm Complexity</label><span id="complexity-label">Optimal (Just Right)</span></div>
+                            <input type="range" id="complexity-slider" min="1" max="3" step="1" value="2" oninput="updateSupervised()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Unsupervised Playground</h2>
+                    <p>In Unsupervised Learning, data has <strong>no labels</strong>.</p>
+                    <ul>
+                        <li><strong>K-Means Clustering:</strong> We ask the algorithm to find <em>K</em> number of groups within a massive sea of data.</li>
+                        <li>It calculates geometric distances between data points to find natural clusters based on similarities.</li>
+                    </ul>
+                    <p><em>Click the button to simulate the algorithm discovering 3 distinct customer segments mathematically.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-unsupervised"></canvas></div>
+                    <div class="playground-controls">
+                        <button class="btn-action" id="cluster-btn" onclick="runClustering()">Run Clustering Algorithm</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>The Decision Matrix: When to use what?</h2>
+            <div class="split-layout" style="flex-direction: column; gap: 20px;">
+                <p>Use this simple framework when facing a new business problem:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>If your business goal is to...</th>
+                            <th>Do you have labels?</th>
+                            <th>Use this ML Type</th>
+                            <th>Common Algorithm</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Predict a future number (Sales, Price)</td>
+                            <td style="color: #10b981;">Yes</td>
+                            <td>Supervised (Regression)</td>
+                            <td style="color: #94a3b8;">Linear Reg., Random Forest</td>
+                        </tr>
+                        <tr>
+                            <td>Predict a category (Spam / Not Spam)</td>
+                            <td style="color: #10b981;">Yes</td>
+                            <td>Supervised (Classification)</td>
+                            <td style="color: #94a3b8;">Logistic Reg., XGBoost</td>
+                        </tr>
+                        <tr>
+                            <td>Find segments / group similar items</td>
+                            <td style="color: #ef4444;">No</td>
+                            <td>Unsupervised (Clustering)</td>
+                            <td style="color: #94a3b8;">K-Means, PCA</td>
+                        </tr>
+                        <tr>
+                            <td>Optimize real-time consecutive actions</td>
+                            <td style="color: #ef4444;">No (Use Rewards)</td>
+                            <td>Reinforcement Learning</td>
+                            <td style="color: #94a3b8;">Q-Learning, Neural Nets</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-nav" id="prev-btn" onclick="nav(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // --- NAVIGATION LOGIC ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        
+        function nav(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === slides.length - 1;
+        }
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Outfit';
+
+        // --- PLAYGROUND 1: ANALYTICS VS SCIENCE ---
+        const ctx1 = document.getElementById('chart-analytics').getContext('2d');
+        let chart1 = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Q1', 'Q2', 'Q3', 'Q4', 'Q5 (Future)', 'Q6 (Future)'],
+                datasets: [{ label: 'Raw Data', data: [100, 150, 130, 180, null, null], borderColor: '#475569', backgroundColor: 'rgba(71, 85, 105, 0.2)', fill: true, tension: 0.3, pointRadius: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 300 } } }
+        });
+
+        function runAnalytics() {
+            chart1.data.datasets = [
+                { label: 'Historical Sales', data: [100, 150, 130, 180, null, null], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.2)', fill: true, tension: 0.3, pointRadius: 6 },
+                { label: 'Historical Average', data: [140, 140, 140, 140, null, null], borderColor: '#f59e0b', borderDash: [5, 5], tension: 0, pointRadius: 0 }
+            ];
+            chart1.update();
+        }
+
+        function runScience() {
+            chart1.data.datasets = [
+                { label: 'Historical Sales', data: [100, 150, 130, 180, null, null], borderColor: '#3b82f6', tension: 0.3, pointRadius: 6 },
+                { label: 'ML Forecast', data: [null, null, null, 180, 210, 250], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.2)', fill: true, borderDash: [5, 5], tension: 0.3, pointRadius: 6 }
+            ];
+            chart1.update();
+        }
+
+        // --- PLAYGROUND 2: EDA (OUTLIER FILTERING) ---
+        const edaData = [];
+        for(let i=1; i<=15; i++) { edaData.push({x: i, y: i * 3 + 10 + (Math.random()*15 - 7.5), score: Math.random()*20}); }
+        edaData.push({x: 3, y: 80, score: 95});
+        edaData.push({x: 12, y: 10, score: 90});
+        edaData.push({x: 14, y: 85, score: 85});
+
+        const ctx2 = document.getElementById('chart-eda').getContext('2d');
+        let chart2 = new Chart(ctx2, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Data Points', data: [], backgroundColor: '#f59e0b', pointRadius: 7 }, { type: 'line', label: 'Regression Line', data: [], borderColor: '#10b981', borderWidth: 4, tension: 0, fill: false, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 16}, y: {min: 0, max: 100} }, animation: { duration: 600 } }
+        });
+
+        function updateEDA() {
+            let intensity = document.getElementById('eda-slider').value;
+            document.getElementById('eda-val').innerText = intensity + '%';
+            
+            let threshold = 100 - intensity;
+            let filtered = edaData.filter(p => p.score < threshold || p.score < 30); 
+
+            let n = filtered.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            filtered.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x*p.y; sumXX += p.x*p.x; });
+            let slope = (n*sumXY - sumX*sumY) / (n*sumXX - sumX*sumX);
+            let intercept = (sumY - slope*sumX) / n;
+
+            chart2.data.datasets[0].data = filtered;
+            chart2.data.datasets[1].data = [{x: 0, y: intercept}, {x: 16, y: slope*16 + intercept}];
+            chart2.update();
+        }
+        updateEDA();
+
+        // --- PLAYGROUND 3: STATISTICS (NORMAL DISTRIBUTION) ---
+        const ctx3 = document.getElementById('chart-stats').getContext('2d');
+        let chart3 = new Chart(ctx3, {
+            type: 'line',
+            data: { labels: Array.from({length: 101}, (_, i) => (-10 + i * 0.2).toFixed(1)), datasets: [{ label: 'Probability Density', data: [], borderColor: '#8b5cf6', backgroundColor: 'rgba(139, 92, 246, 0.3)', fill: true, tension: 0.4, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: { ticks: { maxTicksLimit: 11 } }, y: { min: 0, max: 0.5 } }, animation: { duration: 150 } }
+        });
+
+        function updateStats() {
+            let mean = parseFloat(document.getElementById('mean-slider').value);
+            let stdDev = parseFloat(document.getElementById('std-slider').value);
+            document.getElementById('mean-val').innerText = mean.toFixed(1);
+            document.getElementById('std-val').innerText = stdDev.toFixed(1);
+
+            let data = [];
+            for(let x = -10; x <= 10; x += 0.2) {
+                let y = (1 / (stdDev * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / stdDev, 2));
+                data.push(y);
+            }
+            chart3.data.datasets[0].data = data;
+            chart3.update();
+        }
+        updateStats();
+
+        // --- PLAYGROUND 4: SUPERVISED (OVERFITTING) ---
+        const ctxSup = document.getElementById('chart-supervised').getContext('2d');
+        const scatterData = [];
+        for(let i=0; i<=20; i+=1) { scatterData.push({x: i, y: Math.sin(i/3) * 5 + 10 + (Math.random()*4 - 2)}); }
+        const lineUnderfit = [{x:0, y:12}, {x:20, y:12}];
+        const lineOptimal = [];
+        const lineOverfit = [];
+        for(let i=0; i<=20; i+=0.5) {
+            lineOptimal.push({x: i, y: Math.sin(i/3) * 5 + 10});
+            let match = scatterData.find(p => Math.abs(p.x - i) < 0.1);
+            lineOverfit.push({x: i, y: match ? match.y : (Math.sin(i/3) * 5 + 10 + Math.sin(i*5)*3)}); 
+        }
+
+        let chartSup = new Chart(ctxSup, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Training Data', data: scatterData, backgroundColor: '#f59e0b', pointRadius: 6 }, { type: 'line', label: 'Model Prediction', data: lineOptimal, borderColor: '#10b981', borderWidth: 4, tension: 0.4, fill: false, pointRadius: 0 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 20}, y: {min: 0, max: 20} }, animation: { duration: 500 } }
+        });
+
+        function updateSupervised() {
+            let val = document.getElementById('complexity-slider').value;
+            let label = document.getElementById('complexity-label');
+            let modelDataset = chartSup.data.datasets[1];
+            if(val == 1) {
+                label.innerText = "Underfitting (Too Simple)"; label.style.color = "#ef4444";
+                modelDataset.data = lineUnderfit; modelDataset.borderColor = "#ef4444"; modelDataset.tension = 0;
+            } else if(val == 2) {
+                label.innerText = "Optimal (Just Right)"; label.style.color = "#10b981";
+                modelDataset.data = lineOptimal; modelDataset.borderColor = "#10b981"; modelDataset.tension = 0.4;
+            } else {
+                label.innerText = "Overfitting (Memorizing Noise)"; label.style.color = "#3b82f6";
+                modelDataset.data = lineOverfit; modelDataset.borderColor = "#3b82f6"; modelDataset.tension = 0.2;
+            }
+            chartSup.update();
+        }
+
+        // --- PLAYGROUND 5: UNSUPERVISED (CLUSTERING) ---
+        const ctxUnsup = document.getElementById('chart-unsupervised').getContext('2d');
+        const clusterData = [];
+        for(let i=0; i<15; i++) clusterData.push({x: Math.random()*4+2, y: Math.random()*4+2, trueColor: '#3b82f6'});
+        for(let i=0; i<15; i++) clusterData.push({x: Math.random()*4+8, y: Math.random()*4+12, trueColor: '#10b981'});
+        for(let i=0; i<15; i++) clusterData.push({x: Math.random()*4+14, y: Math.random()*4+3, trueColor: '#f59e0b'});
+
+        let chartUnsup = new Chart(ctxUnsup, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Raw Unlabeled Data', data: clusterData, backgroundColor: '#475569', pointRadius: 7 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 20}, y: {min: 0, max: 20} }, animation: { duration: 1000 } }
+        });
+
+        let isClustered = false;
+        function runClustering() {
+            let btn = document.getElementById('cluster-btn');
+            if(!isClustered) {
+                chartUnsup.data.datasets[0].label = "Discovered Segments (K=3)";
+                chartUnsup.data.datasets[0].backgroundColor = clusterData.map(p => p.trueColor);
+                btn.innerText = "Reset Data"; btn.style.background = "#475569";
+            } else {
+                chartUnsup.data.datasets[0].label = "Raw Unlabeled Data";
+                chartUnsup.data.datasets[0].backgroundColor = '#475569';
+                btn.innerText = "Run Clustering Algorithm"; btn.style.background = "#10b981";
+            }
+            isClustered = !isClustered;
+            chartUnsup.update();
+        }
+    </script>
+</body>
+</html>

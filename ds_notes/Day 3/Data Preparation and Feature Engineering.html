@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Preparation Mastery: The Titanic Dataset</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CORE DESIGN SYSTEM (Maritime Modern Fullscreen Theme) */
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=Fira+Code:wght@400;500&display=swap');
+        
+        :root {
+            --bg-space: #030712;       /* Deep space cosmic dark */
+            --bg-deck: #0b1528;        /* Deep maritime navy */
+            --bg-panel: #111c35;       /* Lighter navy panel */
+            --accent-aqua: #2dd4bf;    /* Electric Clean Aqua */
+            --accent-coral: #f97316;   /* Warning / Outlier Coral */
+            --accent-gold: #f59e0b;    /* Engineered feature amber */
+            --text-light: #f9fafb;     /* High contrast off-white */
+            --text-muted: #9ca3af;     /* Accessible slate gray */
+            --border-subtle: #1e293b;  /* Clean panel separation */
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        body { 
+            background: var(--bg-space); 
+            color: var(--text-light); 
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden; 
+        }
+        
+        /* DECK WRAPPER - CHANGED TO FULLSCREEN LAYOUT */
+        #deck { 
+            width: 100vw; 
+            height: 100vh; 
+            background: var(--bg-deck); 
+            position: relative; 
+            overflow: hidden; 
+        }
+        
+        /* SLIDE LIFECYCLE - ADAPTED FOR RESPONSIVE VIEWPORTS */
+        .slide { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            padding: 4% 5% 100px 5%; /* Fluid padding to optimize screen space */
+            display: flex; 
+            flex-direction: column; 
+            opacity: 0; 
+            transform: translateY(20px); 
+            transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1); 
+            pointer-events: none; 
+            z-index: 1; 
+        }
+        .slide.active { opacity: 1; transform: translateY(0); pointer-events: all; z-index: 2; }
+        
+        /* CONTROLS & HUD */
+        .controls { position: absolute; bottom: 30px; right: 5%; z-index: 100; display: flex; gap: 12px; }
+        .btn-nav { background: var(--bg-panel); color: var(--text-light); border: 1px solid var(--border-subtle); padding: 14px 28px; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s ease; font-family: 'Space Grotesk', sans-serif; }
+        .btn-nav:hover:not(:disabled) { background: var(--border-subtle); border-color: var(--accent-aqua); color: var(--accent-aqua); }
+        .btn-nav:disabled { opacity: 0.3; cursor: not-allowed; }
+        
+        /* HUD METRICS WITH SUBTLE CREDIT */
+        .hud-metrics { position: absolute; bottom: 35px; left: 5%; z-index: 100; font-size: 13px; font-family: 'Fira Code', monospace; color: var(--text-muted); letter-spacing: 0.5px; }
+
+        /* TYPOGRAPHY */
+        h1 { font-family: 'Space Grotesk', sans-serif; font-size: calc(2.5rem + 1.5vw); font-weight: 700; color: var(--text-light); margin-bottom: 12px; line-height: 1.2; }
+        h1 span { color: var(--accent-aqua); }
+        h2 { font-family: 'Space Grotesk', sans-serif; font-size: calc(1.8rem + 0.6vw); color: var(--accent-aqua); margin-bottom: 24px; font-weight: 600; display: flex; align-items: center; gap: 12px; }
+        p, li { font-size: calc(15px + 0.3vw); line-height: 1.6; color: var(--text-muted); }
+        ul { margin-left: 24px; margin-bottom: 16px; }
+        li { margin-bottom: 8px; }
+        strong { color: var(--text-light); font-weight: 600; }
+        code { font-family: 'Fira Code', monospace; background: var(--bg-space); padding: 2px 6px; border-radius: 4px; color: var(--accent-gold); font-size: 90%; }
+
+        /* LAYOUT ARCHITECTURE */
+        .split-layout { display: flex; gap: 4%; flex: 1; min-height: 0; align-items: stretch; padding-bottom: 20px; }
+        .text-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .interactive-panel { flex: 1.3; background: var(--bg-space); border-radius: 16px; border: 1px solid var(--border-subtle); padding: 30px; display: flex; flex-direction: column; justify-content: center; position: relative; overflow: hidden; }
+        
+        .chart-container { flex-grow: 1; position: relative; width: 100%; height: 100%; min-height: 0; }
+        
+        /* INTERACTIVE ENGINE ELEMENTS */
+        .playground-controls { margin-top: 20px; background: var(--bg-panel); padding: 20px; border-radius: 12px; display: flex; gap: 16px; justify-content: center; align-items: center; flex-wrap: wrap; border: 1px solid var(--border-subtle); }
+        .btn-action { background: var(--accent-aqua); color: var(--bg-space); border: none; padding: 12px 22px; border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s ease; font-family: 'Space Grotesk', sans-serif; }
+        .btn-action:hover { background: #5eead4; transform: translateY(-1px); }
+        .btn-action.secondary { background: var(--accent-coral); color: var(--text-light); }
+        .btn-action.secondary:hover { background: #fb923c; }
+        .btn-action.outline { background: transparent; color: var(--accent-aqua); border: 1px solid var(--accent-aqua); }
+        .btn-action:disabled { opacity: 0.3; cursor: not-allowed; transform: none !important; }
+
+        .slider-group { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: var(--text-light); font-family: 'Space Grotesk', sans-serif; }
+        .slider-header span { color: var(--accent-aqua); }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: var(--bg-panel); height: 8px; border-radius: 4px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; background: var(--accent-aqua); border-radius: 50%; cursor: pointer; transition: 0.2s; }
+
+        /* GRID COMPONENTS */
+        .grid-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; flex: 1; min-height: 0; padding-bottom: 40px; }
+        .card { background: var(--bg-panel); padding: 30px; border-radius: 14px; border: 1px solid var(--border-subtle); border-top: 4px solid var(--accent-aqua); display: flex; flex-direction: column; }
+        .card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 24px; color: var(--text-light); margin-bottom: 12px; }
+
+        /* DATA MATRIX TABLES */
+        .data-table { width: 100%; border-collapse: collapse; font-size: calc(12px + 0.2vw); font-family: 'Fira Code', monospace; color: var(--text-muted); text-align: left; }
+        .data-table th { background: var(--bg-panel); color: var(--text-light); padding: 14px; font-family: 'Space Grotesk', sans-serif; font-weight: 600; border-bottom: 2px solid var(--border-subtle); }
+        .data-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-subtle); transition: all 0.3s ease; }
+        
+        /* LIVE COLOR TRANSITIONS */
+        .clean-flash { background: rgba(45, 212, 191, 0.15) !important; color: var(--accent-aqua) !important; }
+        .error-flash { background: rgba(249, 115, 22, 0.15) !important; color: var(--accent-coral) !important; }
+        .eng-flash { background: rgba(245, 158, 11, 0.15) !important; color: var(--accent-gold) !important; }
+    </style>
+</head>
+<body>
+
+    <div id="deck">
+        <div class="hud-metrics" id="hud-display">COLLECTION: TITANIC_SURVIVAL // PIPELINE_STAGE: UNPREPARED // DEVELOPER: JAYAN GUPTA</div>
+
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <h1 style="margin-bottom: 20px;">Data Preparation <span>Mastery</span></h1>
+            <p style="font-size: calc(18px + 0.4vw); max-width: 950px; color: var(--text-muted); margin-bottom: 40px;">
+                Before machine learning algorithms can perform optimization tasks, raw features must be thoroughly engineered. Master data cleaning and feature engineering using the historical Titanic dataset.
+            </p>
+            <div style="background: var(--bg-panel); padding: 16px 32px; border-radius: 30px; border: 1px solid var(--border-subtle); font-family: 'Fira Code', monospace; font-size: 16px; color: var(--accent-aqua);">
+                df.shape &rarr; [891 Rows, 12 Raw Columns]
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Preprocessing Pipeline</h2>
+                    <p style="margin-bottom: 16px;">Raw data files are filled with inconsistencies, missing records, and unoptimized data types. Forcing raw vectors into high-variance estimators will yield inaccurate models.</p>
+                    <p>We decouple our preprocessing workflow into two primary architectural blocks:</p>
+                    <ul style="margin-top: 14px;">
+                        <li><strong>Phase 1: Data Cleaning</strong> &mdash; Remedying structural gaps, unstandardized features, duplicates, and extreme variance distortions.</li>
+                        <li><strong>Phase 2: Feature Engineering</strong> &mdash; Creating highly predictive structural attributes from raw text, encoding categoricals, and optimizing scale.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel" style="background: var(--bg-panel);">
+                    <h3 style="font-family: 'Space Grotesk', sans-serif; font-size: 26px; margin-bottom: 20px;">The Preprocessing Continuum</h3>
+                    <div style="display:flex; flex-direction:column; gap:16px;">
+                        <div style="padding:20px; background:var(--bg-space); border-left:4px solid var(--accent-coral); border-radius:8px;">
+                            <strong style="color:var(--accent-coral); font-family:'Space Grotesk'; font-size: 18px;">1. Data Cleaning Phase</strong>
+                            <p style="font-size:15px; margin-top:6px;">Handles incomplete matrices (Age/Cabin), isolates structural anomalies, and drops duplicate vectors.</p>
+                        </div>
+                        <div style="padding:20px; background:var(--bg-space); border-left:4px solid var(--accent-gold); border-radius:8px;">
+                            <strong style="color:var(--accent-gold); font-family:'Space Grotesk'; font-size: 18px;">2. Feature Engineering Phase</strong>
+                            <p style="font-size:15px; margin-top:6px;">Unpacks social dimensions from text strings, builds descriptive markers, maps categoricals, and applies normalization matrices.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Handling Missing Values</h2>
+                    <p style="margin-bottom: 16px;">Real-world datasets often arrive with missing observations. Optimization engines require complete matrices to run linear and non-linear calculations.</p>
+                    <ul>
+                        <li><code>Age</code>: 177 missing entries. Highly informative attribute; dropping row vectors causes severe information loss. We implement <strong>Median Imputation</strong>.</li>
+                        <li><code>Cabin</code>: 687 missing entries (~77% null density). Imputing would introduce systemic bias. The standard approach is dropping the column structural array.</li>
+                    </ul>
+                    <p style="margin-top: 12px;"><em>Click the action triggers to perform the cleaning step and watch the missing indexes resolve.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-missing"></canvas></div>
+                    <div class="playground-controls">
+                        <button class="btn-action secondary" id="btn-drop-cabin" onclick="imputeMetric('cabin')">Drop Cabin Column</button>
+                        <button class="btn-action" id="btn-imp-age" onclick="imputeMetric('age')">Impute Age (Median)</button>
+                        <button class="btn-action outline" onclick="resetMissingChart()">Reset Matrix</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Inconsistencies, Types &amp; Duplicates</h2>
+                    <p>Production-level pipelines consolidate records containing manual structural inconsistencies, irregular encoding classes, and matching entry faults.</p>
+                    <ul style="margin-top: 14px;">
+                        <li><strong>Fixing Inconsistent Strings:</strong> Overlapping categorization markers (e.g., mixing "male", "MALE", "m") must be normalized into flat classes.</li>
+                        <li><strong>Data Type Corrections:</strong> Categorical attributes imported as string objects or floating points must be downcast to concrete, low-overhead numeric types.</li>
+                        <li><strong>Removing Duplicates:</strong> Stripping out exact identical data logs to protect optimization models from data leakage risks.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel" style="justify-content: flex-start;">
+                    <h3 style="font-family:'Space Grotesk', sans-serif; font-size:20px; margin-bottom:16px; color:var(--accent-aqua)">Messy Titanic Slice</h3>
+                    <table class="data-table" id="scrub-table">
+                        <thead>
+                            <tr><th>ID</th><th>Sex</th><th>Fare (Object)</th><th>Status</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr id="scrub-r1"><td>44</td><td>male</td><td>$8.05</td><td>Active</td></tr>
+                            <tr id="scrub-r2"><td>45</td><td>MALE</td><td>$7.25</td><td>Active</td></tr>
+                            <tr id="scrub-r3"><td>46</td><td>female</td><td>$15.04</td><td>Active</td></tr>
+                            <tr id="scrub-r4" class="error-flash"><td>46</td><td>female</td><td>$15.04</td><td>Duplicate</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="playground-controls">
+                        <button class="btn-action outline" onclick="actionScrub('strings')">Fix Strings</button>
+                        <button class="btn-action outline" onclick="actionScrub('types')">Cast Types</button>
+                        <button class="btn-action secondary" onclick="actionScrub('dedup')">Deduplicate</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Outlier Basics</h2>
+                    <p>Extreme values distort data distributions and bias standard variance metrics. While typical Titanic tickets cost under $30, luxury suites topped <strong>$512</strong>.</p>
+                    <p>We quantify and flag structural outliers using the robust Interquartile Range (IQR) rule:</p>
+                    <div style="background:var(--bg-panel); padding:16px; border-radius:8px; font-family:'Fira Code', monospace; font-size:15px; margin-bottom:16px; border-left:3px solid var(--accent-coral)">
+                        Upper Boundary = Q3 + (Multiplier &times; IQR)
+                    </div>
+                    <p><em>Adjust the boundary slider to move the threshold and watch the out-of-bounds metrics (highlighted in orange) adapt.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-outlier"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>IQR Boundary Multiplier</label><span id="outlier-lbl">1.5x (Strict Boundary)</span></div>
+                            <input type="range" id="outlier-slider" min="15" max="40" value="15" oninput="updateOutliers()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Creating New Features</h2>
+                    <p>Feature engineering builds new structural insights by isolating hidden dimensions inside sparse data strings.</p>
+                    <ul style="margin-top: 14px;">
+                        <li><strong>FamilySize Engineering:</strong> Rather than forcing a model to parse sibling counts (<code>SibSp</code>) and parent records (<code>Parch</code>) independently, we consolidate them:
+                        <code>FamilySize = SibSp + Parch + 1</code></li>
+                        <li><strong>Social Rank Engineering:</strong> Parsing raw text markers to isolate demographic groupings (e.g., mapping "Braund, <strong>Mr.</strong> Owen Harris" into discrete feature bins).</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel" style="justify-content: flex-start;">
+                    <h3 style="font-family:'Space Grotesk', sans-serif; font-size:20px; margin-bottom:16px; color:var(--accent-gold)">Dynamic Feature Factory</h3>
+                    <table class="data-table" style="margin-bottom: 16px;">
+                        <thead>
+                            <tr><th>Passenger Name</th><th>SibSp</th><th>Parch</th><th style="color:var(--accent-gold)">FamilySize</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Palsson, Master. Gosta Leonard</td><td>3</td><td>1</td><td id="calc-f1" class="eng-flash" style="font-weight:700">5</td></tr>
+                            <tr><td>Futrelle, Mrs. Jacques Heath</td><td>1</td><td>0</td><td id="calc-f2" class="eng-flash" style="font-weight:700">2</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="playground-controls" style="flex-direction:column; align-items:stretch; gap:12px;">
+                        <div style="display:flex; gap:16px;">
+                            <div style="flex:1;">
+                                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:4px;">Master Palsson SibSp</label>
+                                <input type="number" id="inp-sib" value="3" min="0" max="8" style="width:100%; background:var(--bg-space); border:1px solid var(--border-subtle); color:#fff; padding:10px; border-radius:6px;" onchange="recalcFamily()">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="font-size:13px; color:var(--text-muted); display:block; margin-bottom:4px;">Master Palsson Parch</label>
+                                <input type="number" id="inp-par" value="1" min="0" max="6" style="width:100%; background:var(--bg-space); border:1px solid var(--border-subtle); color:#fff; padding:10px; border-radius:6px;" onchange="recalcFamily()">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Encoding Categorical Variables</h2>
+                    <p>Machine learning estimators model quantitative dimensions. String tracking attributes like <code>Sex</code> or <code>Embarked</code> port locations must be transformed into algebraic arrays.</p>
+                    <ul style="margin-top: 14px;">
+                        <li><strong>Label Encoding:</strong> Directly maps text attributes to flat integers (e.g., Male &rarr; 1, Female &rarr; 0). This approach works well for binary dimensions.</li>
+                        <li><strong>One-Hot Encoding:</strong> Unpacks multi-class arrays into dedicated binary column features, preventing distance calculations from assuming an unintended numeric order.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel" style="justify-content: flex-start;">
+                    <h3 style="font-family:'Space Grotesk', sans-serif; font-size:20px; margin-bottom:16px; color:var(--accent-aqua)">Encoding Transformation Matrix</h3>
+                    <table class="data-table" id="encoder-table">
+                        <thead>
+                            <tr id="enc-th"><th>Passenger</th><th>Embarked</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr id="enc-r1"><td>Kelly, Mr. James</td><td>Q</td></tr>
+                            <tr id="enc-r2"><td>Connolly, Miss. Kate</td><td>S</td></tr>
+                            <tr id="enc-r3"><td>Abrahim, Mrs. Mary</td><td>C</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="playground-controls">
+                        <button class="btn-action outline" id="btn-enc-lbl" onclick="applyEncoding('label')">Apply Label Encoding</button>
+                        <button class="btn-action" id="btn-enc-ohe" onclick="applyEncoding('onehot')">Apply One-Hot Encoding</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Feature Scaling Basics</h2>
+                    <p>Distance-based algorithms can become heavily biased when processing attributes with disparate numerical scales. In our dataset, <code>Age</code> ranges from 0.42 to 80, while <code>Fare</code> extends from 0 to 512.</p>
+                    <p>Scaling projects these features onto matching numerical scales so they receive equal weight during model training.</p>
+                    <ul style="margin-top: 10px;">
+                        <li><strong>MinMax Scaler:</strong> Compresses distributions into absolute fixed boundaries of <code>[0, 1]</code>.</li>
+                        <li><strong>StandardScaler:</strong> Centers distributions around a mean of 0 with a unit standard deviation of 1.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-scaling"></canvas></div>
+                    <div class="playground-controls">
+                        <button class="btn-action outline" onclick="transformScale('raw')">Raw Metrics</button>
+                        <button class="btn-action" onclick="transformScale('minmax')">Apply MinMax Scaling</button>
+                        <button class="btn-action secondary" onclick="transformScale('standard')">Apply StandardScaler</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>Feature Selection Intuition</h2>
+            <p style="margin-bottom: 30px;">Feeding every available column into an estimator adds predictive noise and causes overfitting. Good feature selection involves filtering out uninformative attributes to keep the model focused and efficient.</p>
+            <div class="grid-cards">
+                <div class="card" style="border-top-color: var(--accent-coral);">
+                    <h3>PassengerId &amp; Ticket</h3>
+                    <p style="margin-bottom:12px;">Arbitrary system-generated index tokens and non-standardized administrative strings.</p>
+                    <div style="margin-top:auto; background:rgba(239,68,68,0.2); color:#f87171; text-align:center; padding:10px; border-radius:6px; font-weight:700; font-size:13px; font-family:'Space Grotesk';">ACTION: DROP COLUMNS</div>
+                </div>
+                <div class="card" style="border-top-color: var(--accent-gold);">
+                    <h3>Name Strings</h3>
+                    <p style="margin-bottom:12px;">Once social titles (Mr / Mrs) have been extracted, the raw text provides no further predictive value.</p>
+                    <div style="margin-top:auto; background:rgba(239,68,68,0.2); color:#f87171; text-align:center; padding:10px; border-radius:6px; font-weight:700; font-size:13px; font-family:'Space Grotesk';">ACTION: DROP COLUMN</div>
+                </div>
+                <div class="card" style="border-top-color: var(--accent-aqua);">
+                    <h3>Pclass, Sex, Age, FamilySize</h3>
+                    <p style="margin-bottom:12px;">Core behavioral, biological, and socio-economic signals with high relevance to survival mapping.</p>
+                    <div style="margin-top:auto; background:rgba(45,212,191,0.2); color:var(--accent-aqua); text-align:center; padding:10px; border-radius:6px; font-weight:700; font-size:13px; font-family:'Space Grotesk';">ACTION: RETAIN MATRIX</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Project Workbench</h2>
+                    <p>Run the completed preprocessing pipeline to watch the transformation from raw data to engineered, model-ready features.</p>
+                    <div style="margin-top:20px; background:var(--bg-panel); padding:20px; border-radius:10px; border:1px solid var(--border-subtle)">
+                        <span style="color:var(--accent-aqua); font-family:'Fira Code'; font-size:14px; display:block; margin-bottom:8px;">&gt;_ Pipeline Log</span>
+                        <p id="workbench-status" style="font-size:14px; font-family:'Fira Code', monospace; color:var(--text-light)">Pipeline idle. Awaiting operational activation input...</p>
+                    </div>
+                </div>
+                <div class="interactive-panel" style="justify-content: flex-start;">
+                    <h3 style="font-family:'Space Grotesk', sans-serif; font-size:20px; margin-bottom:16px;">Active DataFrame Transformation View</h3>
+                    <table class="data-table" id="wb-table" style="font-size:12px;">
+                        <thead>
+                            <tr id="wb-th"><th>Name</th><th>Sex</th><th>Age</th><th>SibSp</th><th>Fare</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td>Braund, Mr. Owen</td><td>male</td><td>22.0</td><td>1</td><td>7.25</td></tr>
+                            <tr><td>Cumings, Mrs. John</td><td>female</td><td>38.0</td><td>1</td><td>71.28</td></tr>
+                            <tr><td>Heikkinen, Miss. Laina</td><td>female</td><td>26.0</td><td>0</td><td>7.92</td></tr>
+                            <tr><td>Moran, Mr. James</td><td>male</td><td>NaN</td><td>0</td><td>8.45</td></tr>
+                        </tbody>
+                    </table>
+                    <div class="playground-controls">
+                        <button class="btn-action" id="btn-pipeline" onclick="executeFullPipeline()">Execute Production Pipeline</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-nav" id="prev-btn" onclick="nav(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // NAVIGATION ARCHITECTURE ENGINE
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const hudDisplay = document.getElementById('hud-display');
+        
+        const stageLabels = [
+            "UNPREPARED", "WORKFLOW_ROUTING", "IMPUTATION_ENGINE", "STRUCTURAL_SCRUBBING", 
+            "OUTLIER_CAPPING", "ENGINEERING_COMPOUNDS", "CATEGORICAL_ENCODING", 
+            "SCALING_NORMALIZATION", "DIMENSION_SELECTION", "PRODUCTION_COMPLIANT"
+        ];
+
+        function nav(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === slides.length - 1;
+            
+            hudDisplay.innerText = `COLLECTION: TITANIC_SURVIVAL // PIPELINE_STAGE: ${stageLabels[currentSlide]} // DEVELOPER: JAYAN GUPTA`;
+        }
+
+        Chart.defaults.color = '#9ca3af';
+        Chart.defaults.font.family = 'Plus Jakarta Sans';
+
+        // SLIDE 3 PLAYGROUND: MISSING DATA ENGINE
+        const ctxMissing = document.getElementById('chart-missing').getContext('2d');
+        let chartMissing = new Chart(ctxMissing, {
+            type: 'bar',
+            data: {
+                labels: ['PassengerId', 'Survived', 'Age (Features)', 'Cabin (Location)', 'Embarked'],
+                datasets: [{
+                    label: 'Missing Matrix Density Count (Total Pool: 891 Columns)',
+                    data: [0, 0, 177, 687, 2],
+                    backgroundColor: ['#1e293b', '#1e293b', '#f97316', '#ef4444', '#f59e0b'],
+                    borderRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 891 } } }
+        });
+
+        function imputeMetric(type) {
+            if (type === 'cabin') {
+                chartMissing.data.labels[3] = '[DROPPED COLUMN ARRAY]';
+                chartMissing.data.datasets[0].data[3] = 0;
+                document.getElementById('btn-drop-cabin').disabled = true;
+            } else if (type === 'age') {
+                chartMissing.data.datasets[0].data[2] = 0;
+                chartMissing.data.datasets[0].backgroundColor[2] = '#2dd4bf';
+                document.getElementById('btn-imp-age').disabled = true;
+            }
+            chartMissing.update();
+        }
+
+        function resetMissingChart() {
+            chartMissing.data.labels = ['PassengerId', 'Survived', 'Age (Features)', 'Cabin (Location)', 'Embarked'];
+            chartMissing.data.datasets[0].data = [0, 0, 177, 687, 2];
+            chartMissing.data.datasets[0].backgroundColor = ['#1e293b', '#1e293b', '#f97316', '#ef4444', '#f59e0b'];
+            document.getElementById('btn-drop-cabin').disabled = false;
+            document.getElementById('btn-imp-age').disabled = false;
+            chartMissing.update();
+        }
+
+        // SLIDE 4 PLAYGROUND: SCRUBBING ENGINE
+        function actionScrub(mode) {
+            if(mode === 'strings') {
+                document.getElementById('scrub-r2').children[1].innerText = "male";
+                document.getElementById('scrub-r2').classList.add('clean-flash');
+            } else if(mode === 'types') {
+                document.getElementById('scrub-r1').children[2].innerText = "8.05";
+                document.getElementById('scrub-r2').children[2].innerText = "7.25";
+                document.getElementById('scrub-r3').children[2].innerText = "15.04";
+                document.getElementById('scrub-r4').children[2].innerText = "15.04";
+                document.querySelectorAll('#scrub-table tbody tr').forEach(r => r.classList.add('clean-flash'));
+            } else if(mode === 'dedup') {
+                document.getElementById('scrub-r4').style.display = 'none';
+            }
+        }
+
+        // SLIDE 5 PLAYGROUND: OUTLIER SCATTER ENGINE
+        const ctxOutlier = document.getElementById('chart-outlier').getContext('2d');
+        let genericFares = [7.25, 71.28, 7.92, 53.10, 8.05, 8.45, 51.86, 21.07, 11.13, 30.07, 26.55, 512.32, 263.00, 14.45, 7.75, 8.05];
+        let scatterPoints = genericFares.map((f, i) => ({ x: i + 1, y: f }));
+
+        let chartOutlier = new Chart(ctxOutlier, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Passenger Fare Values', data: scatterPoints, backgroundColor: '#2dd4bf', pointRadius: 7 },
+                    { type: 'line', label: 'Capping Boundary', data: [{x:0, y:65}, {x:17, y:65}], borderColor: '#f97316', borderDash: [6,6], pointRadius:0 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { max: 550 } } }
+        });
+
+        function updateOutliers() {
+            let val = document.getElementById('outlier-slider').value / 10;
+            document.getElementById('outlier-lbl').innerText = `${val}x IQR Limit Boundary`;
+            let thresh = 30 + (val * 24);
+            chartOutlier.data.datasets[1].data = [{x:0, y:thresh}, {x:17, y:thresh}];
+            
+            chartOutlier.data.datasets[0].backgroundColor = scatterPoints.map(p => p.y > thresh ? '#f97316' : '#2dd4bf');
+            chartOutlier.update();
+        }
+
+        // SLIDE 6 PLAYGROUND: CONSTRUCTIVE ENGINEERING
+        function recalcFamily() {
+            let sib = parseInt(document.getElementById('inp-sib').value) || 0;
+            let par = parseInt(document.getElementById('inp-par').value) || 0;
+            let total = sib + par + 1;
+            let targetCell = document.getElementById('calc-f1');
+            targetCell.innerText = total;
+            targetCell.classList.remove('eng-flash');
+            void targetCell.offsetWidth; // Trigger DOM reflow layout
+            targetCell.classList.add('eng-flash');
+        }
+
+        // SLIDE 7 PLAYGROUND: TRANSITIONAL ENCODING ENGINE
+        function applyEncoding(mode) {
+            let head = document.getElementById('enc-th');
+            let r1 = document.getElementById('enc-r1');
+            let r2 = document.getElementById('enc-r2');
+            let r3 = document.getElementById('enc-r3');
+            
+            if(mode === 'label') {
+                head.innerHTML = "<th>Passenger</th><th style='color:var(--accent-aqua)'>Embarked (Label Encoded)</th>";
+                r1.innerHTML = "<td>Kelly, Mr. James</td><td class='clean-flash'>1</td>";
+                r2.innerHTML = "<td>Connolly, Miss. Kate</td><td class='clean-flash'>2</td>";
+                r3.innerHTML = "<td>Abrahim, Mrs. Mary</td><td class='clean-flash'>0</td>";
+                document.getElementById('btn-enc-lbl').disabled = true;
+            } else if(mode === 'onehot') {
+                head.innerHTML = "<th>Passenger</th><th style='color:var(--accent-gold)'>Emb_C</th><th style='color:var(--accent-gold)'>Emb_Q</th><th style='color:var(--accent-gold)'>Emb_S</th>";
+                r1.innerHTML = "<td>Kelly, Mr. James</td><td class='eng-flash'>0</td><td class='eng-flash'>1</td><td class='eng-flash'>0</td>";
+                r2.innerHTML = "<td>Connolly, Miss. Kate</td><td class='eng-flash'>0</td><td class='eng-flash'>0</td><td class='eng-flash'>1</td>";
+                r3.innerHTML = "<td>Abrahim, Mrs. Mary</td><td class='eng-flash'>1</td><td class='eng-flash'>0</td><td class='eng-flash'>0</td>";
+                document.getElementById('btn-enc-ohe').disabled = true;
+            }
+        }
+
+        // SLIDE 8 PLAYGROUND: AXIS SCALING MATRIX
+        const ctxScale = document.getElementById('chart-scaling').getContext('2d');
+        const rawScaleData = [
+            {x: 22, y: 7.25}, {x: 38, y: 71.28}, {x: 26, y: 7.92}, {x: 35, y: 53.10},
+            {x: 54, y: 51.86}, {x: 2, y: 21.07}, {x: 27, y: 11.13}, {x: 14, y: 30.07},
+            {x: 4, y: 16.70}, {x: 58, y: 26.55}, {x: 20, y: 8.05}, {x: 39, y: 31.28}
+        ];
+
+        let chartScale = new Chart(ctxScale, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Passenger Records', data: JSON.parse(JSON.stringify(rawScaleData)), backgroundColor: '#f59e0b', pointRadius: 6 }] },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                scales: { 
+                    x: { type:'linear', title: {display:true, text:'Age (Years)'}, min: 0, max: 70 }, 
+                    y: { type:'linear', title: {display:true, text:'Fare ($)'}, min: 0, max: 100 } 
+                } 
+            }
+        });
+
+        function transformScale(mode) {
+            if(mode === 'raw') {
+                chartScale.data.datasets[0].data = JSON.parse(JSON.stringify(rawScaleData));
+                chartScale.options.scales.x.title.text = "Age (Years)";
+                chartScale.options.scales.x.min = 0; chartScale.options.scales.x.max = 70;
+                chartScale.options.scales.y.title.text = "Fare ($)";
+                chartScale.options.scales.y.min = 0; chartScale.options.scales.y.max = 100;
+            } else if(mode === 'minmax') {
+                chartScale.data.datasets[0].data = rawScaleData.map(d => ({ x: d.x / 58, y: d.y / 71.28 }));
+                chartScale.options.scales.x.title.text = "Age (MinMax Scaled Bound)";
+                chartScale.options.scales.x.min = -0.1; chartScale.options.scales.x.max = 1.1;
+                chartScale.options.scales.y.title.text = "Fare (MinMax Scaled Bound)";
+                chartScale.options.scales.y.min = -0.1; chartScale.options.scales.y.max = 1.1;
+            } else if(mode === 'standard') {
+                chartScale.data.datasets[0].data = rawScaleData.map(d => ({ x: (d.x - 28.5)/18, y: (d.y - 27.5)/22 }));
+                chartScale.options.scales.x.title.text = "Age (Standardized Z-Score)";
+                chartScale.options.scales.x.min = -2; chartScale.options.scales.x.max = 3;
+                chartScale.options.scales.y.title.text = "Fare (Standardized Z-Score)";
+                chartScale.options.scales.y.min = -2; chartScale.options.scales.y.max = 3;
+            }
+            chartScale.update();
+        }
+
+        // SLIDE 10 PLAYGROUND: FULL INTEGRATED PRODUCTION WORKBENCH
+        function executeFullPipeline() {
+            document.getElementById('workbench-status').innerText = "Processing Data... Resolving Null Parameters... Generating Social Vector Tags... Running Hot Matrix Arrays.";
+            document.getElementById('workbench-status').style.color = "var(--accent-aqua)";
+            
+            setTimeout(() => {
+                let th = document.getElementById('wb-th');
+                th.innerHTML = "<th>Title_Mr</th><th>Title_Mrs</th><th>Sex_Male</th><th>Scaled_Age</th><th>Scaled_Fare</th>";
+                
+                let tbody = document.querySelector('#wb-table tbody');
+                tbody.innerHTML = `
+                    <tr class="clean-flash"><td>1</td><td>0</td><td>1</td><td>0.27</td><td>0.01</td></tr>
+                    <tr class="clean-flash"><td>0</td><td>1</td><td>0</td><td>0.47</td><td>0.13</td></tr>
+                    <tr class="clean-flash"><td>0</td><td>0</td><td>0</td><td>0.32</td><td>0.01</td></tr>
+                    <tr class="clean-flash"><td>1</td><td>0</td><td>1</td><td>0.35</td><td>0.01</td></tr>
+                `;
+                document.getElementById('workbench-status').innerText = "Success! Matrices engineered perfectly. Vector Space Dimensions: [4 Rows, 5 Transformed Columns]. Production Dataset Ready For Model Training Pipelines.";
+                document.getElementById('workbench-status').style.color = "#34d399";
+                document.getElementById('btn-pipeline').disabled = true;
+            }, 1800);
+        }
+    </script>
+</body>
+</html>

@@ -266,22 +266,28 @@ This repository is built from the **GeeksforGeeks Data Science & Analytics** cur
 
 > **💡 Tip:** Start from **Day 1** and follow the roadmap sequentially. Each day builds on the previous one.
 
-<br/>
 
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!--                     📊  GITHUB STATS                                -->
+<!--                     ⭐  STAR HISTORY                                -->
 <!-- ═══════════════════════════════════════════════════════════════════════ -->
 
-## 📊 GitHub Stats
+## <img src="https://media.giphy.com/media/xTiTnxpQ3ghPiB2Hp6/giphy.gif" width="30"> &nbsp;Star History
 
 <div align="center">
 
-<img src="https://github-readme-stats.vercel.app/api?username=JayanGupta&show_icons=true&theme=tokyonight&hide_border=true&bg_color=0d1117&title_color=6c63ff&icon_color=6c63ff&text_color=c9d1d9" width="49%" />
-<img src="https://github-readme-streak-stats.herokuapp.com/?user=JayanGupta&theme=tokyonight&hide_border=true&background=0d1117&ring=6c63ff&fire=6c63ff&currStreakLabel=6c63ff" width="49%" />
+<a href="https://star-history.com/#JayanGupta/Notes&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=JayanGupta/Notes&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=JayanGupta/Notes&type=Date" />
+    <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=JayanGupta/Notes&type=Date" width="70%" />
+  </picture>
+</a>
 
-<br/>
+<br/><br/>
 
-<img src="https://github-readme-stats.vercel.app/api/top-langs/?username=JayanGupta&layout=compact&theme=tokyonight&hide_border=true&bg_color=0d1117&title_color=6c63ff&text_color=c9d1d9" width="40%" />
+[![Stars](https://img.shields.io/github/stars/JayanGupta/Notes?style=for-the-badge&color=6c63ff&labelColor=0d1117&logo=github)](https://github.com/JayanGupta/Notes/stargazers)
+[![Watchers](https://img.shields.io/github/watchers/JayanGupta/Notes?style=for-the-badge&color=a78bfa&labelColor=0d1117&logo=github)](https://github.com/JayanGupta/Notes/watchers)
+[![Forks](https://img.shields.io/github/forks/JayanGupta/Notes?style=for-the-badge&color=818cf8&labelColor=0d1117&logo=github)](https://github.com/JayanGupta/Notes/network/members)
 
 </div>
 
@@ -302,22 +308,6 @@ Contributions, issues, and feature requests are welcome!
 4. 📤 Push to branch     →  git push origin feature/amazing-feature
 5. 🔃 Open a Pull Request
 ```
-
-<br/>
-
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-<!--                       📬  CONNECT                                   -->
-<!-- ═══════════════════════════════════════════════════════════════════════ -->
-
-## 📬 Connect With Me
-
-<div align="center">
-
-[![GitHub](https://img.shields.io/badge/GitHub-JayanGupta-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/JayanGupta)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jayangupta/)
-[![GeeksforGeeks](https://img.shields.io/badge/GeeksforGeeks-Profile-2F8D46?style=for-the-badge&logo=geeksforgeeks&logoColor=white)](https://www.geeksforgeeks.org/)
-
-</div>
 
 <br/>
 

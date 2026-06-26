@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Excel Masterclass: Logic & Analysis (v2)</title>
+    <title>Excel Masterclass: Logic &amp; Analysis (v2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Segoe+UI:wght@300;400;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
@@ -46,433 +44,598 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
-    const { useState, useEffect } = React;
+<script>const {
+  useState,
+  useEffect
+} = React;
 
-    // --- SHARED: INTELLISENSE ---
-    const Intellisense = ({ syntax, desc, children }) => {
-        const [show, setShow] = useState(false);
-        const [pos, setPos] = useState({ x: 0, y: 0 });
-        return (
-            <span className="relative inline-block cursor-help group" 
-                  onMouseEnter={() => setShow(true)} 
-                  onMouseLeave={() => setShow(false)}
-                  onMouseMove={(e) => setPos({ x: e.clientX + 10, y: e.clientY + 10 })}>
-                <span className="text-blue-700 font-bold group-hover:underline decoration-dotted">{children}</span>
-                {show && (
-                    <div className="tooltip-box fixed" style={{ left: pos.x, top: pos.y }}>
-                        <div className="text-emerald-800 font-bold mb-1 border-b pb-1">{syntax}</div>
-                        <div className="text-gray-600 leading-tight">{desc}</div>
-                    </div>
-                )}
-            </span>
-        );
+// --- SHARED: INTELLISENSE ---
+const Intellisense = ({
+  syntax,
+  desc,
+  children
+}) => {
+  const [show, setShow] = useState(false);
+  const [pos, setPos] = useState({
+    x: 0,
+    y: 0
+  });
+  return /*#__PURE__*/React.createElement("span", {
+    className: "relative inline-block cursor-help group",
+    onMouseEnter: () => setShow(true),
+    onMouseLeave: () => setShow(false),
+    onMouseMove: e => setPos({
+      x: e.clientX + 10,
+      y: e.clientY + 10
+    })
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-700 font-bold group-hover:underline decoration-dotted"
+  }, children), show && /*#__PURE__*/React.createElement("div", {
+    className: "tooltip-box fixed",
+    style: {
+      left: pos.x,
+      top: pos.y
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-emerald-800 font-bold mb-1 border-b pb-1"
+  }, syntax), /*#__PURE__*/React.createElement("div", {
+    className: "text-gray-600 leading-tight"
+  }, desc)));
+};
+
+// --- LAB: PIVOT CHART & SLICER ANIMATION ---
+const PivotSlicerSim = () => {
+  const [filter, setFilter] = useState('All'); // All, North, South
+  const [cursor, setCursor] = useState({
+    top: '80%',
+    left: '80%'
+  });
+  const [clicking, setClicking] = useState(false);
+
+  // Animation Loop
+  useEffect(() => {
+    const run = async () => {
+      // Wait
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Move to North
+      setCursor({
+        top: '35%',
+        left: '15%'
+      });
+      await new Promise(r => setTimeout(r, 800));
+      setClicking(true);
+      setFilter('North');
+      await new Promise(r => setTimeout(r, 200));
+      setClicking(false);
+
+      // Wait
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Move to South
+      setCursor({
+        top: '45%',
+        left: '15%'
+      });
+      await new Promise(r => setTimeout(r, 800));
+      setClicking(true);
+      setFilter('South');
+      await new Promise(r => setTimeout(r, 200));
+      setClicking(false);
+
+      // Wait
+      await new Promise(r => setTimeout(r, 1500));
+
+      // Move to Clear Filter
+      setCursor({
+        top: '15%',
+        left: '22%'
+      });
+      await new Promise(r => setTimeout(r, 800));
+      setClicking(true);
+      setFilter('All');
+      await new Promise(r => setTimeout(r, 200));
+      setClicking(false);
+
+      // Reset Pos
+      setCursor({
+        top: '80%',
+        left: '80%'
+      });
     };
+    run();
+  }, []);
+  const data = {
+    'All': [45, 80, 60],
+    'North': [30, 20, 10],
+    'South': [15, 60, 50]
+  };
+  const currentData = data[filter];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gray-50 flex p-6 gap-6 relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "cursor-arrow",
+    style: {
+      top: cursor.top,
+      left: cursor.left,
+      transform: `rotate(-45deg) scale(${clicking ? 0.8 : 1})`
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-48 bg-white border border-gray-300 shadow-md flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-sky-700 text-white p-2 text-xs font-bold flex justify-between items-center"
+  }, /*#__PURE__*/React.createElement("span", null, "Region"), /*#__PURE__*/React.createElement("div", {
+    className: "opacity-50 text-[10px]"
+  }, "▼ ⚡")), /*#__PURE__*/React.createElement("div", {
+    className: "p-2 space-y-1 flex-1 bg-sky-50"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: `w-full text-left text-xs p-2 border ${filter === 'North' ? 'bg-sky-200 border-sky-500 font-bold' : 'bg-white hover:bg-sky-100 border-sky-200'}`
+  }, "North"), /*#__PURE__*/React.createElement("button", {
+    className: `w-full text-left text-xs p-2 border ${filter === 'South' ? 'bg-sky-200 border-sky-500 font-bold' : 'bg-white hover:bg-sky-100 border-sky-200'}`
+  }, "South"), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 text-[10px] text-gray-400 text-center italic"
+  }, "← This is a \"Slicer\""))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-white border border-gray-300 shadow-sm p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-gray-700 mb-4 flex justify-between"
+  }, /*#__PURE__*/React.createElement("span", null, "Sales by Quarter"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded"
+  }, "Filter: ", filter)), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 flex items-end justify-around border-b border-l border-gray-300 pb-2 pl-2 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-[20%] w-full border-t border-gray-100 border-dashed"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-[50%] w-full border-t border-gray-100 border-dashed"
+  }), currentData.map((val, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "w-16 flex flex-col justify-end group relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center text-xs font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity"
+  }, val), /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#107c41] chart-bar hover:brightness-110 shadow-sm",
+    style: {
+      height: `${val}%`
+    }
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-around pt-2 text-xs font-bold text-gray-500"
+  }, /*#__PURE__*/React.createElement("span", null, "Q1"), /*#__PURE__*/React.createElement("span", null, "Q2"), /*#__PURE__*/React.createElement("span", null, "Q3")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 text-xs text-center text-gray-400 italic"
+  }, "This is a \"Pivot Chart\" linked to the Slicer")));
+};
 
-    // --- LAB: PIVOT CHART & SLICER ANIMATION ---
-    const PivotSlicerSim = () => {
-        const [filter, setFilter] = useState('All'); // All, North, South
-        const [cursor, setCursor] = useState({ top: '80%', left: '80%' });
-        const [clicking, setClicking] = useState(false);
+// --- LAB 1: DATA TYPES & ALIGNMENT ---
+const DataTypesLab = () => {
+  const data = [{
+    type: 'Number',
+    val: '1250',
+    align: 'right',
+    desc: 'Numbers align RIGHT. This allows decimal points to line up.'
+  }, {
+    type: 'Text',
+    val: 'Project A',
+    align: 'left',
+    desc: 'Text aligns LEFT. This is the default for names/strings.'
+  }, {
+    type: 'Boolean',
+    val: 'TRUE',
+    align: 'center',
+    desc: 'Logicals (TRUE/FALSE) align CENTER.'
+  }, {
+    type: 'Error',
+    val: '#VALUE!',
+    align: 'center',
+    desc: 'Errors align CENTER. They indicate formula breaks.'
+  }, {
+    type: 'Date',
+    val: '45300',
+    display: '10-Jan',
+    align: 'right',
+    desc: 'Dates are stored as Numbers, so they align RIGHT.'
+  }];
+  const [hovered, setHovered] = useState(null);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-white flex flex-col p-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 text-sm text-gray-600 bg-emerald-50 p-3 border-l-4 border-emerald-500"
+  }, /*#__PURE__*/React.createElement("strong", null, "Visual Cue:"), " You can spot \"Text stored as Numbers\" errors instantly—if a number is on the left, Excel thinks it is text!"), /*#__PURE__*/React.createElement("div", {
+    className: "border border-gray-300"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "grid-header w-12"
+  }), /*#__PURE__*/React.createElement("th", {
+    className: "grid-header w-32"
+  }, "A (Data)"), /*#__PURE__*/React.createElement("th", {
+    className: "grid-header"
+  }, "B (Type Definition)"))), /*#__PURE__*/React.createElement("tbody", null, data.map((row, i) => /*#__PURE__*/React.createElement("tr", {
+    key: i,
+    onMouseEnter: () => setHovered(i),
+    className: "hover:bg-gray-50"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "grid-header"
+  }, i + 1), /*#__PURE__*/React.createElement("td", {
+    className: "grid-cell",
+    style: {
+      textAlign: row.align
+    }
+  }, row.display || row.val), /*#__PURE__*/React.createElement("td", {
+    className: "grid-cell text-gray-500 text-xs italic"
+  }, hovered === i ? row.desc : row.type)))))));
+};
 
-        // Animation Loop
-        useEffect(() => {
-            const run = async () => {
-                // Wait
-                await new Promise(r => setTimeout(r, 1000));
-                
-                // Move to North
-                setCursor({ top: '35%', left: '15%' });
-                await new Promise(r => setTimeout(r, 800));
-                setClicking(true); setFilter('North');
-                await new Promise(r => setTimeout(r, 200));
-                setClicking(false);
+// --- LAB 2: LOGICAL OPERATORS ---
+const LogicGateLab = () => {
+  const [a, setA] = useState(true);
+  const [b, setB] = useState(false);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-white flex flex-col items-center justify-center p-8 space-y-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-8"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setA(!a),
+    className: `px-6 py-3 rounded font-bold shadow-md transition-all ${a ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`
+  }, "INPUT A: ", a ? 'TRUE' : 'FALSE'), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setB(!b),
+    className: `px-6 py-3 rounded font-bold shadow-md transition-all ${b ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`
+  }, "INPUT B: ", b ? 'TRUE' : 'FALSE')), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-3 gap-4 w-full max-w-2xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "border p-4 rounded text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-sm mb-2 text-gray-500"
+  }, "AND(A, B)"), /*#__PURE__*/React.createElement("div", {
+    className: `text-2xl font-bold ${a && b ? 'text-emerald-600' : 'text-red-500'}`
+  }, a && b ? 'TRUE' : 'FALSE'), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs mt-2 text-gray-400"
+  }, "Both must be TRUE")), /*#__PURE__*/React.createElement("div", {
+    className: "border p-4 rounded text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-sm mb-2 text-gray-500"
+  }, "OR(A, B)"), /*#__PURE__*/React.createElement("div", {
+    className: `text-2xl font-bold ${a || b ? 'text-emerald-600' : 'text-red-500'}`
+  }, a || b ? 'TRUE' : 'FALSE'), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs mt-2 text-gray-400"
+  }, "At least one TRUE")), /*#__PURE__*/React.createElement("div", {
+    className: "border p-4 rounded text-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-sm mb-2 text-gray-500"
+  }, "NOT(A)"), /*#__PURE__*/React.createElement("div", {
+    className: `text-2xl font-bold ${!a ? 'text-emerald-600' : 'text-red-500'}`
+  }, !a ? 'TRUE' : 'FALSE'), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs mt-2 text-gray-400"
+  }, "Inverses Input A"))));
+};
 
-                // Wait
-                await new Promise(r => setTimeout(r, 1500));
+// --- LAB 3: CONDITIONAL LOGIC (IF/SUMIF) ---
+const ConditionalLab = () => {
+  const [threshold, setThreshold] = useState(50);
+  const data = [10, 76, 23, 98, 44, 100]; // Sheet 1 data
 
-                // Move to South
-                setCursor({ top: '45%', left: '15%' });
-                await new Promise(r => setTimeout(r, 800));
-                setClicking(true); setFilter('South');
-                await new Promise(r => setTimeout(r, 200));
-                setClicking(false);
+  const sumIf = data.filter(x => x > threshold).reduce((a, b) => a + b, 0);
+  const countIf = data.filter(x => x > threshold).length;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-white flex flex-col p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-emerald-50 border border-emerald-200 p-4 mb-4 rounded"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-sm font-bold text-emerald-800 mb-2"
+  }, "Rule Builder"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 text-sm"
+  }, /*#__PURE__*/React.createElement("span", null, "Calculate ONLY if Sales ", '>'), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    value: threshold,
+    onChange: e => setThreshold(Number(e.target.value)),
+    className: "border p-1 w-16 text-center font-bold"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-4 h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-1/3 border bg-white overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid-header"
+  }, "Sales Data"), data.map((val, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: `grid-cell text-right ${val > threshold ? 'bg-emerald-100 font-bold text-emerald-800' : 'text-gray-400'}`
+  }, val))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-4 border rounded shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-xs text-gray-500 mb-1"
+  }, "=SUMIF(Range, >", threshold, "\")"), /*#__PURE__*/React.createElement("div", {
+    className: "text-3xl font-bold text-gray-800"
+  }, sumIf), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "Total volume of qualified sales")), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 border rounded shadow-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-xs text-gray-500 mb-1"
+  }, "=COUNTIF(Range, >", threshold, "\")"), /*#__PURE__*/React.createElement("div", {
+    className: "text-3xl font-bold text-gray-800"
+  }, countIf), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-gray-400"
+  }, "Number of qualified transactions")))));
+};
 
-                // Wait
-                await new Promise(r => setTimeout(r, 1500));
+// --- LAB 4: VLOOKUP SIMULATION ---
+const VLookupSim = () => {
+  const [step, setStep] = useState(0); // 0:Idle, 1:Scan Down, 2:Found, 3:Move Right
+  const searchId = 103;
+  const db = [{
+    id: 101,
+    name: "Widget A",
+    price: 25
+  }, {
+    id: 102,
+    name: "Widget B",
+    price: 40
+  }, {
+    id: 103,
+    name: "Widget C",
+    price: 15
+  },
+  // Target
+  {
+    id: 104,
+    name: "Widget D",
+    price: 90
+  }];
+  const play = async () => {
+    setStep(0);
+    await new Promise(r => setTimeout(r, 500));
+    setStep(1); // Scanning
+    await new Promise(r => setTimeout(r, 1500));
+    setStep(2); // Found
+    await new Promise(r => setTimeout(r, 1000));
+    setStep(3); // Result
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-white flex flex-col p-4 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "formula-bar mb-4 p-2 border bg-gray-50 font-mono text-sm"
+  }, "=VLOOKUP(", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-red-600"
+  }, searchId), ", A2:C5, ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-blue-600"
+  }, "3"), ", FALSE)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 border relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "scanner-beam",
+    style: {
+      top: step === 1 ? '0%' : step >= 2 ? '50%' : '0%',
+      left: '0',
+      width: step >= 3 ? '100%' : '33%',
+      height: step === 1 ? '100%' : '25%',
+      opacity: step === 0 ? 0 : 1
+    }
+  }), /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-left"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "grid-header"
+  }, "A (ID)"), /*#__PURE__*/React.createElement("th", {
+    className: "grid-header"
+  }, "B (Name)"), /*#__PURE__*/React.createElement("th", {
+    className: "grid-header"
+  }, "C (Price)"))), /*#__PURE__*/React.createElement("tbody", null, db.map((row, i) => /*#__PURE__*/React.createElement("tr", {
+    key: row.id
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "grid-cell"
+  }, row.id), /*#__PURE__*/React.createElement("td", {
+    className: "grid-cell"
+  }, row.name), /*#__PURE__*/React.createElement("td", {
+    className: `grid-cell ${step === 3 && row.id === searchId ? 'bg-emerald-200 font-bold' : ''}`
+  }, row.price))))), step === 3 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-[58%] left-[15%] w-[60%] border-t-2 border-dashed border-emerald-600 h-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute right-0 -top-1.5 text-emerald-600"
+  }, "▶"))), /*#__PURE__*/React.createElement("button", {
+    onClick: play,
+    className: "mt-4 bg-[#107c41] text-white px-4 py-2 rounded self-center shadow-lg font-bold text-sm"
+  }, "VISUALIZE LOOKUP"));
+};
 
-                // Move to Clear Filter
-                setCursor({ top: '15%', left: '22%' });
-                await new Promise(r => setTimeout(r, 800));
-                setClicking(true); setFilter('All');
-                await new Promise(r => setTimeout(r, 200));
-                setClicking(false);
+// --- LAB 5: PIVOT TABLE SIMULATOR ---
+const PivotLab = () => {
+  const [config, setConfig] = useState({
+    rows: false,
+    values: false
+  });
 
-                // Reset Pos
-                setCursor({ top: '80%', left: '80%' });
-            };
-            run();
-        }, []);
+  // Mock Aggregation
+  const result = config.rows && config.values ? /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-sm"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "border p-1 bg-gray-100"
+  }, "Row Labels"), /*#__PURE__*/React.createElement("th", {
+    className: "border p-1 bg-gray-100"
+  }, "Sum of Sales"))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    className: "border p-1"
+  }, "Jan-01"), /*#__PURE__*/React.createElement("td", {
+    className: "border p-1 text-right"
+  }, "10")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    className: "border p-1"
+  }, "Jan-02"), /*#__PURE__*/React.createElement("td", {
+    className: "border p-1 text-right"
+  }, "2")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    className: "border p-1 font-bold"
+  }, "Grand Total"), /*#__PURE__*/React.createElement("td", {
+    className: "border p-1 font-bold text-right"
+  }, "12")))) : /*#__PURE__*/React.createElement("div", {
+    className: "text-gray-400 text-xs text-center mt-4"
+  }, "Drag fields to generate report...");
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-white flex p-4 gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-1/4 border-r pr-4 flex flex-col gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-xs uppercase text-gray-500 mb-2"
+  }, "PivotTable Fields"), /*#__PURE__*/React.createElement("div", {
+    className: "pivot-field",
+    onClick: () => setConfig({
+      ...config,
+      rows: !config.rows
+    })
+  }, config.rows ? '☑' : '☐', " Date"), /*#__PURE__*/React.createElement("div", {
+    className: "pivot-field",
+    onClick: () => setConfig({
+      ...config,
+      values: !config.values
+    })
+  }, config.values ? '☑' : '☐', " Sales")), /*#__PURE__*/React.createElement("div", {
+    className: "w-1/4 flex flex-col gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 pivot-area"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 uppercase font-bold mb-1"
+  }, "Rows"), config.rows && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border px-2 py-1 text-xs shadow-sm"
+  }, "Date")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 pivot-area"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-gray-500 uppercase font-bold mb-1"
+  }, "Values"), config.values && /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border px-2 py-1 text-xs shadow-sm"
+  }, "Sum of Sales"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 border p-4 shadow-inner bg-gray-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-emerald-800 mb-2 text-sm"
+  }, "PivotTable Report"), /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border shadow-sm p-2 min-h-[100px]"
+  }, result), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 text-xs text-gray-500"
+  }, /*#__PURE__*/React.createElement("strong", null, "Bivariate Analysis:"), " A Pivot Table rearranges \"Flat Data\" into a matrix (Rows x Columns) to compare two or more variables.")));
+};
 
-        const data = {
-            'All': [45, 80, 60],
-            'North': [30, 20, 10],
-            'South': [15, 60, 50]
-        };
-        const currentData = data[filter];
+// --- MAIN APP ---
+const App = () => {
+  const [slide, setSlide] = useState(0);
+  const slides = [{
+    title: "Module 2: Logic & Analysis",
+    desc: "Moving beyond data entry. We will explore how to make Excel 'think' using Logic, how to summarize data with Pivot Tables, and how to connect datasets with Lookups.",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center bg-[#107c41] text-white text-9xl font-black"
+    }, "2.0")
+  }, {
+    title: "Data Types & Alignment",
+    desc: "Excel is strict about data types. Numbers align Right. Text aligns Left. Errors align Center. Recognizing this visual alignment is the fastest way to debug spreadsheet errors.",
+    viz: /*#__PURE__*/React.createElement(DataTypesLab, null)
+  }, {
+    title: "Logical Operators",
+    desc: "The foundation of decision making. AND requires ALL to be true. OR requires ANY to be true. NOT reverses the truth. These are used inside IF functions.",
+    viz: /*#__PURE__*/React.createElement(LogicGateLab, null)
+  }, {
+    title: "The IF Function",
+    desc: "The syntax is =IF(Test, Value_If_True, Value_If_False). It creates a branching path. Example: IF(Sales > 50, 'Bonus', 'No Bonus').",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center bg-gray-50"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "p-6 border-2 border-emerald-500 rounded-lg text-center bg-white"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-xl font-bold mb-4"
+    }, "Is Sales > 50?"), /*#__PURE__*/React.createElement("div", {
+      className: "flex justify-between gap-12"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-emerald-600 font-bold"
+    }, "YES ➔ \"Bonus\""), /*#__PURE__*/React.createElement("div", {
+      className: "text-red-500 font-bold"
+    }, "NO ➔ \"Standard\""))))
+  }, {
+    title: "Conditional Aggregates",
+    desc: "SUMIF and COUNTIF allow you to calculate only specific data points. Instead of summing everything, you can sum only the days where Sales > 50.",
+    viz: /*#__PURE__*/React.createElement(ConditionalLab, null)
+  }, {
+    title: "Intro to Pivot Tables",
+    desc: "A Pivot Table is a 'Data Summarization Engine'. It takes thousands of rows of raw data and groups them instantly. It transforms Flat Data into Reports.",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-center space-y-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "p-4 border bg-white shadow-sm"
+    }, "Raw Data (1000 Rows)"), /*#__PURE__*/React.createElement("div", {
+      className: "text-2xl"
+    }, "⬇️"), /*#__PURE__*/React.createElement("div", {
+      className: "p-4 border bg-emerald-100 border-emerald-500 font-bold shadow-lg"
+    }, "Summary Report (5 Rows)")))
+  }, {
+    title: "Pivot Table Simulator",
+    desc: "Drag fields into 'Rows' to group data. Drag numbers into 'Values' to calculate them. This enables 'Bivariate Analysis' (analyzing two variables, like Date vs Sales).",
+    viz: /*#__PURE__*/React.createElement(PivotLab, null)
+  }, {
+    title: "Pivot Charts & Slicers",
+    desc: "A Slicer is a interactive button that filters a Pivot Table. A Pivot Chart is a visual that updates automatically when you slice data. Watch the animation to see the connection.",
+    viz: /*#__PURE__*/React.createElement(PivotSlicerSim, null)
+  }, {
+    title: "VLOOKUP (Vertical Lookup)",
+    desc: "VLOOKUP searches for a value in the FIRST column of a range, finds a match, and then moves RIGHT to retrieve data. It's like scanning a phone book.",
+    viz: /*#__PURE__*/React.createElement(VLookupSim, null)
+  }, {
+    title: "HLOOKUP (Horizontal Lookup)",
+    desc: "HLOOKUP works exactly like VLOOKUP, but sideways. It searches the TOP row and moves DOWN. Rarely used today, but good to know for legacy files.",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center font-bold text-gray-400"
+    }, "Same logic, just rotated 90 degrees.")
+  }, {
+    title: "XLOOKUP (The Modern Era)",
+    desc: "XLOOKUP replaces both. It doesn't need the search column to be first. You select a 'Lookup Array' and a 'Return Array' separately. It is faster, safer, and handles errors gracefully.",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full p-8 flex flex-col justify-center space-y-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-32 p-2 bg-blue-100 border border-blue-500 text-center text-xs"
+    }, "Lookup Array"), /*#__PURE__*/React.createElement("div", {
+      className: "text-2xl"
+    }, "➔"), /*#__PURE__*/React.createElement("div", {
+      className: "w-32 p-2 bg-emerald-100 border border-emerald-500 text-center text-xs"
+    }, "Return Array")), /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-gray-500 italic"
+    }, "No counting columns. No 'Left-to-Right' restriction."))
+  }, {
+    title: "Module 2 Summary",
+    desc: "You now understand how to Control data (Types), Decide with data (IF), Summarize data (Pivots), and Connect data (Lookups).",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full bg-gray-900 text-white flex flex-col justify-center items-center"
+    }, /*#__PURE__*/React.createElement("ul", {
+      className: "space-y-4 text-xl font-bold"
+    }, /*#__PURE__*/React.createElement("li", null, "✓ Logic Gates"), /*#__PURE__*/React.createElement("li", null, "✓ Pivot Modeling"), /*#__PURE__*/React.createElement("li", null, "✓ Lookup Engines")))
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col bg-[#f3f2f1]"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "bg-[#107c41] text-white p-4 flex justify-between shadow-md z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-8 h-8 bg-white/20 rounded flex items-center justify-center font-black"
+  }, "X"), /*#__PURE__*/React.createElement("h1", {
+    className: "font-bold text-sm tracking-tight uppercase"
+  }, "Excel Masterclass: Logic & Analysis")), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono opacity-80"
+  }, "MODULE_02 | SLIDE ", slide + 1, " / ", slides.length)), /*#__PURE__*/React.createElement("main", {
+    className: "flex-1 flex p-12 gap-12 items-center overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2/5 space-y-6"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-5xl font-black text-gray-800 leading-tight"
+  }, slides[slide].title), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 w-16 excel-green"
+  }), /*#__PURE__*/React.createElement("p", {
+    className: "text-lg text-gray-600 leading-relaxed font-light"
+  }, slides[slide].desc), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-4 pt-8"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSlide(s => Math.max(0, s - 1)),
+    className: "px-8 py-2 border border-gray-400 font-bold text-xs rounded hover:bg-white transition-colors"
+  }, "BACK"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSlide(s => Math.min(slides.length - 1, s + 1)),
+    className: "px-8 py-2 excel-green text-white font-bold text-xs rounded shadow-lg hover:bg-[#0c5d31] transition-all"
+  }, "NEXT TOPIC"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 h-[550px] shadow-2xl rounded-xl border border-gray-300 overflow-hidden bg-white relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#107c41] text-white px-3 py-1 text-[10px] flex justify-between items-center opacity-90"
+  }, /*#__PURE__*/React.createElement("span", null, "Analysis_Toolkit.xlsx"), /*#__PURE__*/React.createElement("span", null, "— ❐ ✕")), slides[slide].viz)));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-        return (
-            <div className="h-full bg-gray-50 flex p-6 gap-6 relative overflow-hidden">
-                <div className="cursor-arrow" style={{ top: cursor.top, left: cursor.left, transform: `rotate(-45deg) scale(${clicking ? 0.8 : 1})` }}></div>
-
-                {/* SLICER COMPONENT */}
-                <div className="w-48 bg-white border border-gray-300 shadow-md flex flex-col">
-                    <div className="bg-sky-700 text-white p-2 text-xs font-bold flex justify-between items-center">
-                        <span>Region</span>
-                        <div className="opacity-50 text-[10px]">▼ ⚡</div>
-                    </div>
-                    <div className="p-2 space-y-1 flex-1 bg-sky-50">
-                        <button className={`w-full text-left text-xs p-2 border ${filter === 'North' ? 'bg-sky-200 border-sky-500 font-bold' : 'bg-white hover:bg-sky-100 border-sky-200'}`}>North</button>
-                        <button className={`w-full text-left text-xs p-2 border ${filter === 'South' ? 'bg-sky-200 border-sky-500 font-bold' : 'bg-white hover:bg-sky-100 border-sky-200'}`}>South</button>
-                        <div className="mt-4 text-[10px] text-gray-400 text-center italic">← This is a "Slicer"</div>
-                    </div>
-                </div>
-
-                {/* CHART COMPONENT */}
-                <div className="flex-1 bg-white border border-gray-300 shadow-sm p-4 flex flex-col">
-                    <div className="font-bold text-gray-700 mb-4 flex justify-between">
-                        <span>Sales by Quarter</span>
-                        <span className="text-xs font-normal text-gray-500 bg-gray-100 px-2 py-1 rounded">Filter: {filter}</span>
-                    </div>
-                    
-                    <div className="flex-1 flex items-end justify-around border-b border-l border-gray-300 pb-2 pl-2 relative">
-                        {/* Grid Lines */}
-                        <div className="absolute top-[20%] w-full border-t border-gray-100 border-dashed"></div>
-                        <div className="absolute top-[50%] w-full border-t border-gray-100 border-dashed"></div>
-                        
-                        {/* Bars */}
-                        {currentData.map((val, i) => (
-                            <div key={i} className="w-16 flex flex-col justify-end group relative">
-                                <div className="text-center text-xs font-bold mb-1 opacity-0 group-hover:opacity-100 transition-opacity">{val}</div>
-                                <div className="bg-[#107c41] chart-bar hover:brightness-110 shadow-sm" style={{ height: `${val}%` }}></div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-around pt-2 text-xs font-bold text-gray-500">
-                        <span>Q1</span><span>Q2</span><span>Q3</span>
-                    </div>
-                    <div className="mt-4 text-xs text-center text-gray-400 italic">This is a "Pivot Chart" linked to the Slicer</div>
-                </div>
-            </div>
-        );
-    };
-
-    // --- LAB 1: DATA TYPES & ALIGNMENT ---
-    const DataTypesLab = () => {
-        const data = [
-            { type: 'Number', val: '1250', align: 'right', desc: 'Numbers align RIGHT. This allows decimal points to line up.' },
-            { type: 'Text', val: 'Project A', align: 'left', desc: 'Text aligns LEFT. This is the default for names/strings.' },
-            { type: 'Boolean', val: 'TRUE', align: 'center', desc: 'Logicals (TRUE/FALSE) align CENTER.' },
-            { type: 'Error', val: '#VALUE!', align: 'center', desc: 'Errors align CENTER. They indicate formula breaks.' },
-            { type: 'Date', val: '45300', display: '10-Jan', align: 'right', desc: 'Dates are stored as Numbers, so they align RIGHT.' }
-        ];
-        const [hovered, setHovered] = useState(null);
-
-        return (
-            <div className="h-full bg-white flex flex-col p-6">
-                <div className="mb-4 text-sm text-gray-600 bg-emerald-50 p-3 border-l-4 border-emerald-500">
-                    <strong>Visual Cue:</strong> You can spot "Text stored as Numbers" errors instantly—if a number is on the left, Excel thinks it is text!
-                </div>
-                <div className="border border-gray-300">
-                    <table className="w-full">
-                        <thead>
-                            <tr>
-                                <th className="grid-header w-12"></th>
-                                <th className="grid-header w-32">A (Data)</th>
-                                <th className="grid-header">B (Type Definition)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((row, i) => (
-                                <tr key={i} onMouseEnter={() => setHovered(i)} className="hover:bg-gray-50">
-                                    <td className="grid-header">{i+1}</td>
-                                    <td className="grid-cell" style={{ textAlign: row.align }}>
-                                        {row.display || row.val}
-                                    </td>
-                                    <td className="grid-cell text-gray-500 text-xs italic">
-                                        {hovered === i ? row.desc : row.type}
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
-    };
-
-    // --- LAB 2: LOGICAL OPERATORS ---
-    const LogicGateLab = () => {
-        const [a, setA] = useState(true);
-        const [b, setB] = useState(false);
-
-        return (
-            <div className="h-full bg-white flex flex-col items-center justify-center p-8 space-y-8">
-                <div className="flex gap-8">
-                    <button onClick={() => setA(!a)} className={`px-6 py-3 rounded font-bold shadow-md transition-all ${a ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                        INPUT A: {a ? 'TRUE' : 'FALSE'}
-                    </button>
-                    <button onClick={() => setB(!b)} className={`px-6 py-3 rounded font-bold shadow-md transition-all ${b ? 'bg-emerald-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
-                        INPUT B: {b ? 'TRUE' : 'FALSE'}
-                    </button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4 w-full max-w-2xl">
-                    <div className="border p-4 rounded text-center">
-                        <div className="font-bold text-sm mb-2 text-gray-500">AND(A, B)</div>
-                        <div className={`text-2xl font-bold ${a && b ? 'text-emerald-600' : 'text-red-500'}`}>
-                            {a && b ? 'TRUE' : 'FALSE'}
-                        </div>
-                        <div className="text-xs mt-2 text-gray-400">Both must be TRUE</div>
-                    </div>
-                    <div className="border p-4 rounded text-center">
-                        <div className="font-bold text-sm mb-2 text-gray-500">OR(A, B)</div>
-                        <div className={`text-2xl font-bold ${a || b ? 'text-emerald-600' : 'text-red-500'}`}>
-                            {a || b ? 'TRUE' : 'FALSE'}
-                        </div>
-                        <div className="text-xs mt-2 text-gray-400">At least one TRUE</div>
-                    </div>
-                    <div className="border p-4 rounded text-center">
-                        <div className="font-bold text-sm mb-2 text-gray-500">NOT(A)</div>
-                        <div className={`text-2xl font-bold ${!a ? 'text-emerald-600' : 'text-red-500'}`}>
-                            {!a ? 'TRUE' : 'FALSE'}
-                        </div>
-                        <div className="text-xs mt-2 text-gray-400">Inverses Input A</div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // --- LAB 3: CONDITIONAL LOGIC (IF/SUMIF) ---
-    const ConditionalLab = () => {
-        const [threshold, setThreshold] = useState(50);
-        const data = [10, 76, 23, 98, 44, 100]; // Sheet 1 data
-
-        const sumIf = data.filter(x => x > threshold).reduce((a,b) => a+b, 0);
-        const countIf = data.filter(x => x > threshold).length;
-
-        return (
-            <div className="h-full bg-white flex flex-col p-4">
-                <div className="bg-emerald-50 border border-emerald-200 p-4 mb-4 rounded">
-                    <div className="text-sm font-bold text-emerald-800 mb-2">Rule Builder</div>
-                    <div className="flex items-center gap-2 text-sm">
-                        <span>Calculate ONLY if Sales {'>'}</span>
-                        <input type="number" value={threshold} onChange={(e) => setThreshold(Number(e.target.value))} className="border p-1 w-16 text-center font-bold" />
-                    </div>
-                </div>
-
-                <div className="flex gap-4 h-full">
-                    <div className="w-1/3 border bg-white overflow-hidden">
-                        <div className="grid-header">Sales Data</div>
-                        {data.map((val, i) => (
-                            <div key={i} className={`grid-cell text-right ${val > threshold ? 'bg-emerald-100 font-bold text-emerald-800' : 'text-gray-400'}`}>
-                                {val}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex-1 space-y-4">
-                        <div className="p-4 border rounded shadow-sm">
-                            <div className="font-mono text-xs text-gray-500 mb-1">=SUMIF(Range, ">{threshold}")</div>
-                            <div className="text-3xl font-bold text-gray-800">{sumIf}</div>
-                            <div className="text-xs text-gray-400">Total volume of qualified sales</div>
-                        </div>
-                        <div className="p-4 border rounded shadow-sm">
-                            <div className="font-mono text-xs text-gray-500 mb-1">=COUNTIF(Range, ">{threshold}")</div>
-                            <div className="text-3xl font-bold text-gray-800">{countIf}</div>
-                            <div className="text-xs text-gray-400">Number of qualified transactions</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // --- LAB 4: VLOOKUP SIMULATION ---
-    const VLookupSim = () => {
-        const [step, setStep] = useState(0); // 0:Idle, 1:Scan Down, 2:Found, 3:Move Right
-        const searchId = 103;
-        const db = [
-            { id: 101, name: "Widget A", price: 25 },
-            { id: 102, name: "Widget B", price: 40 },
-            { id: 103, name: "Widget C", price: 15 }, // Target
-            { id: 104, name: "Widget D", price: 90 }
-        ];
-
-        const play = async () => {
-            setStep(0);
-            await new Promise(r => setTimeout(r, 500));
-            setStep(1); // Scanning
-            await new Promise(r => setTimeout(r, 1500)); 
-            setStep(2); // Found
-            await new Promise(r => setTimeout(r, 1000));
-            setStep(3); // Result
-        };
-
-        return (
-            <div className="h-full bg-white flex flex-col p-4 relative">
-                <div className="formula-bar mb-4 p-2 border bg-gray-50 font-mono text-sm">
-                    =VLOOKUP(<span className="font-bold text-red-600">{searchId}</span>, A2:C5, <span className="font-bold text-blue-600">3</span>, FALSE)
-                </div>
-
-                <div className="flex-1 border relative">
-                    {/* Scanner Animation */}
-                    <div className="scanner-beam" style={{
-                        top: step === 1 ? '0%' : step >= 2 ? '50%' : '0%',
-                        left: '0', width: step >= 3 ? '100%' : '33%', 
-                        height: step === 1 ? '100%' : '25%',
-                        opacity: step === 0 ? 0 : 1
-                    }}></div>
-
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr><th className="grid-header">A (ID)</th><th className="grid-header">B (Name)</th><th className="grid-header">C (Price)</th></tr>
-                        </thead>
-                        <tbody>
-                            {db.map((row, i) => (
-                                <tr key={row.id}>
-                                    <td className="grid-cell">{row.id}</td>
-                                    <td className="grid-cell">{row.name}</td>
-                                    <td className={`grid-cell ${step === 3 && row.id === searchId ? 'bg-emerald-200 font-bold' : ''}`}>{row.price}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    
-                    {/* Visual Arrows */}
-                    {step === 3 && (
-                        <div className="absolute top-[58%] left-[15%] w-[60%] border-t-2 border-dashed border-emerald-600 h-1">
-                            <div className="absolute right-0 -top-1.5 text-emerald-600">▶</div>
-                        </div>
-                    )}
-                </div>
-
-                <button onClick={play} className="mt-4 bg-[#107c41] text-white px-4 py-2 rounded self-center shadow-lg font-bold text-sm">
-                    VISUALIZE LOOKUP
-                </button>
-            </div>
-        );
-    };
-
-    // --- LAB 5: PIVOT TABLE SIMULATOR ---
-    const PivotLab = () => {
-        const [config, setConfig] = useState({ rows: false, values: false });
-        
-        // Mock Aggregation
-        const result = config.rows && config.values ? (
-            <table className="w-full text-sm">
-                <thead><tr><th className="border p-1 bg-gray-100">Row Labels</th><th className="border p-1 bg-gray-100">Sum of Sales</th></tr></thead>
-                <tbody>
-                    <tr><td className="border p-1">Jan-01</td><td className="border p-1 text-right">10</td></tr>
-                    <tr><td className="border p-1">Jan-02</td><td className="border p-1 text-right">2</td></tr>
-                    <tr><td className="border p-1 font-bold">Grand Total</td><td className="border p-1 font-bold text-right">12</td></tr>
-                </tbody>
-            </table>
-        ) : <div className="text-gray-400 text-xs text-center mt-4">Drag fields to generate report...</div>;
-
-        return (
-            <div className="h-full bg-white flex p-4 gap-4">
-                {/* Field List */}
-                <div className="w-1/4 border-r pr-4 flex flex-col gap-2">
-                    <div className="font-bold text-xs uppercase text-gray-500 mb-2">PivotTable Fields</div>
-                    <div className="pivot-field" onClick={() => setConfig({...config, rows: !config.rows})}>
-                        {config.rows ? '☑' : '☐'} Date
-                    </div>
-                    <div className="pivot-field" onClick={() => setConfig({...config, values: !config.values})}>
-                        {config.values ? '☑' : '☐'} Sales
-                    </div>
-                </div>
-
-                {/* Drop Zones */}
-                <div className="w-1/4 flex flex-col gap-4">
-                    <div className="flex-1 pivot-area">
-                        <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Rows</div>
-                        {config.rows && <div className="bg-white border px-2 py-1 text-xs shadow-sm">Date</div>}
-                    </div>
-                    <div className="flex-1 pivot-area">
-                        <div className="text-[10px] text-gray-500 uppercase font-bold mb-1">Values</div>
-                        {config.values && <div className="bg-white border px-2 py-1 text-xs shadow-sm">Sum of Sales</div>}
-                    </div>
-                </div>
-
-                {/* Result Area */}
-                <div className="flex-1 border p-4 shadow-inner bg-gray-50">
-                    <div className="font-bold text-emerald-800 mb-2 text-sm">PivotTable Report</div>
-                    <div className="bg-white border shadow-sm p-2 min-h-[100px]">
-                        {result}
-                    </div>
-                    <div className="mt-4 text-xs text-gray-500">
-                        <strong>Bivariate Analysis:</strong> A Pivot Table rearranges "Flat Data" into a matrix (Rows x Columns) to compare two or more variables.
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    // --- MAIN APP ---
-    const App = () => {
-        const [slide, setSlide] = useState(0);
-
-        const slides = [
-            { title: "Module 2: Logic & Analysis", desc: "Moving beyond data entry. We will explore how to make Excel 'think' using Logic, how to summarize data with Pivot Tables, and how to connect datasets with Lookups.", viz: <div className="h-full flex items-center justify-center bg-[#107c41] text-white text-9xl font-black">2.0</div> },
-            { title: "Data Types & Alignment", desc: "Excel is strict about data types. Numbers align Right. Text aligns Left. Errors align Center. Recognizing this visual alignment is the fastest way to debug spreadsheet errors.", viz: <DataTypesLab /> },
-            { title: "Logical Operators", desc: "The foundation of decision making. AND requires ALL to be true. OR requires ANY to be true. NOT reverses the truth. These are used inside IF functions.", viz: <LogicGateLab /> },
-            { title: "The IF Function", desc: "The syntax is =IF(Test, Value_If_True, Value_If_False). It creates a branching path. Example: IF(Sales > 50, 'Bonus', 'No Bonus').", viz: <div className="h-full flex items-center justify-center bg-gray-50"><div className="p-6 border-2 border-emerald-500 rounded-lg text-center bg-white"><div className="text-xl font-bold mb-4">Is Sales > 50?</div><div className="flex justify-between gap-12"><div className="text-emerald-600 font-bold">YES ➔ "Bonus"</div><div className="text-red-500 font-bold">NO ➔ "Standard"</div></div></div></div> },
-            { title: "Conditional Aggregates", desc: "SUMIF and COUNTIF allow you to calculate only specific data points. Instead of summing everything, you can sum only the days where Sales > 50.", viz: <ConditionalLab /> },
-            { title: "Intro to Pivot Tables", desc: "A Pivot Table is a 'Data Summarization Engine'. It takes thousands of rows of raw data and groups them instantly. It transforms Flat Data into Reports.", viz: <div className="h-full flex items-center justify-center"><div className="text-center space-y-4"><div className="p-4 border bg-white shadow-sm">Raw Data (1000 Rows)</div><div className="text-2xl">⬇️</div><div className="p-4 border bg-emerald-100 border-emerald-500 font-bold shadow-lg">Summary Report (5 Rows)</div></div></div> },
-            { title: "Pivot Table Simulator", desc: "Drag fields into 'Rows' to group data. Drag numbers into 'Values' to calculate them. This enables 'Bivariate Analysis' (analyzing two variables, like Date vs Sales).", viz: <PivotLab /> },
-            { title: "Pivot Charts & Slicers", desc: "A Slicer is a interactive button that filters a Pivot Table. A Pivot Chart is a visual that updates automatically when you slice data. Watch the animation to see the connection.", viz: <PivotSlicerSim /> },
-            { title: "VLOOKUP (Vertical Lookup)", desc: "VLOOKUP searches for a value in the FIRST column of a range, finds a match, and then moves RIGHT to retrieve data. It's like scanning a phone book.", viz: <VLookupSim /> },
-            { title: "HLOOKUP (Horizontal Lookup)", desc: "HLOOKUP works exactly like VLOOKUP, but sideways. It searches the TOP row and moves DOWN. Rarely used today, but good to know for legacy files.", viz: <div className="h-full flex items-center justify-center font-bold text-gray-400">Same logic, just rotated 90 degrees.</div> },
-            { title: "XLOOKUP (The Modern Era)", desc: "XLOOKUP replaces both. It doesn't need the search column to be first. You select a 'Lookup Array' and a 'Return Array' separately. It is faster, safer, and handles errors gracefully.", viz: <div className="h-full p-8 flex flex-col justify-center space-y-4"><div className="flex items-center gap-4"><div className="w-32 p-2 bg-blue-100 border border-blue-500 text-center text-xs">Lookup Array</div><div className="text-2xl">➔</div><div className="w-32 p-2 bg-emerald-100 border border-emerald-500 text-center text-xs">Return Array</div></div><div className="text-sm text-gray-500 italic">No counting columns. No 'Left-to-Right' restriction.</div></div> },
-            { title: "Module 2 Summary", desc: "You now understand how to Control data (Types), Decide with data (IF), Summarize data (Pivots), and Connect data (Lookups).", viz: <div className="h-full bg-gray-900 text-white flex flex-col justify-center items-center"><ul className="space-y-4 text-xl font-bold"><li>✓ Logic Gates</li><li>✓ Pivot Modeling</li><li>✓ Lookup Engines</li></ul></div> }
-        ];
-
-        return (
-            <div className="w-screen h-screen flex flex-col bg-[#f3f2f1]">
-                <header className="bg-[#107c41] text-white p-4 flex justify-between shadow-md z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-white/20 rounded flex items-center justify-center font-black">X</div>
-                        <h1 className="font-bold text-sm tracking-tight uppercase">Excel Masterclass: Logic & Analysis</h1>
-                    </div>
-                    <div className="text-[10px] font-mono opacity-80">MODULE_02 | SLIDE {slide + 1} / {slides.length}</div>
-                </header>
-
-                <main className="flex-1 flex p-12 gap-12 items-center overflow-hidden">
-                    <div className="w-2/5 space-y-6">
-                        <h2 className="text-5xl font-black text-gray-800 leading-tight">{slides[slide].title}</h2>
-                        <div className="h-2 w-16 excel-green"></div>
-                        <p className="text-lg text-gray-600 leading-relaxed font-light">{slides[slide].desc}</p>
-                        <div className="flex gap-4 pt-8">
-                            <button onClick={() => setSlide(s => Math.max(0, s-1))} className="px-8 py-2 border border-gray-400 font-bold text-xs rounded hover:bg-white transition-colors">BACK</button>
-                            <button onClick={() => setSlide(s => Math.min(slides.length-1, s+1))} className="px-8 py-2 excel-green text-white font-bold text-xs rounded shadow-lg hover:bg-[#0c5d31] transition-all">NEXT TOPIC</button>
-                        </div>
-                    </div>
-                    
-                    <div className="flex-1 h-[550px] shadow-2xl rounded-xl border border-gray-300 overflow-hidden bg-white relative">
-                        <div className="bg-[#107c41] text-white px-3 py-1 text-[10px] flex justify-between items-center opacity-90">
-                            <span>Analysis_Toolkit.xlsx</span>
-                            <span>— ❐ ✕</span>
-                        </div>
-                        {slides[slide].viz}
-                    </div>
-                </main>
-            </div>
-        );
-    };
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-</script>
-</body>
-</html>
+</body></html>

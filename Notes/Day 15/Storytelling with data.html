@@ -1,15 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Data Visualization & Storytelling Masterclass</title>
+    <title>Data Visualization &amp; Storytelling Masterclass</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -79,469 +76,742 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>const {
+  useState,
+  useEffect
+} = React;
 
-        // --- 1. THE VENN DIAGRAM (NEW) ---
-        const VennDiagramViz = () => {
-            return (
-                <div className="flex flex-col h-full items-center justify-center relative">
-                    <div className="relative w-80 h-80 flex items-center justify-center">
-                        {/* Data Circle */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-48 h-48 rounded-full mix-blend-screen bg-blue-600/40 border-2 border-blue-400 flex flex-col items-center pt-8 animate-scale-in" style={{animationDelay: '0.2s'}}>
-                            <span className="font-bold text-blue-300 text-lg">Data</span>
-                            <span className="text-[10px] text-blue-200/70 text-center px-4">The raw evidence & facts</span>
-                        </div>
-                        
-                        {/* Visuals Circle */}
-                        <div className="absolute bottom-4 left-4 w-48 h-48 rounded-full mix-blend-screen bg-emerald-600/40 border-2 border-emerald-400 flex flex-col items-start justify-center pl-6 animate-scale-in" style={{animationDelay: '0.6s'}}>
-                            <span className="font-bold text-emerald-300 text-lg">Visuals</span>
-                            <span className="text-[10px] text-emerald-200/70 w-24">Patterns our brains can parse</span>
-                        </div>
+// --- 1. THE VENN DIAGRAM (NEW) ---
+const VennDiagramViz = () => {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full items-center justify-center relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-80 h-80 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 left-1/2 -translate-x-1/2 -translate-y-4 w-48 h-48 rounded-full mix-blend-screen bg-blue-600/40 border-2 border-blue-400 flex flex-col items-center pt-8 animate-scale-in",
+    style: {
+      animationDelay: '0.2s'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-blue-300 text-lg"
+  }, "Data"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-blue-200/70 text-center px-4"
+  }, "The raw evidence & facts")), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-4 left-4 w-48 h-48 rounded-full mix-blend-screen bg-emerald-600/40 border-2 border-emerald-400 flex flex-col items-start justify-center pl-6 animate-scale-in",
+    style: {
+      animationDelay: '0.6s'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-emerald-300 text-lg"
+  }, "Visuals"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-emerald-200/70 w-24"
+  }, "Patterns our brains can parse")), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-4 right-4 w-48 h-48 rounded-full mix-blend-screen bg-purple-600/40 border-2 border-purple-400 flex flex-col items-end justify-center pr-6 animate-scale-in",
+    style: {
+      animationDelay: '1s'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-purple-300 text-lg"
+  }, "Narrative"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] text-purple-200/70 text-right w-24"
+  }, "Context & emotional hook")), /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 z-10 flex flex-col items-center animate-scale-in pulse-glow rounded-full p-2",
+    style: {
+      animationDelay: '1.8s'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-black text-amber-400 text-xl tracking-widest drop-shadow-lg text-center"
+  }, "ACTION"), /*#__PURE__*/React.createElement("span", {
+    className: "text-[10px] font-bold text-white uppercase tracking-widest"
+  }, "Insight"))));
+};
 
-                        {/* Narrative Circle */}
-                        <div className="absolute bottom-4 right-4 w-48 h-48 rounded-full mix-blend-screen bg-purple-600/40 border-2 border-purple-400 flex flex-col items-end justify-center pr-6 animate-scale-in" style={{animationDelay: '1s'}}>
-                            <span className="font-bold text-purple-300 text-lg">Narrative</span>
-                            <span className="text-[10px] text-purple-200/70 text-right w-24">Context & emotional hook</span>
-                        </div>
+// --- 2. PRE-ATTENTIVE ATTRIBUTES (AUTO-PLAYING) ---
+const PreAttentiveViz = () => {
+  const [highlight, setHighlight] = useState('none');
+  useEffect(() => {
+    const states = ['none', 'color', 'size', 'orientation'];
+    let currentIndex = 0;
+    const timer = setInterval(() => {
+      currentIndex = (currentIndex + 1) % states.length;
+      setHighlight(states[currentIndex]);
+    }, 2500); // Switches every 2.5 seconds
 
-                        {/* Center Intersection */}
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-2 z-10 flex flex-col items-center animate-scale-in pulse-glow rounded-full p-2" style={{animationDelay: '1.8s'}}>
-                            <span className="font-black text-amber-400 text-xl tracking-widest drop-shadow-lg text-center">ACTION</span>
-                            <span className="text-[10px] font-bold text-white uppercase tracking-widest">Insight</span>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
+    return () => clearInterval(timer);
+  }, []);
+  const dots = Array.from({
+    length: 60
+  }).map((_, i) => ({
+    id: i
+  }));
+  const targetIndex = 34;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full gap-6 items-center justify-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center h-16 flex items-center justify-center animate-fade-in"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-indigo-400 uppercase tracking-widest"
+  }, "Highlight: ", highlight)), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/80 border border-slate-700 p-8 rounded-xl w-full max-w-lg grid grid-cols-10 gap-4 place-items-center shadow-2xl relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/10 to-transparent h-[200%] animate-[scan_4s_linear_infinite] opacity-50 pointer-events-none"
+  }), dots.map((dot, i) => {
+    const isTarget = i === targetIndex;
+    let color = '#334155';
+    let size = 'w-3 h-3';
+    let shape = 'rounded-full';
+    let rotation = 'rotate-0';
+    if (isTarget) {
+      if (highlight === 'color') color = '#ef4444';
+      if (highlight === 'size') {
+        color = '#334155';
+        size = 'w-7 h-7';
+      }
+      if (highlight === 'orientation') {
+        shape = 'rounded-sm';
+        rotation = 'rotate-45';
+        color = '#334155';
+      }
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      key: dot.id,
+      className: `${size} ${shape} ${rotation} transition-all duration-500 ease-out`,
+      style: {
+        backgroundColor: color
+      }
+    });
+  })));
+};
 
-        // --- 2. PRE-ATTENTIVE ATTRIBUTES (AUTO-PLAYING) ---
-        const PreAttentiveViz = () => {
-            const [highlight, setHighlight] = useState('none');
-            
-            useEffect(() => {
-                const states = ['none', 'color', 'size', 'orientation'];
-                let currentIndex = 0;
-                
-                const timer = setInterval(() => {
-                    currentIndex = (currentIndex + 1) % states.length;
-                    setHighlight(states[currentIndex]);
-                }, 2500); // Switches every 2.5 seconds
-                
-                return () => clearInterval(timer);
-            }, []);
+// --- 3. DATA TYPES (SIDE-BY-SIDE AUTO) ---
+const DataTypesViz = () => {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex h-full gap-6 items-center justify-center p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-slate-900/60 rounded-xl border border-slate-700 p-8 flex flex-col items-center text-center animate-fade-in shadow-xl h-full"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-black mb-2 text-blue-400 tracking-tight"
+  }, "DISCRETE"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mb-8 border-b border-slate-700 pb-4 w-full"
+  }, "Distinct, separate, countable buckets. You cannot have \"half\" a category."), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center items-end h-32 gap-6 w-full mt-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center gap-3 bar-rise",
+    style: {
+      animationDelay: '0.2s'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-16 h-24 bg-blue-500 rounded-t shadow-[0_0_15px_rgba(59,130,246,0.3)]"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono bg-slate-800 px-2 py-1 rounded"
+  }, "Q1")), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center gap-3 bar-rise",
+    style: {
+      animationDelay: '0.4s'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-16 h-16 bg-blue-400 rounded-t shadow-[0_0_15px_rgba(96,165,250,0.3)]"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono bg-slate-800 px-2 py-1 rounded"
+  }, "Q2")), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center gap-3 bar-rise",
+    style: {
+      animationDelay: '0.6s'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-16 h-32 bg-blue-600 rounded-t shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-mono bg-slate-800 px-2 py-1 rounded"
+  }, "Q3")))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-slate-900/60 rounded-xl border border-slate-700 p-8 flex flex-col items-center text-center animate-fade-in shadow-xl h-full",
+    style: {
+      animationDelay: '0.3s'
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-black mb-2 text-emerald-400 tracking-tight"
+  }, "CONTINUOUS"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mb-8 border-b border-slate-700 pb-4 w-full"
+  }, "Flowing, unbroken, measurable scales. Infinite possible points between values."), /*#__PURE__*/React.createElement("div", {
+    className: "relative h-32 w-full mt-auto"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 100 100",
+    className: "w-full h-full overflow-visible",
+    preserveAspectRatio: "none"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "25",
+    x2: "100",
+    y2: "25",
+    stroke: "#334155",
+    strokeWidth: "0.5",
+    strokeDasharray: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "50",
+    x2: "100",
+    y2: "50",
+    stroke: "#334155",
+    strokeWidth: "0.5",
+    strokeDasharray: "2"
+  }), /*#__PURE__*/React.createElement("line", {
+    x1: "0",
+    y1: "75",
+    x2: "100",
+    y2: "75",
+    stroke: "#334155",
+    strokeWidth: "0.5",
+    strokeDasharray: "2"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M 0 80 Q 25 10, 50 60 T 100 20",
+    fill: "none",
+    stroke: "#10b981",
+    strokeWidth: "4",
+    className: "draw-path",
+    style: {
+      animationDelay: '0.8s',
+      filter: 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.5))'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "absolute -bottom-6 left-0 right-0 flex justify-between px-2 text-[10px] text-slate-500 font-mono"
+  }, /*#__PURE__*/React.createElement("span", null, "Jan 1"), /*#__PURE__*/React.createElement("span", null, "Dec 31")))));
+};
 
-            const dots = Array.from({ length: 60 }).map((_, i) => ({ id: i }));
-            const targetIndex = 34; 
+// --- 4. 2x2 CHART ARSENAL (NEW LAYOUT W/ PIE) ---
+const ChartArsenal = () => {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 grid-rows-2 h-full gap-4 p-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-bold text-white mb-1"
+  }, "Comparison (Bar)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 w-full flex items-end justify-center gap-2 pt-4"
+  }, [40, 70, 50, 90, 30].map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "w-8 bg-indigo-500 rounded-t bar-rise",
+    style: {
+      height: `${h}%`,
+      animationDelay: `${i * 0.1}s`
+    }
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-bold text-white mb-1"
+  }, "Trend (Line)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 w-full relative pt-4"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 100 50",
+    className: "w-full h-full overflow-visible",
+    preserveAspectRatio: "none"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M 0 40 L 25 35 L 50 45 L 75 15 L 100 10",
+    fill: "none",
+    stroke: "#f43f5e",
+    strokeWidth: "2",
+    className: "draw-path",
+    style: {
+      animationDelay: '0.5s'
+    }
+  }), [{
+    x: 0,
+    y: 40
+  }, {
+    x: 25,
+    y: 35
+  }, {
+    x: 50,
+    y: 45
+  }, {
+    x: 75,
+    y: 15
+  }, {
+    x: 100,
+    y: 10
+  }].map((p, i) => /*#__PURE__*/React.createElement("circle", {
+    key: i,
+    cx: p.x,
+    cy: p.y,
+    r: "2",
+    fill: "#020617",
+    stroke: "#f43f5e",
+    strokeWidth: "1",
+    className: "pop-in",
+    style: {
+      animationDelay: `${0.5 + i * 0.2}s`
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-bold text-white mb-1"
+  }, "Correlation (Scatter)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 w-full relative pt-4"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 100 50",
+    className: "w-full h-full overflow-visible",
+    preserveAspectRatio: "none"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "10",
+    y1: "45",
+    x2: "90",
+    y2: "10",
+    stroke: "#334155",
+    strokeWidth: "0.5",
+    strokeDasharray: "2",
+    className: "animate-fade-in",
+    style: {
+      animationDelay: '1s'
+    }
+  }), Array.from({
+    length: 20
+  }).map((_, i) => {
+    const x = 15 + i * 4 + (Math.random() * 8 - 4);
+    const y = 45 - i * 1.8 + (Math.random() * 10 - 5);
+    return /*#__PURE__*/React.createElement("circle", {
+      key: i,
+      cx: x,
+      cy: y,
+      r: "1.5",
+      fill: "#10b981",
+      opacity: "0.7",
+      className: "pop-in",
+      style: {
+        animationDelay: `${1 + i * 0.05}s`
+      }
+    });
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col"
+  }, /*#__PURE__*/React.createElement("h4", {
+    className: "text-sm font-bold text-white mb-1"
+  }, "Part-to-Whole (Pie)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 w-full flex items-center justify-center relative pt-2"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 100 100",
+    className: "w-24 h-24 transform -rotate-90 drop-shadow-lg"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "50",
+    cy: "50",
+    r: "25",
+    fill: "none",
+    stroke: "#1e293b",
+    strokeWidth: "50"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "50",
+    cy: "50",
+    r: "25",
+    fill: "none",
+    stroke: "#3b82f6",
+    strokeWidth: "50",
+    className: "pie-reveal",
+    style: {
+      '--dash': '71.1'
+    },
+    strokeDashoffset: "0"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "50",
+    cy: "50",
+    r: "25",
+    fill: "none",
+    stroke: "#8b5cf6",
+    strokeWidth: "50",
+    className: "pie-reveal",
+    style: {
+      '--dash': '55.3',
+      animationDelay: '1.5s'
+    },
+    strokeDashoffset: "-71.1"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "50",
+    cy: "50",
+    r: "25",
+    fill: "none",
+    stroke: "#f59e0b",
+    strokeWidth: "50",
+    className: "pie-reveal",
+    style: {
+      '--dash': '31.6',
+      animationDelay: '3s'
+    },
+    strokeDashoffset: "-126.4"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 animate-fade-in",
+    style: {
+      animationDelay: '4s'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-blue-500 rounded-sm"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[8px] text-slate-400"
+  }, "45%")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-purple-500 rounded-sm"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[8px] text-slate-400"
+  }, "35%")), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-amber-500 rounded-sm"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-[8px] text-slate-400"
+  }, "20%"))))));
+};
 
-            return (
-                <div className="flex flex-col h-full gap-6 items-center justify-center">
-                    <div className="text-center h-16 flex items-center justify-center animate-fade-in">
-                        <h3 className="text-2xl font-bold text-indigo-400 uppercase tracking-widest">
-                            Highlight: {highlight}
-                        </h3>
-                    </div>
+// --- 5. DECLUTTERING (AUTO-SEQUENCE) ---
+const DeclutterViz = () => {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const timer1 = setTimeout(() => setStep(1), 3000); // Clean after 3s
+    const timer2 = setTimeout(() => setStep(2), 6000); // Focus after 6s
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-12 flex items-center justify-center animate-fade-in"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold tracking-widest text-white transition-all duration-500"
+  }, step === 0 && /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400"
+  }, "1. Raw Data (High Cognitive Load)"), step === 1 && /*#__PURE__*/React.createElement("span", {
+    className: "text-yellow-400"
+  }, "2. Decluttered (Clean but generic)"), step === 2 && /*#__PURE__*/React.createElement("span", {
+    className: "text-emerald-400"
+  }, "3. Focused (Clear message)"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-white rounded-xl p-8 relative overflow-hidden flex items-end justify-center shadow-2xl transition-all duration-1000"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 200 120",
+    className: "w-full h-full overflow-visible"
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "0",
+    y: "0",
+    width: "200",
+    height: "120",
+    fill: step === 0 ? "#f1f5f9" : "none",
+    style: {
+      transition: 'fill 1s'
+    }
+  }), /*#__PURE__*/React.createElement("g", {
+    style: {
+      opacity: step < 2 ? 1 : 0,
+      transition: 'opacity 1s'
+    }
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "20",
+    y: "10",
+    width: "160",
+    height: "90",
+    fill: "none",
+    stroke: "#94a3b8",
+    strokeWidth: "2"
+  }), [20, 40, 60, 80].map(val => /*#__PURE__*/React.createElement("line", {
+    key: val,
+    x1: "20",
+    y1: val,
+    x2: "180",
+    y2: val,
+    stroke: "#cbd5e1",
+    strokeWidth: "1"
+  }))), step === 2 && /*#__PURE__*/React.createElement("line", {
+    x1: "20",
+    y1: "100",
+    x2: "180",
+    y2: "100",
+    stroke: "#94a3b8",
+    strokeWidth: "1",
+    className: "animate-fade-in"
+  }), [{
+    x: 40,
+    h: 40,
+    l: 'Q1'
+  }, {
+    x: 80,
+    h: 30,
+    l: 'Q2'
+  }, {
+    x: 120,
+    h: 55,
+    l: 'Q3'
+  }, {
+    x: 160,
+    h: 85,
+    l: 'Q4'
+  }].map((d, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: d.x - 7,
+    y: 100 - d.h - 3,
+    width: "20",
+    height: d.h,
+    fill: "#94a3b8",
+    rx: "1",
+    style: {
+      opacity: step === 0 ? 1 : 0,
+      transition: 'opacity 1s'
+    }
+  }), /*#__PURE__*/React.createElement("rect", {
+    x: d.x - 10,
+    y: 100 - d.h,
+    width: "20",
+    height: d.h,
+    fill: step === 0 ? '#3b82f6' : step === 1 ? '#6366f1' : i === 3 ? '#ef4444' : '#e2e8f0',
+    stroke: step === 0 ? '#1e3a8a' : 'none',
+    strokeWidth: "1",
+    rx: step > 0 ? "2" : "0",
+    style: {
+      transition: 'all 1s ease-in-out'
+    }
+  }), step === 2 && i === 3 && /*#__PURE__*/React.createElement("text", {
+    x: d.x,
+    y: 100 - d.h - 5,
+    fill: "#ef4444",
+    fontSize: "8",
+    fontWeight: "bold",
+    textAnchor: "middle",
+    className: "pop-in",
+    style: {
+      animationDelay: '1s'
+    }
+  }, "85%"), /*#__PURE__*/React.createElement("text", {
+    x: d.x,
+    y: "112",
+    fill: step === 0 ? '#000' : '#64748b',
+    fontSize: "7",
+    fontWeight: "bold",
+    textAnchor: "middle",
+    style: {
+      transition: 'fill 1s'
+    }
+  }, d.l))))));
+};
 
-                    <div className="bg-slate-900/80 border border-slate-700 p-8 rounded-xl w-full max-w-lg grid grid-cols-10 gap-4 place-items-center shadow-2xl relative overflow-hidden">
-                        {/* Scanning beam effect */}
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/10 to-transparent h-[200%] animate-[scan_4s_linear_infinite] opacity-50 pointer-events-none"></div>
+// --- 6. STORYTELLING / THE CLIMAX (AUTO-SEQUENCE) ---
+const StoryEngine = () => {
+  const [step, setStep] = useState(0);
+  useEffect(() => {
+    const timer = setTimeout(() => setStep(1), 4000); // Transitions to story after 4 seconds
+    return () => clearTimeout(timer);
+  }, []);
+  const data = [{
+    region: 'North',
+    val: 45
+  }, {
+    region: 'South',
+    val: 50
+  }, {
+    region: 'East',
+    val: 35
+  }, {
+    region: 'West',
+    val: 95
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-slate-900/80 rounded-xl border border-slate-700 p-8 flex flex-col relative overflow-hidden shadow-2xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-20 flex flex-col justify-end pb-4 border-b border-slate-800"
+  }, step === 0 ? /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-slate-400 text-center uppercase tracking-widest animate-fade-in"
+  }, "Sales by Region (Q4)") : /*#__PURE__*/React.createElement("div", {
+    className: "animate-fade-in text-left"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-3xl font-black text-white"
+  }, "The ", /*#__PURE__*/React.createElement("span", {
+    className: "text-amber-500"
+  }, "West Region"), " dominates our Q4 revenue."), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-400 mt-1"
+  }, "Following the new marketing push, West outperformed all other regions combined."))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 w-full mt-8"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 200 100",
+    className: "w-full h-full overflow-visible"
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: "20",
+    y1: "90",
+    x2: "180",
+    y2: "90",
+    stroke: "#475569",
+    strokeWidth: "1"
+  }), data.map((d, i) => {
+    const x = 40 + i * 40;
+    const isTarget = d.region === 'West';
+    const fill = step === 0 ? '#3b82f6' : isTarget ? '#f59e0b' : '#334155';
+    return /*#__PURE__*/React.createElement("g", {
+      key: i,
+      className: "bar-rise",
+      style: {
+        animationDelay: `${i * 0.1}s`
+      }
+    }, /*#__PURE__*/React.createElement("rect", {
+      x: x - 12,
+      y: 90 - d.val,
+      width: "24",
+      height: d.val,
+      fill: fill,
+      rx: "2",
+      style: {
+        transition: 'fill 1s ease'
+      }
+    }), /*#__PURE__*/React.createElement("text", {
+      x: x,
+      y: "100",
+      fill: step === 0 ? '#94a3b8' : isTarget ? '#fcd34d' : '#475569',
+      fontSize: "8",
+      textAnchor: "middle",
+      fontWeight: isTarget && step === 1 ? 'bold' : 'normal',
+      style: {
+        transition: 'all 1s ease'
+      }
+    }, d.region), step === 1 && isTarget && /*#__PURE__*/React.createElement("text", {
+      x: x,
+      y: 90 - d.val - 5,
+      fill: "#f59e0b",
+      fontSize: "10",
+      fontWeight: "bold",
+      textAnchor: "middle",
+      className: "pop-in",
+      style: {
+        animationDelay: '1s'
+      }
+    }, "$95M"));
+  }), step === 1 && /*#__PURE__*/React.createElement("g", {
+    className: "animate-fade-in",
+    style: {
+      animationDelay: '1.5s'
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M 120 20 Q 140 10, 155 15",
+    fill: "none",
+    stroke: "#fcd34d",
+    strokeWidth: "1",
+    strokeDasharray: "2"
+  }), /*#__PURE__*/React.createElement("polygon", {
+    points: "155,15 150,12 152,18",
+    fill: "#fcd34d"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "115",
+    y: "25",
+    fill: "#fcd34d",
+    fontSize: "6",
+    textAnchor: "end"
+  }, "Record Breaking!"))))));
+};
 
-                        {dots.map((dot, i) => {
-                            const isTarget = i === targetIndex;
-                            let color = '#334155'; 
-                            let size = 'w-3 h-3';
-                            let shape = 'rounded-full';
-                            let rotation = 'rotate-0';
+// --- MAIN APP COMPONENT ---
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [{
+    tag: "MODULE 1: INTRODUCTION",
+    title: "What is Data Storytelling?",
+    subtitle: "The Intersection of Three Disciplines",
+    text: "Data alone is just ink on a page. It rarely moves people to action.\n\nTo create real impact, you must fuse three distinct elements:\n\n1. **Data:** The foundation of truth and factual evidence.\n2. **Visuals:** The geometry that allows our brains to instantly see patterns.\n3. **Narrative:** The human context that explains *why* the data matters.\n\nWhen these three overlap, you generate an actionable insight.",
+    viz: /*#__PURE__*/React.createElement(VennDiagramViz, null)
+  }, {
+    tag: "MODULE 2: THE BRAIN",
+    title: "Pre-attentive Attributes",
+    subtitle: "Hacking Visual Perception",
+    text: "Before your audience consciously reads a title or looks at an axis, their visual cortex has already processed certain cues in milliseconds.\n\nThese are **Pre-attentive Attributes**.\n\nBy strategically isolating variables like **Color**, **Size**, and **Orientation**, you act as a director, forcing the audience's eyes exactly where you want them to go before they even realize it.",
+    viz: /*#__PURE__*/React.createElement(PreAttentiveViz, null)
+  }, {
+    tag: "MODULE 3: DATA STRUCTURES",
+    title: "Know Your Axes",
+    subtitle: "Continuous vs. Discrete Data",
+    text: "Before writing any plotting code, you must understand your data's underlying structure.\n\n**Discrete Data** is bucketed. Think of servers, employee names, or fiscal quarters. It answers 'How many?' and requires separation.\n\n**Continuous Data** is a flowing, unbroken scale. Think of time, temperature, or revenue. It answers 'How much?' and implies momentum.",
+    viz: /*#__PURE__*/React.createElement(DataTypesViz, null)
+  }, {
+    tag: "MODULE 4: GEOMETRY",
+    title: "The Chart Arsenal",
+    subtitle: "Mapping Data to Shapes",
+    text: "The biggest mistake in visualization is picking a chart because it 'looks cool'. Form must follow function.\n\n• **Bar Charts:** For comparing discrete categories.\n• **Line Charts:** For tracking continuous trends over time.\n• **Scatter Plots:** For finding correlation between variables.\n• **Pie Charts:** For simple part-to-whole relationships (use sparingly, limited to 2-3 slices!).",
+    viz: /*#__PURE__*/React.createElement(ChartArsenal, null)
+  }, {
+    tag: "MODULE 5: REFINEMENT",
+    title: "Decluttering the Noise",
+    subtitle: "Maximizing the Data-Ink Ratio",
+    text: "Coined by Edward Tufte, the 'Data-Ink Ratio' argues that every pixel on a screen should be presenting data.\n\nRemove elements that don't add analytical value:\n• Delete 3D effects\n• Remove heavy gridlines and borders\n• Push axes and non-essential labels to light gray\n\nLess visual noise means a much clearer signal.",
+    viz: /*#__PURE__*/React.createElement(DeclutterViz, null)
+  }, {
+    tag: "MODULE 6: THE CLIMAX",
+    title: "Exploratory vs. Explanatory",
+    subtitle: "Telling the Actual Story",
+    text: "When analyzing data in a notebook, you build *Exploratory* charts. They have default colors and generic titles. They help *you* find the insight.\n\nBut when presenting, you must transform them into *Explanatory* charts.\n\n**The Golden Rule:** Push all contextual data to the background (gray), use a bright pre-attentive color to highlight the insight, and rewrite the title as the core takeaway.",
+    viz: /*#__PURE__*/React.createElement(StoryEngine, null)
+  }];
 
-                            if (isTarget) {
-                                if (highlight === 'color') color = '#ef4444'; 
-                                if (highlight === 'size') { color = '#334155'; size = 'w-7 h-7'; }
-                                if (highlight === 'orientation') { shape = 'rounded-sm'; rotation = 'rotate-45'; color = '#334155'; }
-                            }
+  // Re-mount visualization on slide change to trigger animations
+  const CurrentViz = () => {
+    const SlideViz = slides[currentSlide].viz;
+    return React.cloneElement(SlideViz, {
+      key: currentSlide
+    });
+  };
+  useEffect(() => {
+    const handleKey = e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [slides.length]);
+  const Slide = slides[currentSlide];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col relative bg-slate-950 text-slate-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-1 bg-slate-900 absolute top-0 left-0 z-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gradient-to-r from-blue-600 via-purple-500 to-amber-500 transition-all duration-500 ease-out",
+    style: {
+      width: `${(currentSlide + 1) / slides.length * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 md:p-12 flex items-center justify-center max-w-[1600px] mx-auto w-full h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-12 gap-12 w-full items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-4 flex flex-col justify-center space-y-6 animate-fade-in",
+    key: `text-${currentSlide}`
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-indigo-400 mb-3 tracking-widest"
+  }, Slide.tag), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight"
+  }, Slide.title), /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl text-slate-400 font-light border-l-4 border-indigo-500 pl-4 py-1"
+  }, Slide.subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "text-base text-slate-300 leading-relaxed whitespace-pre-wrap font-light"
+  }, Slide.text)), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-8 h-[550px] lg:h-[700px] glass-panel rounded-2xl p-1 relative flex flex-col w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-10 border-b border-white/5 flex items-center px-4 gap-2 bg-slate-900/40 rounded-t-xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-red-500/80"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-yellow-500/80"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-green-500/80"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "ml-auto text-[10px] text-slate-500 font-mono opacity-60 uppercase tracking-widest"
+  }, "Instructor: Jayan Gupta")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 relative overflow-hidden p-6 md:p-8"
+  }, /*#__PURE__*/React.createElement(CurrentViz, null))))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-8 right-8 flex gap-4 text-slate-400 text-sm font-mono bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur z-50"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+    disabled: currentSlide === 0,
+    className: "hover:text-white hover:bg-white/10 px-4 py-2 rounded transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+  }, "← PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center font-bold text-white px-2"
+  }, currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+    disabled: currentSlide === slides.length - 1,
+    className: "hover:text-white hover:bg-white/10 px-4 py-2 rounded transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer"
+  }, "NEXT →")));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-                            return (
-                                <div key={dot.id} className={`${size} ${shape} ${rotation} transition-all duration-500 ease-out`} style={{ backgroundColor: color }}></div>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-        };
-
-        // --- 3. DATA TYPES (SIDE-BY-SIDE AUTO) ---
-        const DataTypesViz = () => {
-            return (
-                <div className="flex h-full gap-6 items-center justify-center p-4">
-                    {/* Discrete Panel */}
-                    <div className="flex-1 bg-slate-900/60 rounded-xl border border-slate-700 p-8 flex flex-col items-center text-center animate-fade-in shadow-xl h-full">
-                        <h3 className="text-2xl font-black mb-2 text-blue-400 tracking-tight">DISCRETE</h3>
-                        <p className="text-sm text-slate-400 mb-8 border-b border-slate-700 pb-4 w-full">Distinct, separate, countable buckets. You cannot have "half" a category.</p>
-                        
-                        <div className="flex justify-center items-end h-32 gap-6 w-full mt-auto">
-                            <div className="flex flex-col items-center gap-3 bar-rise" style={{animationDelay: '0.2s'}}>
-                                <div className="w-16 h-24 bg-blue-500 rounded-t shadow-[0_0_15px_rgba(59,130,246,0.3)]"></div>
-                                <span className="text-xs font-mono bg-slate-800 px-2 py-1 rounded">Q1</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-3 bar-rise" style={{animationDelay: '0.4s'}}>
-                                <div className="w-16 h-16 bg-blue-400 rounded-t shadow-[0_0_15px_rgba(96,165,250,0.3)]"></div>
-                                <span className="text-xs font-mono bg-slate-800 px-2 py-1 rounded">Q2</span>
-                            </div>
-                            <div className="flex flex-col items-center gap-3 bar-rise" style={{animationDelay: '0.6s'}}>
-                                <div className="w-16 h-32 bg-blue-600 rounded-t shadow-[0_0_15px_rgba(37,99,235,0.3)]"></div>
-                                <span className="text-xs font-mono bg-slate-800 px-2 py-1 rounded">Q3</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Continuous Panel */}
-                    <div className="flex-1 bg-slate-900/60 rounded-xl border border-slate-700 p-8 flex flex-col items-center text-center animate-fade-in shadow-xl h-full" style={{animationDelay: '0.3s'}}>
-                        <h3 className="text-2xl font-black mb-2 text-emerald-400 tracking-tight">CONTINUOUS</h3>
-                        <p className="text-sm text-slate-400 mb-8 border-b border-slate-700 pb-4 w-full">Flowing, unbroken, measurable scales. Infinite possible points between values.</p>
-                        
-                        <div className="relative h-32 w-full mt-auto">
-                            <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                                {/* Grid */}
-                                <line x1="0" y1="25" x2="100" y2="25" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" />
-                                <line x1="0" y1="50" x2="100" y2="50" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" />
-                                <line x1="0" y1="75" x2="100" y2="75" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" />
-                                
-                                {/* Path */}
-                                <path d="M 0 80 Q 25 10, 50 60 T 100 20" fill="none" stroke="#10b981" strokeWidth="4" className="draw-path" style={{animationDelay: '0.8s', filter: 'drop-shadow(0 0 8px rgba(16, 185, 129, 0.5))'}} />
-                            </svg>
-                            <div className="absolute -bottom-6 left-0 right-0 flex justify-between px-2 text-[10px] text-slate-500 font-mono">
-                                <span>Jan 1</span>
-                                <span>Dec 31</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- 4. 2x2 CHART ARSENAL (NEW LAYOUT W/ PIE) ---
-        const ChartArsenal = () => {
-            return (
-                <div className="grid grid-cols-2 grid-rows-2 h-full gap-4 p-2">
-                    {/* Bar Chart */}
-                    <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col">
-                        <h4 className="text-sm font-bold text-white mb-1">Comparison (Bar)</h4>
-                        <div className="flex-1 w-full flex items-end justify-center gap-2 pt-4">
-                            {[40, 70, 50, 90, 30].map((h, i) => (
-                                <div key={i} className="w-8 bg-indigo-500 rounded-t bar-rise" style={{ height: `${h}%`, animationDelay: `${i * 0.1}s` }}></div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Line Chart */}
-                    <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col">
-                        <h4 className="text-sm font-bold text-white mb-1">Trend (Line)</h4>
-                        <div className="flex-1 w-full relative pt-4">
-                            <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                                <path d="M 0 40 L 25 35 L 50 45 L 75 15 L 100 10" fill="none" stroke="#f43f5e" strokeWidth="2" className="draw-path" style={{animationDelay: '0.5s'}} />
-                                {[{x:0, y:40}, {x:25, y:35}, {x:50, y:45}, {x:75, y:15}, {x:100, y:10}].map((p, i) => (
-                                    <circle key={i} cx={p.x} cy={p.y} r="2" fill="#020617" stroke="#f43f5e" strokeWidth="1" className="pop-in" style={{animationDelay: `${0.5 + (i*0.2)}s`}} />
-                                ))}
-                            </svg>
-                        </div>
-                    </div>
-
-                    {/* Scatter Plot */}
-                    <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col">
-                        <h4 className="text-sm font-bold text-white mb-1">Correlation (Scatter)</h4>
-                        <div className="flex-1 w-full relative pt-4">
-                            <svg viewBox="0 0 100 50" className="w-full h-full overflow-visible" preserveAspectRatio="none">
-                                <line x1="10" y1="45" x2="90" y2="10" stroke="#334155" strokeWidth="0.5" strokeDasharray="2" className="animate-fade-in" style={{animationDelay: '1s'}} />
-                                {Array.from({length: 20}).map((_, i) => {
-                                    const x = 15 + (i * 4) + (Math.random() * 8 - 4);
-                                    const y = 45 - (i * 1.8) + (Math.random() * 10 - 5);
-                                    return <circle key={i} cx={x} cy={y} r="1.5" fill="#10b981" opacity="0.7" className="pop-in" style={{animationDelay: `${1 + (i*0.05)}s`}} />
-                                })}
-                            </svg>
-                        </div>
-                    </div>
-
-                    {/* Pie Chart (NEW) */}
-                    <div className="bg-slate-900/40 rounded-xl border border-slate-800 p-4 flex flex-col">
-                        <h4 className="text-sm font-bold text-white mb-1">Part-to-Whole (Pie)</h4>
-                        <div className="flex-1 w-full flex items-center justify-center relative pt-2">
-                            <svg viewBox="0 0 100 100" className="w-24 h-24 transform -rotate-90 drop-shadow-lg">
-                                {/* Base Circle (Background) */}
-                                <circle cx="50" cy="50" r="25" fill="none" stroke="#1e293b" strokeWidth="50" />
-                                {/* Slice 1: 45% (45% of 158 = 71.1) */}
-                                <circle cx="50" cy="50" r="25" fill="none" stroke="#3b82f6" strokeWidth="50" className="pie-reveal" style={{'--dash': '71.1'}} strokeDashoffset="0" />
-                                {/* Slice 2: 35% (35% of 158 = 55.3) */}
-                                <circle cx="50" cy="50" r="25" fill="none" stroke="#8b5cf6" strokeWidth="50" className="pie-reveal" style={{'--dash': '55.3', animationDelay: '1.5s'}} strokeDashoffset="-71.1" />
-                                {/* Slice 3: 20% (Remaining) */}
-                                <circle cx="50" cy="50" r="25" fill="none" stroke="#f59e0b" strokeWidth="50" className="pie-reveal" style={{'--dash': '31.6', animationDelay: '3s'}} strokeDashoffset="-126.4" />
-                            </svg>
-                            <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-2 animate-fade-in" style={{animationDelay: '4s'}}>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 bg-blue-500 rounded-sm"></div><span className="text-[8px] text-slate-400">45%</span></div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 bg-purple-500 rounded-sm"></div><span className="text-[8px] text-slate-400">35%</span></div>
-                                <div className="flex items-center gap-1"><div className="w-2 h-2 bg-amber-500 rounded-sm"></div><span className="text-[8px] text-slate-400">20%</span></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- 5. DECLUTTERING (AUTO-SEQUENCE) ---
-        const DeclutterViz = () => {
-            const [step, setStep] = useState(0);
-
-            useEffect(() => {
-                const timer1 = setTimeout(() => setStep(1), 3000); // Clean after 3s
-                const timer2 = setTimeout(() => setStep(2), 6000); // Focus after 6s
-                return () => { clearTimeout(timer1); clearTimeout(timer2); };
-            }, []);
-
-            return (
-                <div className="flex flex-col h-full gap-6">
-                    <div className="h-12 flex items-center justify-center animate-fade-in">
-                        <h3 className="text-xl font-bold tracking-widest text-white transition-all duration-500">
-                            {step === 0 && <span className="text-red-400">1. Raw Data (High Cognitive Load)</span>}
-                            {step === 1 && <span className="text-yellow-400">2. Decluttered (Clean but generic)</span>}
-                            {step === 2 && <span className="text-emerald-400">3. Focused (Clear message)</span>}
-                        </h3>
-                    </div>
-
-                    <div className="flex-1 bg-white rounded-xl p-8 relative overflow-hidden flex items-end justify-center shadow-2xl transition-all duration-1000">
-                        <svg viewBox="0 0 200 120" className="w-full h-full overflow-visible">
-                            {/* Background noise (Step 0) */}
-                            <rect x="0" y="0" width="200" height="120" fill={step === 0 ? "#f1f5f9" : "none"} style={{transition: 'fill 1s'}} />
-                            
-                            {/* Grid & Borders (Step 0 & 1) */}
-                            <g style={{ opacity: step < 2 ? 1 : 0, transition: 'opacity 1s' }}>
-                                <rect x="20" y="10" width="160" height="90" fill="none" stroke="#94a3b8" strokeWidth="2" />
-                                {[20, 40, 60, 80].map(val => (
-                                    <line key={val} x1="20" y1={val} x2="180" y2={val} stroke="#cbd5e1" strokeWidth="1" />
-                                ))}
-                            </g>
-
-                            {/* Baseline step 2 */}
-                            {step === 2 && <line x1="20" y1="100" x2="180" y2="100" stroke="#94a3b8" strokeWidth="1" className="animate-fade-in" />}
-
-                            {/* Data Bars */}
-                            {[ { x: 40, h: 40, l: 'Q1' }, { x: 80, h: 30, l: 'Q2' }, { x: 120, h: 55, l: 'Q3' }, { x: 160, h: 85, l: 'Q4' }
-                            ].map((d, i) => (
-                                <g key={i}>
-                                    {/* 3D Shadow (Step 0) */}
-                                    <rect x={d.x - 7} y={100 - d.h - 3} width="20" height={d.h} fill="#94a3b8" rx="1" style={{ opacity: step === 0 ? 1 : 0, transition: 'opacity 1s' }} />
-                                    
-                                    <rect 
-                                        x={d.x - 10} y={100 - d.h} width="20" height={d.h} 
-                                        fill={step === 0 ? '#3b82f6' : (step === 1 ? '#6366f1' : (i === 3 ? '#ef4444' : '#e2e8f0'))} 
-                                        stroke={step === 0 ? '#1e3a8a' : 'none'} strokeWidth="1" rx={step > 0 ? "2" : "0"}
-                                        style={{ transition: 'all 1s ease-in-out' }}
-                                    />
-                                    
-                                    {/* Insight Label */}
-                                    {step === 2 && i === 3 && (
-                                        <text x={d.x} y={100 - d.h - 5} fill="#ef4444" fontSize="8" fontWeight="bold" textAnchor="middle" className="pop-in" style={{animationDelay: '1s'}}>85%</text>
-                                    )}
-
-                                    <text x={d.x} y="112" fill={step === 0 ? '#000' : '#64748b'} fontSize="7" fontWeight="bold" textAnchor="middle" style={{transition: 'fill 1s'}}>{d.l}</text>
-                                </g>
-                            ))}
-                        </svg>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- 6. STORYTELLING / THE CLIMAX (AUTO-SEQUENCE) ---
-        const StoryEngine = () => {
-            const [step, setStep] = useState(0);
-
-            useEffect(() => {
-                const timer = setTimeout(() => setStep(1), 4000); // Transitions to story after 4 seconds
-                return () => clearTimeout(timer);
-            }, []);
-
-            const data = [
-                { region: 'North', val: 45 }, { region: 'South', val: 50 }, 
-                { region: 'East', val: 35 }, { region: 'West', val: 95 }
-            ];
-
-            return (
-                <div className="flex flex-col h-full gap-4">
-                    <div className="flex-1 bg-slate-900/80 rounded-xl border border-slate-700 p-8 flex flex-col relative overflow-hidden shadow-2xl">
-                        
-                        {/* Dynamic Title */}
-                        <div className="h-20 flex flex-col justify-end pb-4 border-b border-slate-800">
-                            {step === 0 ? (
-                                <h3 className="text-xl font-bold text-slate-400 text-center uppercase tracking-widest animate-fade-in">Sales by Region (Q4)</h3>
-                            ) : (
-                                <div className="animate-fade-in text-left">
-                                    <h3 className="text-3xl font-black text-white">The <span className="text-amber-500">West Region</span> dominates our Q4 revenue.</h3>
-                                    <p className="text-sm text-slate-400 mt-1">Following the new marketing push, West outperformed all other regions combined.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="flex-1 w-full mt-8">
-                            <svg viewBox="0 0 200 100" className="w-full h-full overflow-visible">
-                                <line x1="20" y1="90" x2="180" y2="90" stroke="#475569" strokeWidth="1" />
-                                
-                                {data.map((d, i) => {
-                                    const x = 40 + (i * 40);
-                                    const isTarget = d.region === 'West';
-                                    const fill = step === 0 ? '#3b82f6' : (isTarget ? '#f59e0b' : '#334155');
-                                    
-                                    return (
-                                        <g key={i} className="bar-rise" style={{animationDelay: `${i * 0.1}s`}}>
-                                            <rect 
-                                                x={x - 12} y={90 - d.val} width="24" height={d.val} fill={fill} rx="2" 
-                                                style={{ transition: 'fill 1s ease' }}
-                                            />
-                                            <text x={x} y="100" fill={step === 0 ? '#94a3b8' : (isTarget ? '#fcd34d' : '#475569')} fontSize="8" textAnchor="middle" fontWeight={isTarget && step === 1 ? 'bold' : 'normal'} style={{transition: 'all 1s ease'}}>{d.region}</text>
-                                            
-                                            {step === 1 && isTarget && (
-                                                <text x={x} y={90 - d.val - 5} fill="#f59e0b" fontSize="10" fontWeight="bold" textAnchor="middle" className="pop-in" style={{animationDelay: '1s'}}>$95M</text>
-                                            )}
-                                        </g>
-                                    );
-                                })}
-
-                                {step === 1 && (
-                                    <g className="animate-fade-in" style={{animationDelay: '1.5s'}}>
-                                        <path d="M 120 20 Q 140 10, 155 15" fill="none" stroke="#fcd34d" strokeWidth="1" strokeDasharray="2" />
-                                        <polygon points="155,15 150,12 152,18" fill="#fcd34d" />
-                                        <text x="115" y="25" fill="#fcd34d" fontSize="6" textAnchor="end">Record Breaking!</text>
-                                    </g>
-                                )}
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- MAIN APP COMPONENT ---
-        const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
-
-            const slides = [
-                {
-                    tag: "MODULE 1: INTRODUCTION",
-                    title: "What is Data Storytelling?",
-                    subtitle: "The Intersection of Three Disciplines",
-                    text: "Data alone is just ink on a page. It rarely moves people to action.\n\nTo create real impact, you must fuse three distinct elements:\n\n1. **Data:** The foundation of truth and factual evidence.\n2. **Visuals:** The geometry that allows our brains to instantly see patterns.\n3. **Narrative:** The human context that explains *why* the data matters.\n\nWhen these three overlap, you generate an actionable insight.",
-                    viz: <VennDiagramViz />
-                },
-                {
-                    tag: "MODULE 2: THE BRAIN",
-                    title: "Pre-attentive Attributes",
-                    subtitle: "Hacking Visual Perception",
-                    text: "Before your audience consciously reads a title or looks at an axis, their visual cortex has already processed certain cues in milliseconds.\n\nThese are **Pre-attentive Attributes**.\n\nBy strategically isolating variables like **Color**, **Size**, and **Orientation**, you act as a director, forcing the audience's eyes exactly where you want them to go before they even realize it.",
-                    viz: <PreAttentiveViz />
-                },
-                {
-                    tag: "MODULE 3: DATA STRUCTURES",
-                    title: "Know Your Axes",
-                    subtitle: "Continuous vs. Discrete Data",
-                    text: "Before writing any plotting code, you must understand your data's underlying structure.\n\n**Discrete Data** is bucketed. Think of servers, employee names, or fiscal quarters. It answers 'How many?' and requires separation.\n\n**Continuous Data** is a flowing, unbroken scale. Think of time, temperature, or revenue. It answers 'How much?' and implies momentum.",
-                    viz: <DataTypesViz />
-                },
-                {
-                    tag: "MODULE 4: GEOMETRY",
-                    title: "The Chart Arsenal",
-                    subtitle: "Mapping Data to Shapes",
-                    text: "The biggest mistake in visualization is picking a chart because it 'looks cool'. Form must follow function.\n\n• **Bar Charts:** For comparing discrete categories.\n• **Line Charts:** For tracking continuous trends over time.\n• **Scatter Plots:** For finding correlation between variables.\n• **Pie Charts:** For simple part-to-whole relationships (use sparingly, limited to 2-3 slices!).",
-                    viz: <ChartArsenal />
-                },
-                {
-                    tag: "MODULE 5: REFINEMENT",
-                    title: "Decluttering the Noise",
-                    subtitle: "Maximizing the Data-Ink Ratio",
-                    text: "Coined by Edward Tufte, the 'Data-Ink Ratio' argues that every pixel on a screen should be presenting data.\n\nRemove elements that don't add analytical value:\n• Delete 3D effects\n• Remove heavy gridlines and borders\n• Push axes and non-essential labels to light gray\n\nLess visual noise means a much clearer signal.",
-                    viz: <DeclutterViz />
-                },
-                {
-                    tag: "MODULE 6: THE CLIMAX",
-                    title: "Exploratory vs. Explanatory",
-                    subtitle: "Telling the Actual Story",
-                    text: "When analyzing data in a notebook, you build *Exploratory* charts. They have default colors and generic titles. They help *you* find the insight.\n\nBut when presenting, you must transform them into *Explanatory* charts.\n\n**The Golden Rule:** Push all contextual data to the background (gray), use a bright pre-attentive color to highlight the insight, and rewrite the title as the core takeaway.",
-                    viz: <StoryEngine />
-                }
-            ];
-
-            // Re-mount visualization on slide change to trigger animations
-            const CurrentViz = () => {
-                const SlideViz = slides[currentSlide].viz;
-                return React.cloneElement(SlideViz, { key: currentSlide });
-            };
-
-            useEffect(() => {
-                const handleKey = (e) => {
-                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
-                };
-                window.addEventListener('keydown', handleKey);
-                return () => window.removeEventListener('keydown', handleKey);
-            }, [slides.length]);
-
-            const Slide = slides[currentSlide];
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative bg-slate-950 text-slate-200">
-                    <div className="w-full h-1 bg-slate-900 absolute top-0 left-0 z-50">
-                        <div className="h-full bg-gradient-to-r from-blue-600 via-purple-500 to-amber-500 transition-all duration-500 ease-out" 
-                             style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    <div className="flex-1 p-6 md:p-12 flex items-center justify-center max-w-[1600px] mx-auto w-full h-full">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 w-full items-center">
-                            
-                            <div className="lg:col-span-4 flex flex-col justify-center space-y-6 animate-fade-in" key={`text-${currentSlide}`}>
-                                <div>
-                                    <div className="text-xs font-mono text-indigo-400 mb-3 tracking-widest">{Slide.tag}</div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tight leading-tight">
-                                        {Slide.title}
-                                    </h1>
-                                    <h2 className="text-xl text-slate-400 font-light border-l-4 border-indigo-500 pl-4 py-1">
-                                        {Slide.subtitle}
-                                    </h2>
-                                </div>
-                                <div className="text-base text-slate-300 leading-relaxed whitespace-pre-wrap font-light">
-                                    {Slide.text}
-                                </div>
-                            </div>
-
-                            <div className="lg:col-span-8 h-[550px] lg:h-[700px] glass-panel rounded-2xl p-1 relative flex flex-col w-full">
-                                <div className="h-10 border-b border-white/5 flex items-center px-4 gap-2 bg-slate-900/40 rounded-t-xl">
-                                    <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
-                                    <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-                                    <div className="ml-auto text-[10px] text-slate-500 font-mono opacity-60 uppercase tracking-widest">Instructor: Jayan Gupta</div>
-                                </div>
-                                
-                                <div className="flex-1 relative overflow-hidden p-6 md:p-8">
-                                    <CurrentViz />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="absolute bottom-8 right-8 flex gap-4 text-slate-400 text-sm font-mono bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur z-50">
-                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} disabled={currentSlide === 0}
-                                className="hover:text-white hover:bg-white/10 px-4 py-2 rounded transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer">
-                            &larr; PREV
-                        </button>
-                        <span className="self-center font-bold text-white px-2">
-                            {currentSlide + 1} / {slides.length}
-                        </span>
-                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} disabled={currentSlide === slides.length - 1}
-                                className="hover:text-white hover:bg-white/10 px-4 py-2 rounded transition disabled:opacity-30 disabled:hover:bg-transparent cursor-pointer">
-                            NEXT &rarr;
-                        </button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+</body></html>

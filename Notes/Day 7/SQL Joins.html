@@ -1,15 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jayan's Join Simulator: Visual Logic</title>
     
     <!-- Libraries -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <!-- AlaSQL for running SQL in browser -->
     <script src="https://cdn.jsdelivr.net/npm/alasql@1.7.3/dist/alasql.min.js"></script>
@@ -81,317 +79,346 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+    <script>const {
+  useState,
+  useEffect,
+  useMemo
+} = React;
 
-        // --- DATA SETUP ---
-        // Table A: CREW
-        const CREW_DATA = [
-            { id: 1, name: "Capt. Reynolds", module_id: 101 }, // Match
-            { id: 2, name: "Lt. Ripley", module_id: 102 },    // Match
-            { id: 3, name: "Eng. Stark", module_id: 102 },    // Match (Same module as Ripley)
-            { id: 4, name: "Drifter X", module_id: null },    // No Match (Null FK)
-            { id: 5, name: "Solo Pilot", module_id: 999 }     // No Match (FK exists but no parent)
-        ];
+// --- DATA SETUP ---
+// Table A: CREW
+const CREW_DATA = [{
+  id: 1,
+  name: "Capt. Reynolds",
+  module_id: 101
+},
+// Match
+{
+  id: 2,
+  name: "Lt. Ripley",
+  module_id: 102
+},
+// Match
+{
+  id: 3,
+  name: "Eng. Stark",
+  module_id: 102
+},
+// Match (Same module as Ripley)
+{
+  id: 4,
+  name: "Drifter X",
+  module_id: null
+},
+// No Match (Null FK)
+{
+  id: 5,
+  name: "Solo Pilot",
+  module_id: 999
+} // No Match (FK exists but no parent)
+];
 
-        // Table B: MODULES
-        const MODULE_DATA = [
-            { id: 101, module_name: "Bridge" },    // Match
-            { id: 102, module_name: "Engine" },    // Match
-            { id: 103, module_name: "Dormitory" }  // No Match (Empty room)
-        ];
+// Table B: MODULES
+const MODULE_DATA = [{
+  id: 101,
+  module_name: "Bridge"
+},
+// Match
+{
+  id: 102,
+  module_name: "Engine"
+},
+// Match
+{
+  id: 103,
+  module_name: "Dormitory"
+} // No Match (Empty room)
+];
 
-        // Init AlaSQL
-        alasql("CREATE TABLE crew (id INT, name STRING, module_id INT)");
-        alasql("CREATE TABLE modules (id INT, module_name STRING)");
-        alasql.tables.crew.data = CREW_DATA;
-        alasql.tables.modules.data = MODULE_DATA;
+// Init AlaSQL
+alasql("CREATE TABLE crew (id INT, name STRING, module_id INT)");
+alasql("CREATE TABLE modules (id INT, module_name STRING)");
+alasql.tables.crew.data = CREW_DATA;
+alasql.tables.modules.data = MODULE_DATA;
 
-        // --- JOIN LOGIC DEFINITIONS ---
-        const JOINS = {
-            INNER: {
-                title: "INNER JOIN",
-                icon: "fa-solid fa-handshake",
-                query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew INNER JOIN modules ON crew.module_id = modules.id",
-                desc: "Returns only rows where there is a match in BOTH tables.",
-                analogy: "The 'Marriage': Only couples that exist together.",
-                color: "text-emerald-400",
-                venn: { left: false, right: false, mid: true }
-            },
-            LEFT: {
-                title: "LEFT JOIN",
-                icon: "fa-solid fa-arrow-left",
-                query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew LEFT JOIN modules ON crew.module_id = modules.id",
-                desc: "Returns ALL rows from the Left table (Crew), plus matches from the Right. If no match, Right side is NULL.",
-                analogy: "The 'Roll Call': List every crew member, even if they aren't assigned a room.",
-                color: "text-blue-400",
-                venn: { left: true, right: false, mid: true }
-            },
-            RIGHT: {
-                title: "RIGHT JOIN",
-                icon: "fa-solid fa-arrow-right",
-                query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew RIGHT JOIN modules ON crew.module_id = modules.id",
-                desc: "Returns ALL rows from the Right table (Modules), plus matches from the Left. If no match, Left side is NULL.",
-                analogy: "The 'Room Inspection': Check every room, even if it's empty.",
-                color: "text-purple-400",
-                venn: { left: false, right: true, mid: true }
-            },
-            FULL: {
-                title: "FULL OUTER JOIN",
-                icon: "fa-solid fa-arrows-left-right",
-                query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew OUTER JOIN modules ON crew.module_id = modules.id",
-                desc: "Returns ALL rows from BOTH tables. If they match, they join. If not, the missing side is NULL.",
-                analogy: "The 'Manifest': List everything and everyone, matched or unmatched.",
-                color: "text-pink-400",
-                venn: { left: true, right: true, mid: true }
-            },
-            CROSS: {
-                title: "CROSS JOIN",
-                icon: "fa-solid fa-xmark",
-                query: "SELECT crew.name, modules.module_name FROM crew CROSS JOIN modules",
-                desc: "Returns the Cartesian product. Every row from Left paired with Every row from Right.",
-                analogy: "The 'Possibilities': Every possible combination of crew and room.",
-                color: "text-orange-400",
-                venn: { left: true, right: true, mid: true, isCross: true } // Special case
-            }
-        };
+// --- JOIN LOGIC DEFINITIONS ---
+const JOINS = {
+  INNER: {
+    title: "INNER JOIN",
+    icon: "fa-solid fa-handshake",
+    query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew INNER JOIN modules ON crew.module_id = modules.id",
+    desc: "Returns only rows where there is a match in BOTH tables.",
+    analogy: "The 'Marriage': Only couples that exist together.",
+    color: "text-emerald-400",
+    venn: {
+      left: false,
+      right: false,
+      mid: true
+    }
+  },
+  LEFT: {
+    title: "LEFT JOIN",
+    icon: "fa-solid fa-arrow-left",
+    query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew LEFT JOIN modules ON crew.module_id = modules.id",
+    desc: "Returns ALL rows from the Left table (Crew), plus matches from the Right. If no match, Right side is NULL.",
+    analogy: "The 'Roll Call': List every crew member, even if they aren't assigned a room.",
+    color: "text-blue-400",
+    venn: {
+      left: true,
+      right: false,
+      mid: true
+    }
+  },
+  RIGHT: {
+    title: "RIGHT JOIN",
+    icon: "fa-solid fa-arrow-right",
+    query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew RIGHT JOIN modules ON crew.module_id = modules.id",
+    desc: "Returns ALL rows from the Right table (Modules), plus matches from the Left. If no match, Left side is NULL.",
+    analogy: "The 'Room Inspection': Check every room, even if it's empty.",
+    color: "text-purple-400",
+    venn: {
+      left: false,
+      right: true,
+      mid: true
+    }
+  },
+  FULL: {
+    title: "FULL OUTER JOIN",
+    icon: "fa-solid fa-arrows-left-right",
+    query: "SELECT crew.name, crew.module_id, modules.module_name FROM crew OUTER JOIN modules ON crew.module_id = modules.id",
+    desc: "Returns ALL rows from BOTH tables. If they match, they join. If not, the missing side is NULL.",
+    analogy: "The 'Manifest': List everything and everyone, matched or unmatched.",
+    color: "text-pink-400",
+    venn: {
+      left: true,
+      right: true,
+      mid: true
+    }
+  },
+  CROSS: {
+    title: "CROSS JOIN",
+    icon: "fa-solid fa-xmark",
+    query: "SELECT crew.name, modules.module_name FROM crew CROSS JOIN modules",
+    desc: "Returns the Cartesian product. Every row from Left paired with Every row from Right.",
+    analogy: "The 'Possibilities': Every possible combination of crew and room.",
+    color: "text-orange-400",
+    venn: {
+      left: true,
+      right: true,
+      mid: true,
+      isCross: true
+    } // Special case
+  }
+};
+const JoinVisualizer = () => {
+  const [activeJoin, setActiveJoin] = useState('INNER');
+  const [results, setResults] = useState([]);
+  useEffect(() => {
+    // Run query when type changes
+    try {
+      const res = alasql(JOINS[activeJoin].query);
+      setResults(res);
+    } catch (e) {
+      console.error(e);
+    }
+  }, [activeJoin]);
+  const currentDef = JOINS[activeJoin];
 
-        const JoinVisualizer = () => {
-            const [activeJoin, setActiveJoin] = useState('INNER');
-            const [results, setResults] = useState([]);
-            
-            useEffect(() => {
-                // Run query when type changes
-                try {
-                    const res = alasql(JOINS[activeJoin].query);
-                    setResults(res);
-                } catch(e) {
-                    console.error(e);
-                }
-            }, [activeJoin]);
+  // Helper to check if a source row matches the current join logic
+  const isCrewHighlighted = crewRow => {
+    if (activeJoin === 'LEFT' || activeJoin === 'FULL' || activeJoin === 'CROSS') return true;
+    // For INNER/RIGHT, only highlight if it has a valid match in modules
+    const hasMatch = MODULE_DATA.find(m => m.id === crewRow.module_id);
+    if (activeJoin === 'INNER' && hasMatch) return true;
+    return false;
+  };
+  const isModuleHighlighted = modRow => {
+    if (activeJoin === 'RIGHT' || activeJoin === 'FULL' || activeJoin === 'CROSS') return true;
+    // For INNER/LEFT, only highlight if it is referenced by crew
+    const isReferenced = CREW_DATA.find(c => c.module_id === modRow.id);
+    if (activeJoin === 'INNER' && isReferenced) return true;
+    if (activeJoin === 'LEFT' && isReferenced) return true;
+    return false;
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "min-h-screen bg-join-bg flex flex-col p-4 md:p-8 max-w-[1600px] mx-auto gap-8"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "flex flex-col md:flex-row justify-between items-center border-b border-slate-700 pb-6 gap-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500"
+  }, "Jayan's Join Simulator"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 mt-1"
+  }, "Interactive Visualizer for SQL Joins")), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap justify-center gap-2 bg-slate-800/50 p-1 rounded-xl"
+  }, Object.keys(JOINS).map(key => /*#__PURE__*/React.createElement("button", {
+    key: key,
+    onClick: () => setActiveJoin(key),
+    className: `px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeJoin === key ? 'bg-slate-700 text-white shadow-lg shadow-blue-900/20 scale-105' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`
+  }, /*#__PURE__*/React.createElement("i", {
+    className: JOINS[key].icon
+  }), key)))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-4 flex flex-col gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-4 rounded-xl border-l-4 border-blue-500 relative"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "absolute -top-3 left-4 bg-blue-600 text-xs px-2 py-0.5 rounded text-white font-mono"
+  }, "TABLE A: CREW"), /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-sm mt-2"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "text-slate-500 border-b border-slate-700 text-xs"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "pb-2 text-left"
+  }, "ID"), /*#__PURE__*/React.createElement("th", {
+    className: "pb-2 text-left"
+  }, "Name"), /*#__PURE__*/React.createElement("th", {
+    className: "pb-2 text-right"
+  }, "Module_ID (FK)"))), /*#__PURE__*/React.createElement("tbody", {
+    className: "font-mono"
+  }, CREW_DATA.map(row => /*#__PURE__*/React.createElement("tr", {
+    key: row.id,
+    className: `border-b border-slate-700/50 ${isCrewHighlighted(row) ? 'text-blue-100' : 'text-slate-600 opacity-50'}`
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-2"
+  }, row.id), /*#__PURE__*/React.createElement("td", null, row.name), /*#__PURE__*/React.createElement("td", {
+    className: "text-right text-blue-400"
+  }, row.module_id || "NULL")))))), /*#__PURE__*/React.createElement("div", {
+    className: "h-12 flex justify-center items-center opacity-50"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-link text-2xl text-slate-500"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-4 rounded-xl border-l-4 border-purple-500 relative"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "absolute -top-3 left-4 bg-purple-600 text-xs px-2 py-0.5 rounded text-white font-mono"
+  }, "TABLE B: MODULES"), /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-sm mt-2"
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", {
+    className: "text-slate-500 border-b border-slate-700 text-xs"
+  }, /*#__PURE__*/React.createElement("th", {
+    className: "pb-2 text-left"
+  }, "ID (PK)"), /*#__PURE__*/React.createElement("th", {
+    className: "pb-2 text-right"
+  }, "Module_Name"))), /*#__PURE__*/React.createElement("tbody", {
+    className: "font-mono"
+  }, MODULE_DATA.map(row => /*#__PURE__*/React.createElement("tr", {
+    key: row.id,
+    className: `border-b border-slate-700/50 ${isModuleHighlighted(row) ? 'text-purple-100' : 'text-slate-600 opacity-50'}`
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "py-2 text-purple-400"
+  }, row.id), /*#__PURE__*/React.createElement("td", {
+    className: "text-right"
+  }, row.module_name))))))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-4 flex flex-col gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-6 rounded-xl text-center"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: `text-2xl font-bold mb-2 ${currentDef.color}`
+  }, currentDef.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-300 mb-4"
+  }, currentDef.desc), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-xs text-left font-mono text-slate-400"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500 block mb-1 uppercase tracking-widest text-[10px]"
+  }, "Real-World Analogy"), /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-lightbulb text-yellow-500 mr-2"
+  }), currentDef.analogy)), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-8 rounded-xl flex items-center justify-center relative min-h-[250px] overflow-hidden"
+  }, /*#__PURE__*/React.createElement("svg", {
+    viewBox: "0 0 200 120",
+    className: "w-full max-w-[300px]"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "70",
+    cy: "60",
+    r: "50",
+    fill: "#3b82f6",
+    opacity: currentDef.venn.left ? "0.8" : "0.2",
+    className: "venn-circle"
+  }), /*#__PURE__*/React.createElement("circle", {
+    cx: "130",
+    cy: "60",
+    r: "50",
+    fill: "#a855f7",
+    opacity: currentDef.venn.right ? "0.8" : "0.2",
+    className: "venn-circle"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "M 95,16.7 A 50,50 0 0,0 95,103.3 A 50,50 0 0,0 95,16.7",
+    fill: currentDef.venn.mid ? "#10b981" : "transparent",
+    opacity: currentDef.venn.mid ? "1" : "0"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: "40",
+    y: "65",
+    fontSize: "12",
+    className: "venn-text"
+  }, "CREW"), /*#__PURE__*/React.createElement("text", {
+    x: "135",
+    y: "65",
+    fontSize: "12",
+    className: "venn-text"
+  }, "MODULES")), activeJoin === 'CROSS' && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-orange-400 font-bold text-center px-4"
+  }, "(Venn Diagrams don't apply to CROSS JOINs well, as it multiplies sets!)"))), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-4 rounded-xl bg-black/40"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] text-slate-500 uppercase font-mono mb-2"
+  }, "Executed Query"), /*#__PURE__*/React.createElement("code", {
+    className: "text-xs md:text-sm font-mono text-green-400 block whitespace-pre-wrap"
+  }, currentDef.query.replace('SELECT', 'SELECT\n ').replace('FROM', '\nFROM').replace(' JOIN', '\n JOIN').replace(' ON', '\n ON')))), /*#__PURE__*/React.createElement("div", {
+    className: "lg:col-span-4 flex flex-col h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel rounded-xl flex flex-col h-full overflow-hidden border border-slate-700 shadow-2xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/80 px-4 py-3 border-b border-slate-700 flex justify-between items-center"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-sm text-emerald-400"
+  }, "RESULT SET"), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs bg-slate-800 px-2 py-1 rounded text-slate-400"
+  }, results.length, " Rows")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 overflow-auto bg-slate-900/50 p-0"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-sm border-collapse"
+  }, /*#__PURE__*/React.createElement("thead", {
+    className: "bg-slate-800 sticky top-0"
+  }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "p-3 text-left text-xs font-mono text-blue-400 border-b border-blue-500/30"
+  }, "CREW.Name"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3 text-center text-xs font-mono text-slate-400 border-b border-slate-600"
+  }, "FK Match"), /*#__PURE__*/React.createElement("th", {
+    className: "p-3 text-right text-xs font-mono text-purple-400 border-b border-purple-500/30"
+  }, "MODULES.Name"))), /*#__PURE__*/React.createElement("tbody", {
+    className: "font-mono text-xs md:text-sm"
+  }, results.map((row, idx) => /*#__PURE__*/React.createElement("tr", {
+    key: idx,
+    className: "border-b border-slate-800/50 hover:bg-slate-800/30 animate-pop",
+    style: {
+      animationDelay: `${idx * 0.05}s`
+    }
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "p-3"
+  }, row.name ? /*#__PURE__*/React.createElement("span", null, row.name) : /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400 italic opacity-70"
+  }, "NULL")), /*#__PURE__*/React.createElement("td", {
+    className: "p-3 text-center opacity-30 text-[10px]"
+  }, row.module_id ? /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-link text-emerald-500"
+  }) : /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-ban text-red-500"
+  })), /*#__PURE__*/React.createElement("td", {
+    className: "p-3 text-right"
+  }, row.module_name ? /*#__PURE__*/React.createElement("span", null, row.module_name) : /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400 italic opacity-70"
+  }, "NULL")))), results.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: "3",
+    className: "p-8 text-center text-slate-500 italic"
+  }, "No results found"))))), /*#__PURE__*/React.createElement("div", {
+    className: "p-3 bg-slate-900/80 text-[10px] text-slate-500 border-t border-slate-800 text-center"
+  }, "Notice the ", /*#__PURE__*/React.createElement("span", {
+    className: "text-red-400"
+  }, "NULL"), " values? That indicates missing matches for that Join Type.")))));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(JoinVisualizer, null));</script>
 
-            const currentDef = JOINS[activeJoin];
-
-            // Helper to check if a source row matches the current join logic
-            const isCrewHighlighted = (crewRow) => {
-                if (activeJoin === 'LEFT' || activeJoin === 'FULL' || activeJoin === 'CROSS') return true;
-                // For INNER/RIGHT, only highlight if it has a valid match in modules
-                const hasMatch = MODULE_DATA.find(m => m.id === crewRow.module_id);
-                if (activeJoin === 'INNER' && hasMatch) return true;
-                return false;
-            };
-
-            const isModuleHighlighted = (modRow) => {
-                if (activeJoin === 'RIGHT' || activeJoin === 'FULL' || activeJoin === 'CROSS') return true;
-                // For INNER/LEFT, only highlight if it is referenced by crew
-                const isReferenced = CREW_DATA.find(c => c.module_id === modRow.id);
-                if (activeJoin === 'INNER' && isReferenced) return true;
-                if (activeJoin === 'LEFT' && isReferenced) return true;
-                return false;
-            };
-
-            return (
-                <div className="min-h-screen bg-join-bg flex flex-col p-4 md:p-8 max-w-[1600px] mx-auto gap-8">
-                    
-                    {/* HEADER */}
-                    <header className="flex flex-col md:flex-row justify-between items-center border-b border-slate-700 pb-6 gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                                Jayan's Join Simulator
-                            </h1>
-                            <p className="text-slate-400 mt-1">Interactive Visualizer for SQL Joins</p>
-                        </div>
-                        
-                        {/* JOIN TOGGLES */}
-                        <div className="flex flex-wrap justify-center gap-2 bg-slate-800/50 p-1 rounded-xl">
-                            {Object.keys(JOINS).map(key => (
-                                <button
-                                    key={key}
-                                    onClick={() => setActiveJoin(key)}
-                                    className={`px-4 py-2 rounded-lg text-sm font-bold transition-all flex items-center gap-2 ${activeJoin === key ? 'bg-slate-700 text-white shadow-lg shadow-blue-900/20 scale-105' : 'text-slate-400 hover:text-white hover:bg-slate-800'}`}
-                                >
-                                    <i className={JOINS[key].icon}></i>
-                                    {key}
-                                </button>
-                            ))}
-                        </div>
-                    </header>
-
-                    {/* MAIN CONTENT GRID */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
-                        
-                        {/* LEFT: SOURCE TABLES (Visuals) */}
-                        <div className="lg:col-span-4 flex flex-col gap-6">
-                            
-                            {/* Table A */}
-                            <div className="glass-panel p-4 rounded-xl border-l-4 border-blue-500 relative">
-                                <span className="absolute -top-3 left-4 bg-blue-600 text-xs px-2 py-0.5 rounded text-white font-mono">TABLE A: CREW</span>
-                                <table className="w-full text-sm mt-2">
-                                    <thead>
-                                        <tr className="text-slate-500 border-b border-slate-700 text-xs">
-                                            <th className="pb-2 text-left">ID</th>
-                                            <th className="pb-2 text-left">Name</th>
-                                            <th className="pb-2 text-right">Module_ID (FK)</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="font-mono">
-                                        {CREW_DATA.map(row => (
-                                            <tr key={row.id} className={`border-b border-slate-700/50 ${isCrewHighlighted(row) ? 'text-blue-100' : 'text-slate-600 opacity-50'}`}>
-                                                <td className="py-2">{row.id}</td>
-                                                <td>{row.name}</td>
-                                                <td className="text-right text-blue-400">{row.module_id || "NULL"}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Connector Visual (Simple SVG) */}
-                            <div className="h-12 flex justify-center items-center opacity-50">
-                                <i className="fa-solid fa-link text-2xl text-slate-500"></i>
-                            </div>
-
-                            {/* Table B */}
-                            <div className="glass-panel p-4 rounded-xl border-l-4 border-purple-500 relative">
-                                <span className="absolute -top-3 left-4 bg-purple-600 text-xs px-2 py-0.5 rounded text-white font-mono">TABLE B: MODULES</span>
-                                <table className="w-full text-sm mt-2">
-                                    <thead>
-                                        <tr className="text-slate-500 border-b border-slate-700 text-xs">
-                                            <th className="pb-2 text-left">ID (PK)</th>
-                                            <th className="pb-2 text-right">Module_Name</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="font-mono">
-                                        {MODULE_DATA.map(row => (
-                                            <tr key={row.id} className={`border-b border-slate-700/50 ${isModuleHighlighted(row) ? 'text-purple-100' : 'text-slate-600 opacity-50'}`}>
-                                                <td className="py-2 text-purple-400">{row.id}</td>
-                                                <td className="text-right">{row.module_name}</td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                        </div>
-
-                        {/* MIDDLE: LOGIC & VENN */}
-                        <div className="lg:col-span-4 flex flex-col gap-6">
-                            
-                            {/* Explanation Card */}
-                            <div className="glass-panel p-6 rounded-xl text-center">
-                                <h2 className={`text-2xl font-bold mb-2 ${currentDef.color}`}>{currentDef.title}</h2>
-                                <p className="text-sm text-slate-300 mb-4">{currentDef.desc}</p>
-                                <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-700 text-xs text-left font-mono text-slate-400">
-                                    <span className="text-slate-500 block mb-1 uppercase tracking-widest text-[10px]">Real-World Analogy</span>
-                                    <i className="fa-solid fa-lightbulb text-yellow-500 mr-2"></i>
-                                    {currentDef.analogy}
-                                </div>
-                            </div>
-
-                            {/* Venn Diagram */}
-                            <div className="glass-panel p-8 rounded-xl flex items-center justify-center relative min-h-[250px] overflow-hidden">
-                                <svg viewBox="0 0 200 120" className="w-full max-w-[300px]">
-                                    {/* Left Circle (A) */}
-                                    <circle cx="70" cy="60" r="50" 
-                                        fill="#3b82f6" 
-                                        opacity={currentDef.venn.left ? "0.8" : "0.2"} 
-                                        className="venn-circle" 
-                                    />
-                                    {/* Right Circle (B) */}
-                                    <circle cx="130" cy="60" r="50" 
-                                        fill="#a855f7" 
-                                        opacity={currentDef.venn.right ? "0.8" : "0.2"} 
-                                        className="venn-circle" 
-                                    />
-                                    {/* Intersection Overwrite for visual clarity */}
-                                    <path d="M 95,16.7 A 50,50 0 0,0 95,103.3 A 50,50 0 0,0 95,16.7" 
-                                        fill={currentDef.venn.mid ? "#10b981" : "transparent"}
-                                        opacity={currentDef.venn.mid ? "1" : "0"}
-                                    />
-                                    
-                                    <text x="40" y="65" fontSize="12" className="venn-text">CREW</text>
-                                    <text x="135" y="65" fontSize="12" className="venn-text">MODULES</text>
-                                </svg>
-                                
-                                {activeJoin === 'CROSS' && (
-                                    <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                                        <p className="text-orange-400 font-bold text-center px-4">
-                                            (Venn Diagrams don't apply to CROSS JOINs well, as it multiplies sets!)
-                                        </p>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* SQL Preview */}
-                            <div className="glass-panel p-4 rounded-xl bg-black/40">
-                                <div className="text-[10px] text-slate-500 uppercase font-mono mb-2">Executed Query</div>
-                                <code className="text-xs md:text-sm font-mono text-green-400 block whitespace-pre-wrap">
-                                    {currentDef.query.replace('SELECT', 'SELECT\n ').replace('FROM', '\nFROM').replace(' JOIN', '\n JOIN').replace(' ON', '\n ON')}
-                                </code>
-                            </div>
-
-                        </div>
-
-                        {/* RIGHT: RESULT TABLE */}
-                        <div className="lg:col-span-4 flex flex-col h-full">
-                            <div className="glass-panel rounded-xl flex flex-col h-full overflow-hidden border border-slate-700 shadow-2xl">
-                                <div className="bg-slate-900/80 px-4 py-3 border-b border-slate-700 flex justify-between items-center">
-                                    <span className="font-bold text-sm text-emerald-400">RESULT SET</span>
-                                    <span className="text-xs bg-slate-800 px-2 py-1 rounded text-slate-400">{results.length} Rows</span>
-                                </div>
-
-                                <div className="flex-1 overflow-auto bg-slate-900/50 p-0">
-                                    <table className="w-full text-sm border-collapse">
-                                        <thead className="bg-slate-800 sticky top-0">
-                                            <tr>
-                                                <th className="p-3 text-left text-xs font-mono text-blue-400 border-b border-blue-500/30">CREW.Name</th>
-                                                <th className="p-3 text-center text-xs font-mono text-slate-400 border-b border-slate-600">FK Match</th>
-                                                <th className="p-3 text-right text-xs font-mono text-purple-400 border-b border-purple-500/30">MODULES.Name</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="font-mono text-xs md:text-sm">
-                                            {results.map((row, idx) => (
-                                                <tr key={idx} className="border-b border-slate-800/50 hover:bg-slate-800/30 animate-pop" style={{animationDelay: `${idx * 0.05}s`}}>
-                                                    <td className="p-3">
-                                                        {row.name ? (
-                                                            <span>{row.name}</span>
-                                                        ) : (
-                                                            <span className="text-red-400 italic opacity-70">NULL</span>
-                                                        )}
-                                                    </td>
-                                                    <td className="p-3 text-center opacity-30 text-[10px]">
-                                                        {row.module_id ? <i className="fa-solid fa-link text-emerald-500"></i> : <i className="fa-solid fa-ban text-red-500"></i>}
-                                                    </td>
-                                                    <td className="p-3 text-right">
-                                                        {row.module_name ? (
-                                                            <span>{row.module_name}</span>
-                                                        ) : (
-                                                            <span className="text-red-400 italic opacity-70">NULL</span>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                            {results.length === 0 && (
-                                                <tr>
-                                                    <td colSpan="3" className="p-8 text-center text-slate-500 italic">No results found</td>
-                                                </tr>
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div className="p-3 bg-slate-900/80 text-[10px] text-slate-500 border-t border-slate-800 text-center">
-                                    Notice the <span className="text-red-400">NULL</span> values? That indicates missing matches for that Join Type.
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<JoinVisualizer />);
-    </script>
-</body>
-</html>
+</body></html>

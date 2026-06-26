@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Analytics: From Insights to Impact</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -71,473 +66,432 @@
 
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>const {
+  useState,
+  useEffect
+} = React;
 
-        // --- VISUALIZATION COMPONENTS ---
+// --- VISUALIZATION COMPONENTS ---
 
-        // 1. ANALYTICS VS SCIENCE COMPARATOR
-        const ComparatorViz = () => {
-            const [mode, setMode] = useState('analytics');
+// 1. ANALYTICS VS SCIENCE COMPARATOR
+const ComparatorViz = () => {
+  const [mode, setMode] = useState('analytics');
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex bg-slate-900 p-1 rounded-full border border-slate-700"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMode('analytics'),
+    className: `px-6 py-2 rounded-full text-sm font-bold transition-all ${mode === 'analytics' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`
+  }, "Data Analytics"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setMode('science'),
+    className: `px-6 py-2 rounded-full text-sm font-bold transition-all ${mode === 'science' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`
+  }, "Data Science")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-8 rounded-2xl flex items-center justify-center h-64 relative overflow-hidden"
+  }, mode === 'analytics' ? /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center animate-fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-6xl mb-4 font-bold text-slate-600"
+  }, "DA"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 items-end h-24"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-8 bg-blue-500/50 h-[40%] rounded-t"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-8 bg-blue-500/70 h-[70%] rounded-t"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-8 bg-blue-500 h-[50%] rounded-t"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 text-blue-300 font-bold"
+  }, "Descriptive Analysis")) : /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center animate-fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-6xl mb-4 font-bold text-slate-600"
+  }, "DS"), /*#__PURE__*/React.createElement("div", {
+    className: "relative w-32 h-24 flex items-center justify-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute w-24 h-24 border-2 border-dashed border-purple-500 rounded-full animate-spin-slow"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-2xl text-purple-400"
+  }, "AI")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 text-purple-300 font-bold"
+  }, "Predictive Modeling"))), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-8 rounded-2xl flex flex-col justify-center h-64"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-white mb-4"
+  }, mode === 'analytics' ? "Looking Backward" : "Looking Forward"), /*#__PURE__*/React.createElement("ul", {
+    className: "space-y-3 text-slate-300 text-sm"
+  }, mode === 'analytics' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400"
+  }, "●"), " Focus: Historical Data"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400"
+  }, "●"), " Goal: Find Trends & Patterns"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400"
+  }, "●"), " Tools: SQL, Excel, Tableau"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400"
+  }, "●"), " Output: Dashboards & Reports")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-purple-400"
+  }, "●"), " Focus: Future Predictions"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-purple-400"
+  }, "●"), " Goal: Build Automated Systems"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-purple-400"
+  }, "●"), " Tools: Python, TensorFlow, Scikit"), /*#__PURE__*/React.createElement("li", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-purple-400"
+  }, "●"), " Output: AI Models & Algorithms"))))));
+};
 
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8">
-                    <div className="flex bg-slate-900 p-1 rounded-full border border-slate-700">
-                        <button
-                            onClick={() => setMode('analytics')}
-                            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${mode === 'analytics' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            Data Analytics
-                        </button>
-                        <button
-                            onClick={() => setMode('science')}
-                            className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${mode === 'science' ? 'bg-purple-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            Data Science
-                        </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-                        {/* Visual Side */}
-                        <div className="glass-panel p-8 rounded-2xl flex items-center justify-center h-64 relative overflow-hidden">
-                            {mode === 'analytics' ? (
-                                <div className="flex flex-col items-center animate-fade-in">
-                                    <div className="text-6xl mb-4 font-bold text-slate-600">DA</div>
-                                    <div className="flex gap-2 items-end h-24">
-                                        <div className="w-8 bg-blue-500/50 h-[40%] rounded-t"></div>
-                                        <div className="w-8 bg-blue-500/70 h-[70%] rounded-t"></div>
-                                        <div className="w-8 bg-blue-500 h-[50%] rounded-t"></div>
-                                    </div>
-                                    <div className="mt-4 text-blue-300 font-bold">Descriptive Analysis</div>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col items-center animate-fade-in">
-                                    <div className="text-6xl mb-4 font-bold text-slate-600">DS</div>
-                                    <div className="relative w-32 h-24 flex items-center justify-center">
-                                        <div className="absolute w-24 h-24 border-2 border-dashed border-purple-500 rounded-full animate-spin-slow"></div>
-                                        <div className="text-2xl text-purple-400">AI</div>
-                                    </div>
-                                    <div className="mt-4 text-purple-300 font-bold">Predictive Modeling</div>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Text Side */}
-                        <div className="glass-panel p-8 rounded-2xl flex flex-col justify-center h-64">
-                            <h3 className="text-xl font-bold text-white mb-4">
-                                {mode === 'analytics' ? "Looking Backward" : "Looking Forward"}
-                            </h3>
-                            <ul className="space-y-3 text-slate-300 text-sm">
-                                {mode === 'analytics' ? (
-                                    <>
-                                        <li className="flex items-center gap-2"><span className="text-blue-400">●</span> Focus: Historical Data</li>
-                                        <li className="flex items-center gap-2"><span className="text-blue-400">●</span> Goal: Find Trends & Patterns</li>
-                                        <li className="flex items-center gap-2"><span className="text-blue-400">●</span> Tools: SQL, Excel, Tableau</li>
-                                        <li className="flex items-center gap-2"><span className="text-blue-400">●</span> Output: Dashboards & Reports</li>
-                                    </>
-                                ) : (
-                                    <>
-                                        <li className="flex items-center gap-2"><span className="text-purple-400">●</span> Focus: Future Predictions</li>
-                                        <li className="flex items-center gap-2"><span className="text-purple-400">●</span> Goal: Build Automated Systems</li>
-                                        <li className="flex items-center gap-2"><span className="text-purple-400">●</span> Tools: Python, TensorFlow, Scikit</li>
-                                        <li className="flex items-center gap-2"><span className="text-purple-400">●</span> Output: AI Models & Algorithms</li>
-                                    </>
-                                )}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 2. LIFECYCLE EXPLORER
-        const LifecycleViz = () => {
-            const [step, setStep] = useState(1);
-
-            const steps = [
-                { id: 1, title: "Collection", desc: "Gathering raw data from APIs, databases, and logs." },
-                { id: 2, title: "Cleaning", desc: "Removing duplicates, fixing errors, and handling missing values (60% of the work!)." },
-                { id: 3, title: "Analysis", desc: "Using statistical methods to find patterns and correlations." },
-                { id: 4, title: "Visualization", desc: "Creating charts to communicate findings clearly." },
-                { id: 5, title: "Action", desc: "Making business decisions based on the insights." }
-            ];
-
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8">
-                    {/* Progress Steps */}
-                    <div className="flex items-center gap-2">
-                        {steps.map((s, i) => (
-                            <div key={s.id} className="flex items-center">
-                                <button
-                                    onClick={() => setStep(s.id)}
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all border-2 
+// 2. LIFECYCLE EXPLORER
+const LifecycleViz = () => {
+  const [step, setStep] = useState(1);
+  const steps = [{
+    id: 1,
+    title: "Collection",
+    desc: "Gathering raw data from APIs, databases, and logs."
+  }, {
+    id: 2,
+    title: "Cleaning",
+    desc: "Removing duplicates, fixing errors, and handling missing values (60% of the work!)."
+  }, {
+    id: 3,
+    title: "Analysis",
+    desc: "Using statistical methods to find patterns and correlations."
+  }, {
+    id: 4,
+    title: "Visualization",
+    desc: "Creating charts to communicate findings clearly."
+  }, {
+    id: 5,
+    title: "Action",
+    desc: "Making business decisions based on the insights."
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, steps.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: s.id,
+    className: "flex items-center"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(s.id),
+    className: `w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold transition-all border-2 
                                     ${step === s.id ? 'bg-blue-600 border-blue-400 scale-110 shadow-lg shadow-blue-500/30 text-white' : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-500'}
-                                `}
-                                >
-                                    {s.id}
-                                </button>
-                                {i < steps.length - 1 && (
-                                    <div className={`w-8 h-1 ${step > s.id ? 'bg-blue-600' : 'bg-slate-800'}`}></div>
-                                )}
-                            </div>
-                        ))}
-                    </div>
+                                `
+  }, s.id), i < steps.length - 1 && /*#__PURE__*/React.createElement("div", {
+    className: `w-8 h-1 ${step > s.id ? 'bg-blue-600' : 'bg-slate-800'}`
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-8 rounded-2xl max-w-2xl w-full text-center min-h-[200px] flex flex-col justify-center animate-fade-in key={step}"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-white mb-2"
+  }, steps[step - 1].title), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-lg"
+  }, steps[step - 1].desc)));
+};
 
-                    {/* Detail Card */}
-                    <div className="glass-panel p-8 rounded-2xl max-w-2xl w-full text-center min-h-[200px] flex flex-col justify-center animate-fade-in key={step}">
-                        <h3 className="text-2xl font-bold text-white mb-2">{steps[step - 1].title}</h3>
-                        <p className="text-slate-300 text-lg">{steps[step - 1].desc}</p>
-                    </div>
-                </div>
-            );
-        };
+// 3. TOOL STACK INTERACTIVE GRID
+const ToolStackViz = () => {
+  const [activeTool, setActiveTool] = useState(null);
+  const tools = {
+    Excel: {
+      why: "Ubiquitous. Perfect for quick calculations, small datasets, and ad-hoc analysis.",
+      limit: "Struggles with large datasets (>1M rows). Not reproducible or automated."
+    },
+    SQL: {
+      why: " The language of databases. Essential for extracting and transforming raw data.",
+      limit: "Not built for advanced statistical modeling or visualization."
+    },
+    Python: {
+      why: "Infinite flexibility. Handles massive data, advanced ML, and automation.",
+      limit: "Steeper learning curve. Requires coding knowledge."
+    },
+    Tableau: {
+      why: "Industry standard for beautiful, interactive dashboards. Drag-and-drop interface.",
+      limit: "Can be expensive. Data prep capabilities are limited compared to SQL/Python."
+    },
+    PowerBI: {
+      why: "Deep integration with Microsoft ecosystem. Powerful data modeling (DAX).",
+      limit: "Desktop version is Windows-only. Can be complex to learn DAX."
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-full flex flex-col items-center justify-center gap-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 md:grid-cols-5 gap-4 w-full"
+  }, Object.keys(tools).map(tool => /*#__PURE__*/React.createElement("button", {
+    key: tool,
+    onClick: () => setActiveTool(tool),
+    className: `p-4 rounded-xl border transition-all font-bold text-sm
+                                ${activeTool === tool ? 'bg-blue-600 border-blue-400 text-white shadow-lg scale-105' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`
+  }, tool))), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel p-8 rounded-2xl w-full max-w-3xl min-h-[250px] flex flex-col justify-center text-center"
+  }, activeTool ? /*#__PURE__*/React.createElement("div", {
+    className: "animate-fade-in"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-3xl font-bold text-white mb-6"
+  }, activeTool), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-2 gap-8 text-left"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs uppercase font-bold text-green-400 mb-2"
+  }, "Why Use It"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm leading-relaxed"
+  }, tools[activeTool].why)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs uppercase font-bold text-red-400 mb-2"
+  }, "Limitations"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm leading-relaxed"
+  }, tools[activeTool].limit)))) : /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-500 italic"
+  }, "Select a tool above to see details")));
+};
 
-        // 3. TOOL STACK INTERACTIVE GRID
-        const ToolStackViz = () => {
-            const [activeTool, setActiveTool] = useState(null);
+// 4. ROLES COMPARISON VIZ
+const RolesViz = () => {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 md:grid-cols-3 gap-6 h-full p-4 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800/50 border border-blue-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-blue-400 mb-4 text-center"
+  }, "Data Analyst"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 text-sm text-slate-300 flex-1"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Focus"), /*#__PURE__*/React.createElement("p", null, "Descriptive. \"What happened?\"")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Tools"), /*#__PURE__*/React.createElement("p", null, "Excel, SQL, PowerBI, Tableau")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Output"), /*#__PURE__*/React.createElement("p", null, "Dashboards, Reports, Business Insights")))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800/50 border border-purple-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-purple-400 mb-4 text-center"
+  }, "Data Scientist"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 text-sm text-slate-300 flex-1"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Focus"), /*#__PURE__*/React.createElement("p", null, "Predictive. \"What will happen?\"")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Tools"), /*#__PURE__*/React.createElement("p", null, "Python, R, TensorFlow, Scikit-learn")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Output"), /*#__PURE__*/React.createElement("p", null, "ML Models, Algorithms, Forecasts")))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-800/50 border border-emerald-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-emerald-400 mb-4 text-center"
+  }, "Data Engineer"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-4 text-sm text-slate-300 flex-1"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Focus"), /*#__PURE__*/React.createElement("p", null, "Infrastructure. \"How do we get data?\"")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Tools"), /*#__PURE__*/React.createElement("p", null, "SQL, Spark, Hadoop, Cloud (AWS/GCP)")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "font-bold text-white mb-1"
+  }, "Output"), /*#__PURE__*/React.createElement("p", null, "Data Pipelines, Warehouses, ETL")))));
+};
 
-            const tools = {
-                Excel: {
-                    why: "Ubiquitous. Perfect for quick calculations, small datasets, and ad-hoc analysis.",
-                    limit: "Struggles with large datasets (>1M rows). Not reproducible or automated."
-                },
-                SQL: {
-                    why: " The language of databases. Essential for extracting and transforming raw data.",
-                    limit: "Not built for advanced statistical modeling or visualization."
-                },
-                Python: {
-                    why: "Infinite flexibility. Handles massive data, advanced ML, and automation.",
-                    limit: "Steeper learning curve. Requires coding knowledge."
-                },
-                Tableau: {
-                    why: "Industry standard for beautiful, interactive dashboards. Drag-and-drop interface.",
-                    limit: "Can be expensive. Data prep capabilities are limited compared to SQL/Python."
-                },
-                PowerBI: {
-                    why: "Deep integration with Microsoft ecosystem. Powerful data modeling (DAX).",
-                    limit: "Desktop version is Windows-only. Can be complex to learn DAX."
-                }
-            };
+// --- MAIN APP ---
 
-            return (
-                <div className="h-full flex flex-col items-center justify-center gap-8">
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full">
-                        {Object.keys(tools).map(tool => (
-                            <button
-                                key={tool}
-                                onClick={() => setActiveTool(tool)}
-                                className={`p-4 rounded-xl border transition-all font-bold text-sm
-                                ${activeTool === tool
-                                        ? 'bg-blue-600 border-blue-400 text-white shadow-lg scale-105'
-                                        : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-white'}`}
-                            >
-                                {tool}
-                            </button>
-                        ))}
-                    </div>
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [{
+    layout: "center",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "text-center animate-fade-in max-w-4xl"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "inline-block p-2 px-4 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-300 text-xs font-mono mb-8"
+    }, "OPENING_SESSION"), /*#__PURE__*/React.createElement("h1", {
+      className: "text-5xl md:text-7xl font-black text-white mb-6 tracking-tight"
+    }, "Data Analytics"), /*#__PURE__*/React.createElement("h2", {
+      className: "text-2xl md:text-4xl font-light text-slate-400 mb-12"
+    }, "From ", /*#__PURE__*/React.createElement("span", {
+      className: "text-blue-400 font-bold"
+    }, "Raw Numbers"), " to ", /*#__PURE__*/React.createElement("span", {
+      className: "text-purple-400 font-bold"
+    }, "Business Impact")), /*#__PURE__*/React.createElement("div", {
+      className: "glass-panel p-6 rounded-xl inline-flex items-center gap-6 text-left max-w-2xl mx-auto"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg"
+    }, "JG"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-slate-400 uppercase tracking-wider font-bold mb-1"
+    }, "Presented By"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xl text-white font-bold"
+    }, "Jayan Gupta"), /*#__PURE__*/React.createElement("div", {
+      className: "text-sm text-blue-300"
+    }, "Data Scientist & AI Specialist"))))
+  }, {
+    layout: "split",
+    title: "About Me",
+    subtitle: "Experience & Expertise",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800/50 p-4 rounded-lg border-l-4 border-blue-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "text-blue-400 font-bold mb-1"
+    }, "🚀 GeeksforGeeks"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-300"
+    }, "Member of Technical Staff - Data Science. Built AI learning systems.")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800/50 p-4 rounded-lg border-l-4 border-indigo-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "text-indigo-400 font-bold mb-1"
+    }, "🛡️ DRDO"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-300"
+    }, "Data Scientist. Worked on defense research analytics.")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800/50 p-4 rounded-lg border-l-4 border-purple-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "text-purple-400 font-bold mb-1"
+    }, "🏆 Achievements"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-300"
+    }, "15+ Hackathon Wins • Mentored 5000+ Students"))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-center h-full"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "relative w-64 h-64 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.3)]"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "text-8xl text-white font-bold"
+    }, "JG")))
+  }, {
+    layout: "split",
+    title: "What is Analytics?",
+    subtitle: "The Core Definition",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6 text-lg text-slate-300"
+    }, /*#__PURE__*/React.createElement("p", null, "Data Analytics is the science of examining raw data to draw meaningful conclusions."), /*#__PURE__*/React.createElement("p", null, "It is not just about making charts. It is about answering ", /*#__PURE__*/React.createElement("strong", null, "business questions"), ":"), /*#__PURE__*/React.createElement("ul", {
+      className: "list-disc pl-5 space-y-2 text-base text-slate-400"
+    }, /*#__PURE__*/React.createElement("li", null, "\"Why did sales drop last month?\""), /*#__PURE__*/React.createElement("li", null, "\"Which marketing channel is most effective?\""), /*#__PURE__*/React.createElement("li", null, "\"How can we reduce customer churn?\""))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "flex flex-col items-center justify-center h-full gap-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "p-4 bg-slate-900 border border-slate-700 rounded-lg text-center w-64"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs font-bold text-slate-500 mb-2 uppercase"
+    }, "Input"), /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-white"
+    }, "Raw Data")), /*#__PURE__*/React.createElement("div", {
+      className: "text-2xl text-slate-500"
+    }, "⬇️"), /*#__PURE__*/React.createElement("div", {
+      className: "p-4 bg-slate-900 border border-blue-500 rounded-lg text-center w-64 shadow-[0_0_20px_rgba(59,130,246,0.3)]"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-xs font-bold text-blue-400 mb-2 uppercase"
+    }, "Output"), /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-white"
+    }, "Insight")))
+  }, {
+    layout: "center",
+    title: "Analytics vs Science",
+    subtitle: "Understanding the Difference",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex flex-col justify-center"
+    }, /*#__PURE__*/React.createElement(ComparatorViz, null))
+  }, {
+    layout: "center",
+    title: "Data Roles",
+    subtitle: "Who does what?",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex flex-col justify-center"
+    }, /*#__PURE__*/React.createElement(RolesViz, null))
+  }, {
+    layout: "center",
+    title: "The Data Lifecycle",
+    subtitle: "How a Project Works",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex flex-col justify-center"
+    }, /*#__PURE__*/React.createElement(LifecycleViz, null))
+  }, {
+    layout: "center",
+    title: "The Tool Stack",
+    subtitle: "Why & Limitations",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex flex-col justify-center"
+    }, /*#__PURE__*/React.createElement(ToolStackViz, null))
+  }, {
+    layout: "center",
+    content: /*#__PURE__*/React.createElement("div", {
+      className: "text-center animate-fade-in"
+    }, /*#__PURE__*/React.createElement("h2", {
+      className: "text-5xl font-bold text-white mb-6"
+    }, "Ready to Start?"), /*#__PURE__*/React.createElement("p", {
+      className: "text-xl text-slate-400 max-w-2xl mx-auto mb-12"
+    }, "\"Data without insights is just noise. Let's learn how to turn that noise into a symphony.\""), /*#__PURE__*/React.createElement("div", {
+      className: "inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-900 px-8 py-4 rounded text-white font-bold"
+    }, "Let's Dive In 🚀")))
+  }];
+  useEffect(() => {
+    const handleKey = e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [slides.length]);
+  const CurrentContent = slides[currentSlide];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-1 bg-slate-900 z-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300",
+    style: {
+      width: `${(currentSlide + 1) / slides.length * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 flex items-center justify-center p-8 z-10"
+  }, CurrentContent.layout === 'center' ? /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-full flex flex-col items-center justify-center animate-fade-in"
+  }, CurrentContent.title && /*#__PURE__*/React.createElement("div", {
+    className: "text-center mb-8"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-4xl font-bold text-white mb-2"
+  }, CurrentContent.title), /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl text-blue-400 font-mono"
+  }, CurrentContent.subtitle)), CurrentContent.content) : /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col justify-center h-full space-y-6"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h2", {
+    className: "text-4xl md:text-5xl font-bold text-white mb-2"
+  }, CurrentContent.title), /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl text-blue-400 font-light"
+  }, CurrentContent.subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "h-1 w-20 bg-blue-500 rounded"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4"
+  }, CurrentContent.text)), /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6"
+  }, CurrentContent.viz))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+    className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors"
+  }, "PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center text-slate-300 min-w-[3rem] text-center"
+  }, currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+    className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors"
+  }, "NEXT")));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-                    <div className="glass-panel p-8 rounded-2xl w-full max-w-3xl min-h-[250px] flex flex-col justify-center text-center">
-                        {activeTool ? (
-                            <div className="animate-fade-in">
-                                <h3 className="text-3xl font-bold text-white mb-6">{activeTool}</h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
-                                    <div>
-                                        <div className="text-xs uppercase font-bold text-green-400 mb-2">Why Use It</div>
-                                        <p className="text-slate-300 text-sm leading-relaxed">{tools[activeTool].why}</p>
-                                    </div>
-                                    <div>
-                                        <div className="text-xs uppercase font-bold text-red-400 mb-2">Limitations</div>
-                                        <p className="text-slate-300 text-sm leading-relaxed">{tools[activeTool].limit}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="text-slate-500 italic">Select a tool above to see details</div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
 
-        // 4. ROLES COMPARISON VIZ
-        const RolesViz = () => {
-            return (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full p-4 items-center">
-                    {/* Analyst */}
-                    <div className="bg-slate-800/50 border border-blue-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all">
-                        <h3 className="text-xl font-bold text-blue-400 mb-4 text-center">Data Analyst</h3>
-                        <div className="space-y-4 text-sm text-slate-300 flex-1">
-                            <div>
-                                <div className="font-bold text-white mb-1">Focus</div>
-                                <p>Descriptive. "What happened?"</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Tools</div>
-                                <p>Excel, SQL, PowerBI, Tableau</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Output</div>
-                                <p>Dashboards, Reports, Business Insights</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Scientist */}
-                    <div className="bg-slate-800/50 border border-purple-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all">
-                        <h3 className="text-xl font-bold text-purple-400 mb-4 text-center">Data Scientist</h3>
-                        <div className="space-y-4 text-sm text-slate-300 flex-1">
-                            <div>
-                                <div className="font-bold text-white mb-1">Focus</div>
-                                <p>Predictive. "What will happen?"</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Tools</div>
-                                <p>Python, R, TensorFlow, Scikit-learn</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Output</div>
-                                <p>ML Models, Algorithms, Forecasts</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Engineer */}
-                    <div className="bg-slate-800/50 border border-emerald-500/30 p-6 rounded-xl h-full flex flex-col hover:bg-slate-800 transition-all">
-                        <h3 className="text-xl font-bold text-emerald-400 mb-4 text-center">Data Engineer</h3>
-                        <div className="space-y-4 text-sm text-slate-300 flex-1">
-                            <div>
-                                <div className="font-bold text-white mb-1">Focus</div>
-                                <p>Infrastructure. "How do we get data?"</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Tools</div>
-                                <p>SQL, Spark, Hadoop, Cloud (AWS/GCP)</p>
-                            </div>
-                            <div>
-                                <div className="font-bold text-white mb-1">Output</div>
-                                <p>Data Pipelines, Warehouses, ETL</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- MAIN APP ---
-
-        const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
-
-            const slides = [
-                {
-                    layout: "center",
-                    content: (
-                        <div className="text-center animate-fade-in max-w-4xl">
-                            <div className="inline-block p-2 px-4 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-300 text-xs font-mono mb-8">
-                                OPENING_SESSION
-                            </div>
-                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
-                                Data Analytics
-                            </h1>
-                            <h2 className="text-2xl md:text-4xl font-light text-slate-400 mb-12">
-                                From <span className="text-blue-400 font-bold">Raw Numbers</span> to <span className="text-purple-400 font-bold">Business Impact</span>
-                            </h2>
-
-                            <div className="glass-panel p-6 rounded-xl inline-flex items-center gap-6 text-left max-w-2xl mx-auto">
-                                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-3xl font-bold text-white shadow-lg">
-                                    JG
-                                </div>
-                                <div>
-                                    <div className="text-sm text-slate-400 uppercase tracking-wider font-bold mb-1">Presented By</div>
-                                    <div className="text-xl text-white font-bold">Jayan Gupta</div>
-                                    <div className="text-sm text-blue-300">Data Scientist & AI Specialist</div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                },
-                {
-                    layout: "split",
-                    title: "About Me",
-                    subtitle: "Experience & Expertise",
-                    text: (
-                        <div className="space-y-6">
-                            <div className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-blue-500">
-                                <h4 className="text-blue-400 font-bold mb-1">🚀 GeeksforGeeks</h4>
-                                <p className="text-sm text-slate-300">Member of Technical Staff - Data Science. Built AI learning systems.</p>
-                            </div>
-                            <div className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-indigo-500">
-                                <h4 className="text-indigo-400 font-bold mb-1">🛡️ DRDO</h4>
-                                <p className="text-sm text-slate-300">Data Scientist. Worked on defense research analytics.</p>
-                            </div>
-                            <div className="bg-slate-800/50 p-4 rounded-lg border-l-4 border-purple-500">
-                                <h4 className="text-purple-400 font-bold mb-1">🏆 Achievements</h4>
-                                <p className="text-sm text-slate-300">15+ Hackathon Wins • Mentored 5000+ Students</p>
-                            </div>
-                        </div>
-                    ),
-                    viz: (
-                        <div className="flex items-center justify-center h-full">
-                            <div className="relative w-64 h-64 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(79,70,229,0.3)]">
-                                <span className="text-8xl text-white font-bold">JG</span>
-                            </div>
-                        </div>
-                    )
-                },
-                {
-                    layout: "split",
-                    title: "What is Analytics?",
-                    subtitle: "The Core Definition",
-                    text: (
-                        <div className="space-y-6 text-lg text-slate-300">
-                            <p>Data Analytics is the science of examining raw data to draw meaningful conclusions.</p>
-                            <p>It is not just about making charts. It is about answering <strong>business questions</strong>:</p>
-                            <ul className="list-disc pl-5 space-y-2 text-base text-slate-400">
-                                <li>"Why did sales drop last month?"</li>
-                                <li>"Which marketing channel is most effective?"</li>
-                                <li>"How can we reduce customer churn?"</li>
-                            </ul>
-                        </div>
-                    ),
-                    viz: (
-                        <div className="flex flex-col items-center justify-center h-full gap-4">
-                            <div className="p-4 bg-slate-900 border border-slate-700 rounded-lg text-center w-64">
-                                <div className="text-xs font-bold text-slate-500 mb-2 uppercase">Input</div>
-                                <div className="font-bold text-white">Raw Data</div>
-                            </div>
-                            <div className="text-2xl text-slate-500">⬇️</div>
-                            <div className="p-4 bg-slate-900 border border-blue-500 rounded-lg text-center w-64 shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-                                <div className="text-xs font-bold text-blue-400 mb-2 uppercase">Output</div>
-                                <div className="font-bold text-white">Insight</div>
-                            </div>
-                        </div>
-                    )
-                },
-                {
-                    layout: "center",
-                    title: "Analytics vs Science",
-                    subtitle: "Understanding the Difference",
-                    content: (
-                        <div className="h-full flex flex-col justify-center">
-                            <ComparatorViz />
-                        </div>
-                    )
-                },
-                {
-                    layout: "center",
-                    title: "Data Roles",
-                    subtitle: "Who does what?",
-                    content: (
-                        <div className="h-full flex flex-col justify-center">
-                            <RolesViz />
-                        </div>
-                    )
-                },
-                {
-                    layout: "center",
-                    title: "The Data Lifecycle",
-                    subtitle: "How a Project Works",
-                    content: (
-                        <div className="h-full flex flex-col justify-center">
-                            <LifecycleViz />
-                        </div>
-                    )
-                },
-                {
-                    layout: "center",
-                    title: "The Tool Stack",
-                    subtitle: "Why & Limitations",
-                    content: (
-                        <div className="h-full flex flex-col justify-center">
-                            <ToolStackViz />
-                        </div>
-                    )
-                },
-                {
-                    layout: "center",
-                    content: (
-                        <div className="text-center animate-fade-in">
-                            <h2 className="text-5xl font-bold text-white mb-6">Ready to Start?</h2>
-                            <p className="text-xl text-slate-400 max-w-2xl mx-auto mb-12">
-                                "Data without insights is just noise. Let's learn how to turn that noise into a symphony."
-                            </p>
-                            <div className="inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                                <div className="bg-slate-900 px-8 py-4 rounded text-white font-bold">
-                                    Let's Dive In 🚀
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-            ];
-
-            useEffect(() => {
-                const handleKey = (e) => {
-                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
-                };
-                window.addEventListener('keydown', handleKey);
-                return () => window.removeEventListener('keydown', handleKey);
-            }, [slides.length]);
-
-            const CurrentContent = slides[currentSlide];
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950">
-                    {/* Background Decor */}
-                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-                    <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full h-1 bg-slate-900 z-50">
-                        <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    {/* Main Content Area */}
-                    <div className="flex-1 flex items-center justify-center p-8 z-10">
-                        {CurrentContent.layout === 'center' ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                                {CurrentContent.title && (
-                                    <div className="text-center mb-8">
-                                        <h2 className="text-4xl font-bold text-white mb-2">{CurrentContent.title}</h2>
-                                        <h3 className="text-xl text-blue-400 font-mono">{CurrentContent.subtitle}</h3>
-                                    </div>
-                                )}
-                                {CurrentContent.content}
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center">
-                                <div className="flex flex-col justify-center h-full space-y-6">
-                                    <div>
-                                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">{CurrentContent.title}</h2>
-                                        <h3 className="text-2xl text-blue-400 font-light">{CurrentContent.subtitle}</h3>
-                                    </div>
-                                    <div className="h-1 w-20 bg-blue-500 rounded"></div>
-                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4">
-                                        {CurrentContent.text}
-                                    </div>
-                                </div>
-                                <div className="h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6">
-                                    {CurrentContent.viz}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Navigation Controls */}
-                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
-                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">PREV</button>
-                        <span className="self-center text-slate-300 min-w-[3rem] text-center">{currentSlide + 1} / {slides.length}</span>
-                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">NEXT</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-
-</body>
-
-</html>
+</body></html>

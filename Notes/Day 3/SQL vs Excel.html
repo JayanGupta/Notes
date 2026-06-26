@@ -1,13 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SQL: The Data Warehouse Blueprint</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
@@ -34,637 +32,725 @@
 
 <div id="root"></div>
 
-<script type="text/babel">
-    const { useState, useEffect, useMemo } = React;
+<script>const {
+  useState,
+  useEffect,
+  useMemo
+} = React;
 
-    // --- Mock Database for Playground ---
-    const mockDatabase = {
-        products: [
-            { id: 101, name: 'Laptop Pro', category: 'Electronics', price: 1200, stock: 5 },
-            { id: 102, name: 'Coffee Mug', category: 'Home', price: 15, stock: 150 },
-            { id: 103, name: 'Gaming Chair', category: 'Furniture', price: 350, stock: 20 },
-            { id: 104, name: 'Mouse Pad', category: 'Electronics', price: 10, stock: 500 },
-            { id: 105, name: 'Desk Lamp', category: 'Home', price: 45, stock: 80 },
-            { id: 106, name: 'External SSD', category: 'Electronics', price: 99, stock: 30 }
-        ]
-    };
+// --- Mock Database for Playground ---
+const mockDatabase = {
+  products: [{
+    id: 101,
+    name: 'Laptop Pro',
+    category: 'Electronics',
+    price: 1200,
+    stock: 5
+  }, {
+    id: 102,
+    name: 'Coffee Mug',
+    category: 'Home',
+    price: 15,
+    stock: 150
+  }, {
+    id: 103,
+    name: 'Gaming Chair',
+    category: 'Furniture',
+    price: 350,
+    stock: 20
+  }, {
+    id: 104,
+    name: 'Mouse Pad',
+    category: 'Electronics',
+    price: 10,
+    stock: 500
+  }, {
+    id: 105,
+    name: 'Desk Lamp',
+    category: 'Home',
+    price: 45,
+    stock: 80
+  }, {
+    id: 106,
+    name: 'External SSD',
+    category: 'Electronics',
+    price: 99,
+    stock: 30
+  }]
+};
 
-    // --- Visual Components ---
+// --- Visual Components ---
 
-    const ExcelVsSQLViz = () => (
-        <div className="flex flex-col h-full w-full p-8 gap-6 justify-center items-center">
-            <div className="flex w-full gap-8 h-64">
-                {/* Excel Side */}
-                <div className="flex-1 bg-green-900/20 border border-green-500/30 rounded-xl p-4 relative overflow-hidden group hover:border-green-400 transition-all">
-                    <div className="absolute top-0 left-0 w-full h-8 bg-green-600/20 flex items-center px-4 text-xs font-mono text-green-300">SPREADSHEET.XLSX</div>
-                    <div className="mt-8 grid grid-cols-4 gap-1 opacity-50">
-                        {[...Array(12)].map((_, i) => (
-                            <div key={i} className="h-6 bg-green-500/10 rounded border border-green-500/20"></div>
-                        ))}
-                    </div>
-                    <div className="absolute bottom-4 right-4">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-green-500" strokeWidth="1.5"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 12V5a2 2 0 0 1 2-2h7l5 5v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4"/><path d="M4 12H3"/><path d="M21 12h-1"/><path d="M5 16h4"/><path d="M5 20h4"/></svg>
-                    </div>
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm text-center p-4">
-                        <span className="text-green-300 font-bold">Manual Entry<br/>Visual Access<br/>Limited Rows</span>
-                    </div>
-                </div>
+const ExcelVsSQLViz = () => /*#__PURE__*/React.createElement("div", {
+  className: "flex flex-col h-full w-full p-8 gap-6 justify-center items-center"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex w-full gap-8 h-64"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 bg-green-900/20 border border-green-500/30 rounded-xl p-4 relative overflow-hidden group hover:border-green-400 transition-all"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "absolute top-0 left-0 w-full h-8 bg-green-600/20 flex items-center px-4 text-xs font-mono text-green-300"
+}, "SPREADSHEET.XLSX"), /*#__PURE__*/React.createElement("div", {
+  className: "mt-8 grid grid-cols-4 gap-1 opacity-50"
+}, [...Array(12)].map((_, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  className: "h-6 bg-green-500/10 rounded border border-green-500/20"
+}))), /*#__PURE__*/React.createElement("div", {
+  className: "absolute bottom-4 right-4"
+}, /*#__PURE__*/React.createElement("svg", {
+  width: "48",
+  height: "48",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  className: "text-green-500",
+  strokeWidth: "1.5"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M14 3v4a1 1 0 0 0 1 1h4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M5 12V5a2 2 0 0 1 2-2h7l5 5v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M4 12H3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M21 12h-1"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M5 16h4"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M5 20h4"
+}))), /*#__PURE__*/React.createElement("div", {
+  className: "absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm text-center p-4"
+}, /*#__PURE__*/React.createElement("span", {
+  className: "text-green-300 font-bold"
+}, "Manual Entry", /*#__PURE__*/React.createElement("br", null), "Visual Access", /*#__PURE__*/React.createElement("br", null), "Limited Rows"))), /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 relative overflow-hidden group hover:border-blue-400 transition-all"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "absolute top-0 left-0 w-full h-8 bg-blue-600/20 flex items-center px-4 text-xs font-mono text-blue-300"
+}, "DATABASE_SERVER"), /*#__PURE__*/React.createElement("div", {
+  className: "mt-8 flex flex-col gap-2 items-center justify-center h-40"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20 -mt-2"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20 -mt-2"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "w-16 h-12 border-x border-b border-blue-400 rounded-b-[20px] bg-blue-500/10 -mt-7"
+})), /*#__PURE__*/React.createElement("div", {
+  className: "absolute bottom-4 right-4"
+}, /*#__PURE__*/React.createElement("svg", {
+  width: "48",
+  height: "48",
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  className: "text-blue-500",
+  strokeWidth: "1.5"
+}, /*#__PURE__*/React.createElement("ellipse", {
+  cx: "12",
+  cy: "5",
+  rx: "9",
+  ry: "3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"
+}))), /*#__PURE__*/React.createElement("div", {
+  className: "absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm text-center p-4"
+}, /*#__PURE__*/React.createElement("span", {
+  className: "text-blue-300 font-bold"
+}, "Query Based", /*#__PURE__*/React.createElement("br", null), "Backend Logic", /*#__PURE__*/React.createElement("br", null), "Massive Scale")))), /*#__PURE__*/React.createElement("div", {
+  className: "text-sm text-slate-400 text-center max-w-md"
+}, "Excel is like a ", /*#__PURE__*/React.createElement("b", null, "Notebook"), " (what you see is what you get). ", /*#__PURE__*/React.createElement("br", null), "SQL is like a ", /*#__PURE__*/React.createElement("b", null, "Warehouse"), " (you need a robot to fetch things for you)."));
+const CommandViz = ({
+  type
+}) => {
+  const [step, setStep] = useState(0);
 
-                {/* SQL Side */}
-                <div className="flex-1 bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 relative overflow-hidden group hover:border-blue-400 transition-all">
-                    <div className="absolute top-0 left-0 w-full h-8 bg-blue-600/20 flex items-center px-4 text-xs font-mono text-blue-300">DATABASE_SERVER</div>
-                    <div className="mt-8 flex flex-col gap-2 items-center justify-center h-40">
-                        <div className="w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20"></div>
-                        <div className="w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20 -mt-2"></div>
-                        <div className="w-16 h-4 rounded-[100%] border border-blue-400 bg-blue-500/20 -mt-2"></div>
-                        <div className="w-16 h-12 border-x border-b border-blue-400 rounded-b-[20px] bg-blue-500/10 -mt-7"></div>
-                    </div>
-                    <div className="absolute bottom-4 right-4">
-                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="text-blue-500" strokeWidth="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
-                    </div>
-                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm text-center p-4">
-                        <span className="text-blue-300 font-bold">Query Based<br/>Backend Logic<br/>Massive Scale</span>
-                    </div>
-                </div>
-            </div>
-            <div className="text-sm text-slate-400 text-center max-w-md">
-                Excel is like a <b>Notebook</b> (what you see is what you get). <br/>
-                SQL is like a <b>Warehouse</b> (you need a robot to fetch things for you).
-            </div>
-        </div>
-    );
+  // Reset animation every few seconds
+  useEffect(() => {
+    const timer = setInterval(() => setStep(s => (s + 1) % 4), 1500);
+    return () => clearInterval(timer);
+  }, []);
+  const renderDDL = () => /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `transition-all duration-500 border-4 border-dashed border-slate-600 p-4 rounded-lg ${step > 0 ? 'w-48 h-48 border-blue-500 border-solid bg-blue-900/20' : 'w-0 h-0 opacity-0'}`
+  }, step > 1 && /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-8 border-b border-blue-500/50 flex items-center px-2 text-xs text-blue-300"
+  }, "Users Table"), step > 2 && /*#__PURE__*/React.createElement("div", {
+    className: "mt-2 space-y-2 px-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-2 w-3/4 bg-blue-400/30 rounded"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 w-1/2 bg-blue-400/30 rounded"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "h-2 w-2/3 bg-blue-400/30 rounded"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4 font-mono text-blue-400 text-sm"
+  }, "CREATE TABLE Users..."));
+  const renderDML = () => /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full gap-4 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-48 h-48 border border-blue-500 rounded-lg bg-blue-900/20 relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 w-full h-8 border-b border-blue-500/30 bg-blue-800/20"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "mt-10 mx-2 h-2 bg-blue-500/20 rounded"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: `absolute left-2 h-2 bg-green-500 rounded transition-all duration-1000 ${step % 2 === 0 ? '-top-10 opacity-0' : 'top-16 w-3/4 opacity-100'}`
+  }), /*#__PURE__*/React.createElement("div", {
+    className: `absolute left-2 h-2 bg-red-500 rounded transition-all duration-1000 ${step % 2 === 0 ? '-top-10 opacity-0' : 'top-20 w-1/2 opacity-100'}`
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-green-400 text-sm"
+  }, "INSERT INTO Users..."));
+  const renderTCL = () => /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full gap-4 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-48 h-48 border border-purple-500 rounded-lg bg-purple-900/20 flex flex-col justify-center items-center p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl text-purple-400 mb-2"
+  }, "💾"), /*#__PURE__*/React.createElement("div", {
+    className: `text-sm font-mono transition-opacity duration-500 ${step === 1 ? 'opacity-100 text-green-400' : 'opacity-50 text-slate-400'}`
+  }, "COMMIT: Save Changes"), /*#__PURE__*/React.createElement("div", {
+    className: `text-sm font-mono transition-opacity duration-500 ${step === 2 ? 'opacity-100 text-red-400' : 'opacity-50 text-slate-400'}`
+  }, "ROLLBACK: Undo Changes"), /*#__PURE__*/React.createElement("div", {
+    className: `text-sm font-mono transition-opacity duration-500 ${step === 3 ? 'opacity-100 text-yellow-400' : 'opacity-50 text-slate-400'}`
+  }, "SAVEPOINT: Checkpoint")), /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-purple-400 text-sm"
+  }, "COMMIT / ROLLBACK"));
+  const renderDQL = () => /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full w-full px-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex w-full gap-2 mb-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 h-10 bg-slate-800 rounded border border-slate-600 flex items-center px-3 font-mono text-xs text-yellow-300"
+  }, "SELECT * FROM Users WHERE age > 25"), /*#__PURE__*/React.createElement("div", {
+    className: `p-2 rounded bg-blue-600 transition-transform ${step === 1 ? 'scale-90' : 'scale-100'}`
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 24 24",
+    fill: "none",
+    stroke: "currentColor",
+    strokeWidth: "2"
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: "11",
+    cy: "11",
+    r: "8"
+  }), /*#__PURE__*/React.createElement("path", {
+    d: "m21 21-4.3-4.3"
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "w-full bg-slate-900 rounded-lg border border-slate-700 h-40 p-2 overflow-hidden relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "space-y-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-100' : 'opacity-20'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 rounded-full bg-green-500 mr-2"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "User A (30)")), /*#__PURE__*/React.createElement("div", {
+    className: `h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-20' : 'opacity-20'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 rounded-full bg-red-500 mr-2"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "User B (18)")), /*#__PURE__*/React.createElement("div", {
+    className: `h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-100' : 'opacity-20'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 rounded-full bg-green-500 mr-2"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-xs text-slate-400"
+  }, "User C (42)")))));
+  if (type === 'DDL') return renderDDL();
+  if (type === 'DML') return renderDML();
+  if (type === 'TCL') return renderTCL();
+  return renderDQL();
+};
+const SyntaxCard = ({
+  title,
+  code,
+  note
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "bg-slate-900 border border-slate-700 rounded-lg p-6 w-full max-w-lg code-glow"
+}, /*#__PURE__*/React.createElement("h3", {
+  className: "text-blue-400 font-bold mb-2 uppercase text-xs tracking-wider"
+}, title), /*#__PURE__*/React.createElement("pre", {
+  className: "font-mono text-sm text-slate-300 mb-4 overflow-x-auto whitespace-pre-wrap"
+}, code.split(' ').map((word, i) => {
+  if (['SELECT', 'FROM', 'WHERE', 'INSERT', 'INTO', 'VALUES', 'CREATE', 'TABLE', 'UPDATE', 'SET', 'DELETE', 'GROUP', 'BY', 'ORDER', 'COUNT', 'SUM', 'COMMIT', 'ROLLBACK', 'SAVEPOINT', 'TO'].includes(word.replace(/[,()']|;/g, ''))) {
+    return /*#__PURE__*/React.createElement("span", {
+      key: i,
+      className: "text-purple-400 font-bold"
+    }, word, " ");
+  }
+  if (word.startsWith("'")) return /*#__PURE__*/React.createElement("span", {
+    key: i,
+    className: "text-yellow-300"
+  }, word, " ");
+  return /*#__PURE__*/React.createElement("span", {
+    key: i
+  }, word, " ");
+})), /*#__PURE__*/React.createElement("div", {
+  className: "text-xs text-slate-500 border-t border-slate-800 pt-2 italic"
+}, "💡 ", note));
+const ExcelSQLTaskComparison = () => /*#__PURE__*/React.createElement("div", {
+  className: "flex flex-col md:flex-row h-full p-6 gap-6"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 bg-green-900/20 border border-green-500/30 rounded-xl p-4 flex flex-col"
+}, /*#__PURE__*/React.createElement("h3", {
+  className: "text-green-300 font-bold text-lg mb-3"
+}, "Excel Workflow (500k Rows)"), /*#__PURE__*/React.createElement("ol", {
+  className: "list-decimal list-inside space-y-3 text-sm text-slate-300"
+}, /*#__PURE__*/React.createElement("li", null, "Load file (takes time, might crash)."), /*#__PURE__*/React.createElement("li", null, "Create ", /*#__PURE__*/React.createElement("b", null, "Pivot Table"), " for grouping."), /*#__PURE__*/React.createElement("li", null, "Apply multiple manual ", /*#__PURE__*/React.createElement("b", null, "filters"), " to exclude data."), /*#__PURE__*/React.createElement("li", null, "Add calculated field for the average."), /*#__PURE__*/React.createElement("li", null, "Repeat the process if data changes.")), /*#__PURE__*/React.createElement("div", {
+  className: "mt-4 p-3 bg-green-800/50 rounded text-xs font-mono text-green-300"
+}, "Time: ~5-15 minutes (High chance of error or memory crash)")), /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 flex flex-col"
+}, /*#__PURE__*/React.createElement("h3", {
+  className: "text-blue-300 font-bold text-lg mb-3"
+}, "SQL Workflow (500 Million Rows)"), /*#__PURE__*/React.createElement("p", {
+  className: "text-sm font-mono text-yellow-300 bg-slate-900 p-3 rounded shadow-inner"
+}, "SELECT", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0Region,", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0AVG(SalesAmount)", /*#__PURE__*/React.createElement("br", null), "FROM", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0Transactions", /*#__PURE__*/React.createElement("br", null), "WHERE", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0Year = 2024 AND Category != 'Service'", /*#__PURE__*/React.createElement("br", null), "GROUP BY", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0Region;"), /*#__PURE__*/React.createElement("ol", {
+  className: "list-decimal list-inside space-y-3 text-sm text-slate-300 mt-3"
+}, /*#__PURE__*/React.createElement("li", null, "Write the single query."), /*#__PURE__*/React.createElement("li", null, "Execute query."), /*#__PURE__*/React.createElement("li", null, "Results returned instantly.")), /*#__PURE__*/React.createElement("div", {
+  className: "mt-4 p-3 bg-blue-800/50 rounded text-xs font-mono text-blue-300"
+}, "Time: ~5 seconds (Immediate, scalable, repeatable)")));
+const SQLPlayground = () => {
+  const [query, setQuery] = useState("SELECT * FROM products;");
+  // Initialize result with the full table so it's not empty on load
+  const [result, setResult] = useState(mockDatabase.products);
+  const [message, setMessage] = useState("Type a query and click Execute to view results. Try WHERE conditions!");
 
-    const CommandViz = ({ type }) => {
-        const [step, setStep] = useState(0);
-
-        // Reset animation every few seconds
-        useEffect(() => {
-            const timer = setInterval(() => setStep(s => (s + 1) % 4), 1500);
-            return () => clearInterval(timer);
-        }, []);
-
-        const renderDDL = () => (
-            <div className="flex flex-col items-center justify-center h-full">
-                <div className={`transition-all duration-500 border-4 border-dashed border-slate-600 p-4 rounded-lg ${step > 0 ? 'w-48 h-48 border-blue-500 border-solid bg-blue-900/20' : 'w-0 h-0 opacity-0'}`}>
-                    {step > 1 && <div className="w-full h-8 border-b border-blue-500/50 flex items-center px-2 text-xs text-blue-300">Users Table</div>}
-                    {step > 2 && <div className="mt-2 space-y-2 px-2">
-                        <div className="h-2 w-3/4 bg-blue-400/30 rounded"></div>
-                        <div className="h-2 w-1/2 bg-blue-400/30 rounded"></div>
-                        <div className="h-2 w-2/3 bg-blue-400/30 rounded"></div>
-                    </div>}
-                </div>
-                <div className="mt-4 font-mono text-blue-400 text-sm">CREATE TABLE Users...</div>
-            </div>
-        );
-
-        const renderDML = () => (
-            <div className="flex flex-col items-center justify-center h-full gap-4 relative">
-                 <div className="w-48 h-48 border border-blue-500 rounded-lg bg-blue-900/20 relative overflow-hidden">
-                    <div className="absolute top-0 w-full h-8 border-b border-blue-500/30 bg-blue-800/20"></div>
-                    {/* Existing Data */}
-                    <div className="mt-10 mx-2 h-2 bg-blue-500/20 rounded"></div>
-                    
-                    {/* Incoming Data - The Insert */}
-                    <div className={`absolute left-2 h-2 bg-green-500 rounded transition-all duration-1000 ${step % 2 === 0 ? '-top-10 opacity-0' : 'top-16 w-3/4 opacity-100'}`}></div>
-                    <div className={`absolute left-2 h-2 bg-red-500 rounded transition-all duration-1000 ${step % 2 === 0 ? '-top-10 opacity-0' : 'top-20 w-1/2 opacity-100'}`}></div>
-                 </div>
-                 <div className="font-mono text-green-400 text-sm">INSERT INTO Users...</div>
-            </div>
-        );
-        
-        const renderTCL = () => (
-            <div className="flex flex-col items-center justify-center h-full gap-4 relative">
-                <div className="w-48 h-48 border border-purple-500 rounded-lg bg-purple-900/20 flex flex-col justify-center items-center p-4">
-                    <div className="text-4xl text-purple-400 mb-2">💾</div>
-                    <div className={`text-sm font-mono transition-opacity duration-500 ${step === 1 ? 'opacity-100 text-green-400' : 'opacity-50 text-slate-400'}`}>COMMIT: Save Changes</div>
-                    <div className={`text-sm font-mono transition-opacity duration-500 ${step === 2 ? 'opacity-100 text-red-400' : 'opacity-50 text-slate-400'}`}>ROLLBACK: Undo Changes</div>
-                    <div className={`text-sm font-mono transition-opacity duration-500 ${step === 3 ? 'opacity-100 text-yellow-400' : 'opacity-50 text-slate-400'}`}>SAVEPOINT: Checkpoint</div>
-                </div>
-                <div className="font-mono text-purple-400 text-sm">COMMIT / ROLLBACK</div>
-            </div>
-        );
-
-
-        const renderDQL = () => (
-            <div className="flex flex-col items-center justify-center h-full w-full px-8">
-                <div className="flex w-full gap-2 mb-4">
-                    <div className="flex-1 h-10 bg-slate-800 rounded border border-slate-600 flex items-center px-3 font-mono text-xs text-yellow-300">
-                        SELECT * FROM Users WHERE age > 25
-                    </div>
-                    <div className={`p-2 rounded bg-blue-600 transition-transform ${step === 1 ? 'scale-90' : 'scale-100'}`}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    </div>
-                </div>
-                <div className="w-full bg-slate-900 rounded-lg border border-slate-700 h-40 p-2 overflow-hidden relative">
-                     {/* Filter visualization */}
-                     <div className="space-y-2">
-                        <div className={`h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-100' : 'opacity-20'}`}><div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div><span className="text-xs text-slate-400">User A (30)</span></div>
-                        <div className={`h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-20' : 'opacity-20'}`}><div className="w-2 h-2 rounded-full bg-red-500 mr-2"></div><span className="text-xs text-slate-400">User B (18)</span></div>
-                        <div className={`h-6 w-full bg-slate-800 rounded flex items-center px-2 transition-opacity ${step >= 2 ? 'opacity-100' : 'opacity-20'}`}><div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div><span className="text-xs text-slate-400">User C (42)</span></div>
-                     </div>
-                </div>
-            </div>
-        );
-
-        if (type === 'DDL') return renderDDL();
-        if (type === 'DML') return renderDML();
-        if (type === 'TCL') return renderTCL();
-        return renderDQL();
+  // Simple mock query execution logic
+  const executeQuery = () => {
+    setMessage("Executing...");
+    const q = query.trim().toUpperCase().replace(/;/g, '');
+    let filteredResults = [...mockDatabase.products];
+    if (!q.startsWith("SELECT * FROM PRODUCTS")) {
+      setMessage("Error: Only basic 'SELECT * FROM products...' queries are supported.");
+      setResult([]);
+      return;
     }
 
-    const SyntaxCard = ({ title, code, note }) => (
-        <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 w-full max-w-lg code-glow">
-            <h3 className="text-blue-400 font-bold mb-2 uppercase text-xs tracking-wider">{title}</h3>
-            <pre className="font-mono text-sm text-slate-300 mb-4 overflow-x-auto whitespace-pre-wrap">
-                {code.split(' ').map((word, i) => {
-                    if (['SELECT', 'FROM', 'WHERE', 'INSERT', 'INTO', 'VALUES', 'CREATE', 'TABLE', 'UPDATE', 'SET', 'DELETE', 'GROUP', 'BY', 'ORDER', 'COUNT', 'SUM', 'COMMIT', 'ROLLBACK', 'SAVEPOINT', 'TO'].includes(word.replace(/[,()']|;/g, ''))) {
-                        return <span key={i} className="text-purple-400 font-bold">{word} </span>
-                    }
-                    if (word.startsWith("'")) return <span key={i} className="text-yellow-300">{word} </span>
-                    return <span key={i}>{word} </span>
-                })}
-            </pre>
-            <div className="text-xs text-slate-500 border-t border-slate-800 pt-2 italic">
-                💡 {note}
-            </div>
-        </div>
-    );
+    // Simple WHERE clause parsing
+    const whereMatch = q.match(/WHERE\s+([A-Z]+)\s*([<>=!]+)\s*['"]?([^'"]+)['"]?/);
+    if (whereMatch) {
+      const [, col, op, val] = whereMatch;
+      const column = col.toLowerCase();
+      // If the value looks like a number, parse it as a number
+      const value = isNaN(Number(val)) ? val : Number(val);
+      filteredResults = mockDatabase.products.filter(row => {
+        const cellValue = row[column];
+        if (cellValue === undefined) return false;
 
-    const ExcelSQLTaskComparison = () => (
-        <div className="flex flex-col md:flex-row h-full p-6 gap-6">
-            <div className="flex-1 bg-green-900/20 border border-green-500/30 rounded-xl p-4 flex flex-col">
-                <h3 className="text-green-300 font-bold text-lg mb-3">Excel Workflow (500k Rows)</h3>
-                <ol className="list-decimal list-inside space-y-3 text-sm text-slate-300">
-                    <li>Load file (takes time, might crash).</li>
-                    <li>Create <b>Pivot Table</b> for grouping.</li>
-                    <li>Apply multiple manual <b>filters</b> to exclude data.</li>
-                    <li>Add calculated field for the average.</li>
-                    <li>Repeat the process if data changes.</li>
-                </ol>
-                <div className="mt-4 p-3 bg-green-800/50 rounded text-xs font-mono text-green-300">
-                    Time: ~5-15 minutes (High chance of error or memory crash)
-                </div>
-            </div>
-            <div className="flex-1 bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 flex flex-col">
-                <h3 className="text-blue-300 font-bold text-lg mb-3">SQL Workflow (500 Million Rows)</h3>
-                <p className="text-sm font-mono text-yellow-300 bg-slate-900 p-3 rounded shadow-inner">
-                    SELECT<br/>&nbsp;&nbsp;Region,<br/>&nbsp;&nbsp;AVG(SalesAmount)<br/>FROM<br/>&nbsp;&nbsp;Transactions<br/>WHERE<br/>&nbsp;&nbsp;Year = 2024 AND Category != 'Service'<br/>GROUP BY<br/>&nbsp;&nbsp;Region;
-                </p>
-                <ol className="list-decimal list-inside space-y-3 text-sm text-slate-300 mt-3">
-                    <li>Write the single query.</li>
-                    <li>Execute query.</li>
-                    <li>Results returned instantly.</li>
-                </ol>
-                <div className="mt-4 p-3 bg-blue-800/50 rounded text-xs font-mono text-blue-300">
-                    Time: ~5 seconds (Immediate, scalable, repeatable)
-                </div>
-            </div>
-        </div>
-    );
+        // Comparison logic
+        if (op === '=' || op === '==') {
+          if (typeof cellValue === 'string') {
+            return cellValue.toUpperCase() === value.toString().toUpperCase();
+          }
+          return cellValue === value;
+        }
+        if (op === '>') return cellValue > value;
+        if (op === '<') return cellValue < value;
+        if (op === '!=') return cellValue.toString().toUpperCase() !== value.toString().toUpperCase();
+        return false;
+      });
+    }
+    if (filteredResults.length === 0) {
+      setMessage("Query executed successfully. Result set is empty.");
+    } else {
+      setMessage(`Query executed successfully. Found ${filteredResults.length} rows.`);
+    }
+    setResult(filteredResults);
+  };
+  const headers = result.length > 0 ? Object.keys(result[0]) : ['id', 'name', 'category', 'price', 'stock'];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full p-6 space-y-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col"
+  }, /*#__PURE__*/React.createElement("textarea", {
+    value: query,
+    onChange: e => setQuery(e.target.value),
+    className: "font-mono text-sm p-3 bg-slate-900 border border-blue-600/50 rounded-lg text-yellow-300 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-blue-500",
+    placeholder: "SELECT * FROM products WHERE price > 100;"
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: executeQuery,
+    className: "mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/30"
+  }, "Execute Query")), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-slate-400 border-b border-slate-700 pb-2"
+  }, message), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 overflow-auto custom-scroll"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "min-w-full text-sm text-left text-slate-300"
+  }, /*#__PURE__*/React.createElement("thead", {
+    className: "text-xs uppercase bg-slate-700/50 sticky top-0"
+  }, /*#__PURE__*/React.createElement("tr", null, headers.map(header => /*#__PURE__*/React.createElement("th", {
+    key: header,
+    scope: "col",
+    className: "px-3 py-2 whitespace-nowrap"
+  }, header.toUpperCase())))), /*#__PURE__*/React.createElement("tbody", null, result.map((row, index) => /*#__PURE__*/React.createElement("tr", {
+    key: index,
+    className: "bg-slate-800/50 border-b border-slate-700/50 hover:bg-slate-700/50 transition-colors"
+  }, headers.map(header => /*#__PURE__*/React.createElement("td", {
+    key: header,
+    className: "px-3 py-2 whitespace-nowrap"
+  }, row[header])))), result.length === 0 && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    colSpan: headers.length,
+    className: "text-center py-4 text-slate-500 italic"
+  }, "No rows found."))))));
+};
 
-    const SQLPlayground = () => {
-        const [query, setQuery] = useState("SELECT * FROM products;");
-        // Initialize result with the full table so it's not empty on load
-        const [result, setResult] = useState(mockDatabase.products); 
-        const [message, setMessage] = useState("Type a query and click Execute to view results. Try WHERE conditions!");
+// --- Main Application ---
 
-        // Simple mock query execution logic
-        const executeQuery = () => {
-            setMessage("Executing...");
-            const q = query.trim().toUpperCase().replace(/;/g, '');
-            let filteredResults = [...mockDatabase.products];
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [{
+    title: "SQL: The Data Warehouse",
+    subtitle: "Structured Query Language",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6"
+    }, /*#__PURE__*/React.createElement("p", null, "Welcome. We are exploring the language that powers the modern internet."), /*#__PURE__*/React.createElement("p", null, "While Excel is fantastic for personal analysis, ", /*#__PURE__*/React.createElement("b", null, "SQL"), " is the bedrock of enterprise data."), /*#__PURE__*/React.createElement("ul", {
+      className: "list-disc list-inside space-y-2 text-slate-400 ml-4"
+    }, /*#__PURE__*/React.createElement("li", null, "It stands for Structured Query Language."), /*#__PURE__*/React.createElement("li", null, "It is the standard for Relational Database Management Systems (RDBMS)."), /*#__PURE__*/React.createElement("li", null, "It allows you to \"talk\" to data, rather than just look at it."))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center bg-gradient-to-br from-blue-900/20 to-slate-900"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-center"
+    }, /*#__PURE__*/React.createElement("h1", {
+      className: "text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-4"
+    }, "SQL"), /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-500 font-mono"
+    }, "VS EXCEL")))
+  }, {
+    title: "The Analogy",
+    subtitle: "Notebook vs. Warehouse",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6"
+    }, /*#__PURE__*/React.createElement("p", null, "Imagine ", /*#__PURE__*/React.createElement("b", null, "Excel"), " as a personal notebook. You can open it, write in it, erase things, and carry it around. It's flexible, visual, and great for small tasks."), /*#__PURE__*/React.createElement("p", null, "Now, imagine a ", /*#__PURE__*/React.createElement("b", null, "Warehouse (SQL)"), ". It's huge. You can't just walk in and grab a box (data) because there are millions of them."), /*#__PURE__*/React.createElement("p", null, "Instead, you stand at the service counter and submit a ", /*#__PURE__*/React.createElement("b", null, "Request Form (Query)"), " to a robot worker. The robot runs off, finds exactly what you asked for, and brings it back.")),
+    viz: /*#__PURE__*/React.createElement(ExcelVsSQLViz, null)
+  }, {
+    title: "Why Use SQL?",
+    subtitle: "The Three Pillars",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "p-4 bg-slate-800/50 rounded-lg border-l-4 border-blue-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "font-bold text-white"
+    }, "1. Scalability"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-400"
+    }, "Excel struggles with 1 million rows. SQL handles ", /*#__PURE__*/React.createElement("b", null, "billions"), " effortlessly.")), /*#__PURE__*/React.createElement("div", {
+      className: "p-4 bg-slate-800/50 rounded-lg border-l-4 border-purple-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "font-bold text-white"
+    }, "2. Integrity & Security"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-400"
+    }, "You can't accidentally delete a column by clicking the wrong thing. Rules prevent bad data entry.")), /*#__PURE__*/React.createElement("div", {
+      className: "p-4 bg-slate-800/50 rounded-lg border-l-4 border-green-500"
+    }, /*#__PURE__*/React.createElement("h4", {
+      className: "font-bold text-white"
+    }, "3. Concurrency"), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-400"
+    }, "1,000 users can read/write data at the exact same time without corruption."))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center p-8"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-2 gap-4 w-full max-w-md"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded text-center border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-2"
+    }, "🚀"), /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-slate-300"
+    }, "Fast")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded text-center border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-2"
+    }, "🔒"), /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-slate-300"
+    }, "Secure")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded text-center border border-slate-700 col-span-2"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-2"
+    }, "🌐"), /*#__PURE__*/React.createElement("div", {
+      className: "font-bold text-slate-300"
+    }, "Connected"))))
+  }, {
+    title: "DDL: The Architect",
+    subtitle: "Data Definition Language (Building)",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "DDL"), " commands are used to define the database structure or schema. Think of this as constructing the building before moving furniture in."), /*#__PURE__*/React.createElement("ul", {
+      className: "space-y-3 mt-4"
+    }, /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-blue-600 text-xs font-bold px-2 py-1 rounded"
+    }, "CREATE"), " Builds a new table or database."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-orange-600 text-xs font-bold px-2 py-1 rounded"
+    }, "ALTER"), " Modifies an existing table structure (e.g., adding a column)."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-red-600 text-xs font-bold px-2 py-1 rounded"
+    }, "DROP"), " Completely destroys a table or database.")), /*#__PURE__*/React.createElement("div", {
+      className: "mt-6 text-sm bg-slate-900 p-3 rounded font-mono text-slate-400 border border-slate-700"
+    }, "CREATE TABLE Employees (", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0ID int,", /*#__PURE__*/React.createElement("br", null), "\xA0\xA0Name varchar(255)", /*#__PURE__*/React.createElement("br", null), ");")),
+    viz: /*#__PURE__*/React.createElement(CommandViz, {
+      type: "DDL"
+    })
+  }, {
+    title: "DML: The Movers",
+    subtitle: "Data Manipulation Language (Adding Content)",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "DML"), " commands handle the actual data within the tables. This is the daily work of adding or changing records."), /*#__PURE__*/React.createElement("ul", {
+      className: "space-y-3 mt-4"
+    }, /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-green-600 text-xs font-bold px-2 py-1 rounded"
+    }, "INSERT"), " Adds new rows to a table."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-yellow-600 text-xs font-bold px-2 py-1 rounded"
+    }, "UPDATE"), " Modifies existing data."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-red-600 text-xs font-bold px-2 py-1 rounded"
+    }, "DELETE"), " Removes specific rows."))),
+    viz: /*#__PURE__*/React.createElement(CommandViz, {
+      type: "DML"
+    })
+  }, {
+    title: "TCL: The Safety Manager",
+    subtitle: "Transaction Control Language (Committing Changes)",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "TCL"), " commands manage the safety of your DML operations. They ensure that database changes are reliable and atomic (either all changes happen, or none do)."), /*#__PURE__*/React.createElement("ul", {
+      className: "space-y-3 mt-4"
+    }, /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-purple-600 text-xs font-bold px-2 py-1 rounded"
+    }, "COMMIT"), " Permanently saves the current transaction (changes)."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-red-700 text-xs font-bold px-2 py-1 rounded"
+    }, "ROLLBACK"), " Undoes all changes since the last COMMIT or SAVEPOINT."), /*#__PURE__*/React.createElement("li", {
+      className: "flex items-center gap-2"
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "bg-yellow-600 text-xs font-bold px-2 py-1 rounded"
+    }, "SAVEPOINT"), " Creates a temporary rollback point within a transaction.")), /*#__PURE__*/React.createElement("div", {
+      className: "mt-6 text-sm bg-slate-900 p-3 rounded font-mono text-slate-400 border border-slate-700"
+    }, "UPDATE Inventory SET Stock = 100 WHERE ProductID = 1;", /*#__PURE__*/React.createElement("br", null), "COMMIT;")),
+    viz: /*#__PURE__*/React.createElement(CommandViz, {
+      type: "TCL"
+    })
+  }, {
+    title: "DQL: The Search Engine",
+    subtitle: "Data Query Language (Asking Questions)",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "DQL"), " is the most used part of SQL. It consists principally of one command: ", /*#__PURE__*/React.createElement("b", null, "SELECT"), "."), /*#__PURE__*/React.createElement("p", null, "This is how you ask questions. You don't change anything; you just retrieve information."), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-4 rounded-lg border-l-4 border-yellow-400 mt-4"
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "font-mono text-sm"
+    }, "SELECT [Column] ", /*#__PURE__*/React.createElement("br", null), "FROM [Table] ", /*#__PURE__*/React.createElement("br", null), "WHERE [Condition];")), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-400 italic"
+    }, "\"Hey database, show me the Names from the Customers table where the City is New York.\"")),
+    viz: /*#__PURE__*/React.createElement(CommandViz, {
+      type: "DQL"
+    })
+  }, {
+    title: "Basic Syntax & Functions",
+    subtitle: "The Grammar of Data",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4 overflow-y-auto max-h-[50vh] pr-2 custom-scroll"
+    }, /*#__PURE__*/React.createElement("p", null, "SQL reads almost like English. Here are the essential clauses:"), /*#__PURE__*/React.createElement("div", {
+      className: "space-y-2 text-sm"
+    }, /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "WHERE:"), " Filters rows (like an Excel filter)."), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "ORDER BY:"), " Sorts results (A-Z, 0-9)."), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("b", null, "GROUP BY:"), " Collapses rows into categories.")), /*#__PURE__*/React.createElement("div", {
+      className: "border-t border-slate-700 my-4 pt-4"
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "font-bold mb-2"
+    }, "Aggregate Functions (Math):"), /*#__PURE__*/React.createElement("ul", {
+      className: "grid grid-cols-2 gap-2 text-sm"
+    }, /*#__PURE__*/React.createElement("li", {
+      className: "bg-slate-800 p-2 rounded"
+    }, /*#__PURE__*/React.createElement("b", null, "COUNT()"), ": Count rows"), /*#__PURE__*/React.createElement("li", {
+      className: "bg-slate-800 p-2 rounded"
+    }, /*#__PURE__*/React.createElement("b", null, "SUM()"), ": Add totals"), /*#__PURE__*/React.createElement("li", {
+      className: "bg-slate-800 p-2 rounded"
+    }, /*#__PURE__*/React.createElement("b", null, "AVG()"), ": Average"), /*#__PURE__*/React.createElement("li", {
+      className: "bg-slate-800 p-2 rounded"
+    }, /*#__PURE__*/React.createElement("b", null, "MAX()"), ": Highest value")))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex flex-col items-center justify-center p-6 gap-4"
+    }, /*#__PURE__*/React.createElement(SyntaxCard, {
+      title: "Filter & Sort",
+      code: "SELECT name, salary FROM staff WHERE salary > 50000 ORDER BY salary DESC;",
+      note: "Finds high earners and puts the richest on top."
+    }), /*#__PURE__*/React.createElement(SyntaxCard, {
+      title: "Aggregation",
+      code: "SELECT department, AVG(salary) FROM staff GROUP BY department;",
+      note: "Calculates the average salary for every single department automatically."
+    }))
+  }, {
+    title: "Excel vs. SQL Task",
+    subtitle: "Finding the Regional Average Sales",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, "When dealing with huge datasets (millions of rows), the **workflow** and **performance** drastically favor SQL."), /*#__PURE__*/React.createElement("p", {
+      className: "font-bold text-blue-300"
+    }, "The Goal:"), /*#__PURE__*/React.createElement("p", {
+      className: "italic text-slate-400 text-sm"
+    }, "Find the average sales amount for each region, excluding all transactions from the 'Service' category in 2024."), /*#__PURE__*/React.createElement("p", null, "The visual to the right breaks down the time and steps for this kind of analytical query.")),
+    viz: /*#__PURE__*/React.createElement(ExcelSQLTaskComparison, null)
+  }, {
+    title: "Interactive Playground",
+    subtitle: "Test Your Queries",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-4"
+    }, /*#__PURE__*/React.createElement("p", null, "Use the console to the right to test basic ", /*#__PURE__*/React.createElement("b", null, "SELECT"), " queries against a mock table named ", /*#__PURE__*/React.createElement("code", null, "products"), ". Try different ", /*#__PURE__*/React.createElement("b", null, "WHERE"), " conditions to filter the results."), /*#__PURE__*/React.createElement("p", {
+      className: "text-sm text-slate-400"
+    }, "Try these queries:"), /*#__PURE__*/React.createElement("ul", {
+      className: "list-disc list-inside space-y-1 text-slate-400 ml-4 text-sm"
+    }, /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("span", {
+      className: "font-mono text-yellow-300"
+    }, "SELECT * FROM products;"), " (View all)"), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("span", {
+      className: "font-mono text-yellow-300"
+    }, "SELECT * FROM products WHERE category = 'Electronics';"), " (Filter by text)"), /*#__PURE__*/React.createElement("li", null, /*#__PURE__*/React.createElement("span", {
+      className: "font-mono text-yellow-300"
+    }, "SELECT * FROM products WHERE price > 100;"), " (Filter by number)")), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-red-400 mt-4"
+    }, "Note: This simple playground supports `SELECT * FROM products WHERE [column] [operator] [value]` only.")),
+    viz: /*#__PURE__*/React.createElement(SQLPlayground, null)
+  }, {
+    title: "Summary",
+    subtitle: "Your Journey Begins",
+    text: /*#__PURE__*/React.createElement("div", {
+      className: "space-y-6"
+    }, /*#__PURE__*/React.createElement("p", null, "SQL is not just a language; it's a superpower for data analysis."), /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-3 gap-4"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "p-3 bg-slate-800 rounded border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-blue-400 font-bold"
+    }, "DDL"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400"
+    }, "Structure")), /*#__PURE__*/React.createElement("div", {
+      className: "p-3 bg-slate-800 rounded border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-green-400 font-bold"
+    }, "DML"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400"
+    }, "Data (CRUD)")), /*#__PURE__*/React.createElement("div", {
+      className: "p-3 bg-slate-800 rounded border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-purple-400 font-bold"
+    }, "TCL"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400"
+    }, "Safety/Commit")), /*#__PURE__*/React.createElement("div", {
+      className: "p-3 bg-slate-800 rounded border border-slate-700 col-span-2"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-yellow-400 font-bold"
+    }, "DQL"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400"
+    }, "Ask Questions (SELECT)")), /*#__PURE__*/React.createElement("div", {
+      className: "p-3 bg-slate-800 rounded border border-slate-700"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-slate-400 font-bold"
+    }, "Scale"), /*#__PURE__*/React.createElement("div", {
+      className: "text-xs text-slate-400"
+    }, "Massive")))),
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "h-full flex items-center justify-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-center p-8 border border-slate-700 rounded-2xl bg-slate-800/50"
+    }, /*#__PURE__*/React.createElement("h2", {
+      className: "text-3xl font-bold mb-4"
+    }, "Ready to Query?"), /*#__PURE__*/React.createElement("p", {
+      className: "text-slate-400 mb-6"
+    }, "\"Data is the new oil. SQL is the drill.\""), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setCurrentSlide(0),
+      className: "px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-full text-white font-bold transition-colors"
+    }, "Restart Presentation")))
+  }];
 
-            if (!q.startsWith("SELECT * FROM PRODUCTS")) {
-                setMessage("Error: Only basic 'SELECT * FROM products...' queries are supported.");
-                setResult([]);
-                return;
-            }
-
-            // Simple WHERE clause parsing
-            const whereMatch = q.match(/WHERE\s+([A-Z]+)\s*([<>=!]+)\s*['"]?([^'"]+)['"]?/);
-
-            if (whereMatch) {
-                const [, col, op, val] = whereMatch;
-                const column = col.toLowerCase();
-                // If the value looks like a number, parse it as a number
-                const value = isNaN(Number(val)) ? val : Number(val); 
-
-                filteredResults = mockDatabase.products.filter(row => {
-                    const cellValue = row[column];
-                    if (cellValue === undefined) return false;
-
-                    // Comparison logic
-                    if (op === '=' || op === '==') {
-                        if (typeof cellValue === 'string') {
-                            return cellValue.toUpperCase() === value.toString().toUpperCase();
-                        }
-                        return cellValue === value;
-                    }
-                    if (op === '>') return cellValue > value;
-                    if (op === '<') return cellValue < value;
-                    if (op === '!=') return cellValue.toString().toUpperCase() !== value.toString().toUpperCase();
-                    
-                    return false;
-                });
-            }
-
-            if (filteredResults.length === 0) {
-                setMessage("Query executed successfully. Result set is empty.");
-            } else {
-                 setMessage(`Query executed successfully. Found ${filteredResults.length} rows.`);
-            }
-            setResult(filteredResults);
-        };
-
-        const headers = result.length > 0 ? Object.keys(result[0]) : ['id', 'name', 'category', 'price', 'stock'];
-
-        return (
-            <div className="flex flex-col h-full p-6 space-y-4">
-                {/* Query Input */}
-                <div className="flex flex-col">
-                    <textarea
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                        className="font-mono text-sm p-3 bg-slate-900 border border-blue-600/50 rounded-lg text-yellow-300 resize-none h-24 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="SELECT * FROM products WHERE price > 100;"
-                    />
-                    <button
-                        onClick={executeQuery}
-                        className="mt-2 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-lg transition-colors shadow-lg shadow-blue-500/30"
-                    >
-                        Execute Query
-                    </button>
-                </div>
-
-                {/* Status Message */}
-                <div className="text-xs font-mono text-slate-400 border-b border-slate-700 pb-2">{message}</div>
-
-                {/* Result Table */}
-                <div className="flex-1 overflow-auto custom-scroll">
-                    <table className="min-w-full text-sm text-left text-slate-300">
-                        <thead className="text-xs uppercase bg-slate-700/50 sticky top-0">
-                            <tr>
-                                {headers.map(header => (
-                                    <th key={header} scope="col" className="px-3 py-2 whitespace-nowrap">{header.toUpperCase()}</th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {result.map((row, index) => (
-                                <tr key={index} className="bg-slate-800/50 border-b border-slate-700/50 hover:bg-slate-700/50 transition-colors">
-                                    {headers.map(header => (
-                                        <td key={header} className="px-3 py-2 whitespace-nowrap">
-                                            {row[header]}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                            {result.length === 0 && (
-                                <tr><td colSpan={headers.length} className="text-center py-4 text-slate-500 italic">No rows found.</td></tr>
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        );
+  // Keypress navigation
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+      } else if (e.key === 'ArrowLeft') {
+        setCurrentSlide(curr => Math.max(curr - 1, 0));
+      }
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+  const CurrentContent = slides[currentSlide];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-screen w-screen bg-slate-950 flex flex-col p-6 md:p-12 relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"
+  }), /*#__PURE__*/React.createElement("header", {
+    className: "flex justify-between items-center mb-8 z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-white"
+  }, "SQL")), /*#__PURE__*/React.createElement("h1", {
+    className: "font-bold text-xl tracking-tight text-slate-200"
+  }, "Data Mastery ", /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-600 mx-2"
+  }, "/"), " Module 1")), /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800"
+  }, new Date().toLocaleDateString())), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 flex gap-8 z-10 relative h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    key: currentSlide,
+    className: "flex-1 flex flex-col justify-center slide-enter max-w-xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400 font-mono text-xs tracking-wider uppercase"
+  }, CurrentContent.subtitle), /*#__PURE__*/React.createElement("h2", {
+    className: "text-4xl md:text-5xl font-bold text-white mb-6 leading-tight mt-2"
+  }, CurrentContent.title)), /*#__PURE__*/React.createElement("div", {
+    className: "h-1 w-20 bg-blue-500 rounded mb-8"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-300 leading-relaxed text-lg"
+  }, CurrentContent.text)), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 hidden md:block slide-enter delay-100"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full w-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative"
+  }, CurrentContent.viz))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 right-6 md:right-12 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/90 p-2 rounded-lg border border-slate-800 backdrop-blur shadow-xl"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+    disabled: currentSlide === 0,
+    className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 disabled:opacity-30 transition-colors"
+  }, "PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center text-slate-300 min-w-[40px] text-center"
+  }, currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+    disabled: currentSlide === slides.length - 1,
+    className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 disabled:opacity-30 transition-colors"
+  }, "NEXT")), /*#__PURE__*/React.createElement("div", {
+    className: "md:hidden mt-8 p-4 bg-slate-800 rounded-xl border border-slate-700"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-center text-slate-500 mb-2"
+  }, "[ VISUAL CONTENT HIDDEN ON MOBILE ]"), /*#__PURE__*/React.createElement("div", {
+    className: "h-40 overflow-hidden relative opacity-50"
+  }, CurrentContent.viz)));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
 
-    // --- Main Application ---
-
-    const App = () => {
-        const [currentSlide, setCurrentSlide] = useState(0);
-
-        const slides = [
-            {
-                title: "SQL: The Data Warehouse",
-                subtitle: "Structured Query Language",
-                text: (
-                    <div className="space-y-6">
-                        <p>Welcome. We are exploring the language that powers the modern internet.</p>
-                        <p>While Excel is fantastic for personal analysis, <b>SQL</b> is the bedrock of enterprise data.</p>
-                        <ul className="list-disc list-inside space-y-2 text-slate-400 ml-4">
-                            <li>It stands for Structured Query Language.</li>
-                            <li>It is the standard for Relational Database Management Systems (RDBMS).</li>
-                            <li>It allows you to "talk" to data, rather than just look at it.</li>
-                        </ul>
-                    </div>
-                ),
-                viz: (
-                    <div className="h-full flex items-center justify-center bg-gradient-to-br from-blue-900/20 to-slate-900">
-                        <div className="text-center">
-                            <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600 mb-4">SQL</h1>
-                            <div className="text-slate-500 font-mono">VS EXCEL</div>
-                        </div>
-                    </div>
-                )
-            },
-            {
-                title: "The Analogy",
-                subtitle: "Notebook vs. Warehouse",
-                text: (
-                    <div className="space-y-6">
-                        <p>Imagine <b>Excel</b> as a personal notebook. You can open it, write in it, erase things, and carry it around. It's flexible, visual, and great for small tasks.</p>
-                        <p>Now, imagine a <b>Warehouse (SQL)</b>. It's huge. You can't just walk in and grab a box (data) because there are millions of them.</p>
-                        <p>Instead, you stand at the service counter and submit a <b>Request Form (Query)</b> to a robot worker. The robot runs off, finds exactly what you asked for, and brings it back.</p>
-                    </div>
-                ),
-                viz: <ExcelVsSQLViz />
-            },
-            {
-                title: "Why Use SQL?",
-                subtitle: "The Three Pillars",
-                text: (
-                    <div className="space-y-6">
-                        <div className="p-4 bg-slate-800/50 rounded-lg border-l-4 border-blue-500">
-                            <h4 className="font-bold text-white">1. Scalability</h4>
-                            <p className="text-sm text-slate-400">Excel struggles with 1 million rows. SQL handles <b>billions</b> effortlessly.</p>
-                        </div>
-                        <div className="p-4 bg-slate-800/50 rounded-lg border-l-4 border-purple-500">
-                            <h4 className="font-bold text-white">2. Integrity & Security</h4>
-                            <p className="text-sm text-slate-400">You can't accidentally delete a column by clicking the wrong thing. Rules prevent bad data entry.</p>
-                        </div>
-                        <div className="p-4 bg-slate-800/50 rounded-lg border-l-4 border-green-500">
-                            <h4 className="font-bold text-white">3. Concurrency</h4>
-                            <p className="text-sm text-slate-400">1,000 users can read/write data at the exact same time without corruption.</p>
-                        </div>
-                    </div>
-                ),
-                viz: (
-                    <div className="h-full flex items-center justify-center p-8">
-                         <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-                            <div className="bg-slate-800 p-6 rounded text-center border border-slate-700">
-                                <div className="text-4xl mb-2">🚀</div>
-                                <div className="font-bold text-slate-300">Fast</div>
-                            </div>
-                            <div className="bg-slate-800 p-6 rounded text-center border border-slate-700">
-                                <div className="text-4xl mb-2">🔒</div>
-                                <div className="font-bold text-slate-300">Secure</div>
-                            </div>
-                            <div className="bg-slate-800 p-6 rounded text-center border border-slate-700 col-span-2">
-                                <div className="text-4xl mb-2">🌐</div>
-                                <div className="font-bold text-slate-300">Connected</div>
-                            </div>
-                         </div>
-                    </div>
-                )
-            },
-            {
-                title: "DDL: The Architect",
-                subtitle: "Data Definition Language (Building)",
-                text: (
-                    <div className="space-y-4">
-                        <p><b>DDL</b> commands are used to define the database structure or schema. Think of this as constructing the building before moving furniture in.</p>
-                        <ul className="space-y-3 mt-4">
-                            <li className="flex items-center gap-2"><span className="bg-blue-600 text-xs font-bold px-2 py-1 rounded">CREATE</span> Builds a new table or database.</li>
-                            <li className="flex items-center gap-2"><span className="bg-orange-600 text-xs font-bold px-2 py-1 rounded">ALTER</span> Modifies an existing table structure (e.g., adding a column).</li>
-                            <li className="flex items-center gap-2"><span className="bg-red-600 text-xs font-bold px-2 py-1 rounded">DROP</span> Completely destroys a table or database.</li>
-                        </ul>
-                        <div className="mt-6 text-sm bg-slate-900 p-3 rounded font-mono text-slate-400 border border-slate-700">
-                            CREATE TABLE Employees (<br/>&nbsp;&nbsp;ID int,<br/>&nbsp;&nbsp;Name varchar(255)<br/>);
-                        </div>
-                    </div>
-                ),
-                viz: <CommandViz type="DDL" />
-            },
-            {
-                title: "DML: The Movers",
-                subtitle: "Data Manipulation Language (Adding Content)",
-                text: (
-                    <div className="space-y-4">
-                        <p><b>DML</b> commands handle the actual data within the tables. This is the daily work of adding or changing records.</p>
-                        <ul className="space-y-3 mt-4">
-                            <li className="flex items-center gap-2"><span className="bg-green-600 text-xs font-bold px-2 py-1 rounded">INSERT</span> Adds new rows to a table.</li>
-                            <li className="flex items-center gap-2"><span className="bg-yellow-600 text-xs font-bold px-2 py-1 rounded">UPDATE</span> Modifies existing data.</li>
-                            <li className="flex items-center gap-2"><span className="bg-red-600 text-xs font-bold px-2 py-1 rounded">DELETE</span> Removes specific rows.</li>
-                        </ul>
-                    </div>
-                ),
-                viz: <CommandViz type="DML" />
-            },
-            {
-                title: "TCL: The Safety Manager",
-                subtitle: "Transaction Control Language (Committing Changes)",
-                text: (
-                    <div className="space-y-4">
-                        <p><b>TCL</b> commands manage the safety of your DML operations. They ensure that database changes are reliable and atomic (either all changes happen, or none do).</p>
-                        <ul className="space-y-3 mt-4">
-                            <li className="flex items-center gap-2"><span className="bg-purple-600 text-xs font-bold px-2 py-1 rounded">COMMIT</span> Permanently saves the current transaction (changes).</li>
-                            <li className="flex items-center gap-2"><span className="bg-red-700 text-xs font-bold px-2 py-1 rounded">ROLLBACK</span> Undoes all changes since the last COMMIT or SAVEPOINT.</li>
-                            <li className="flex items-center gap-2"><span className="bg-yellow-600 text-xs font-bold px-2 py-1 rounded">SAVEPOINT</span> Creates a temporary rollback point within a transaction.</li>
-                        </ul>
-                        <div className="mt-6 text-sm bg-slate-900 p-3 rounded font-mono text-slate-400 border border-slate-700">
-                            UPDATE Inventory SET Stock = 100 WHERE ProductID = 1;<br/>COMMIT;
-                        </div>
-                    </div>
-                ),
-                viz: <CommandViz type="TCL" />
-            },
-            {
-                title: "DQL: The Search Engine",
-                subtitle: "Data Query Language (Asking Questions)",
-                text: (
-                    <div className="space-y-4">
-                        <p><b>DQL</b> is the most used part of SQL. It consists principally of one command: <b>SELECT</b>.</p>
-                        <p>This is how you ask questions. You don't change anything; you just retrieve information.</p>
-                        <div className="bg-slate-800 p-4 rounded-lg border-l-4 border-yellow-400 mt-4">
-                            <p className="font-mono text-sm">SELECT [Column] <br/>FROM [Table] <br/>WHERE [Condition];</p>
-                        </div>
-                        <p className="text-sm text-slate-400 italic">"Hey database, show me the Names from the Customers table where the City is New York."</p>
-                    </div>
-                ),
-                viz: <CommandViz type="DQL" />
-            },
-            {
-                title: "Basic Syntax & Functions",
-                subtitle: "The Grammar of Data",
-                text: (
-                    <div className="space-y-4 overflow-y-auto max-h-[50vh] pr-2 custom-scroll">
-                        <p>SQL reads almost like English. Here are the essential clauses:</p>
-                        
-                        <div className="space-y-2 text-sm">
-                            <p><b>WHERE:</b> Filters rows (like an Excel filter).</p>
-                            <p><b>ORDER BY:</b> Sorts results (A-Z, 0-9).</p>
-                            <p><b>GROUP BY:</b> Collapses rows into categories.</p>
-                        </div>
-
-                        <div className="border-t border-slate-700 my-4 pt-4">
-                            <p className="font-bold mb-2">Aggregate Functions (Math):</p>
-                            <ul className="grid grid-cols-2 gap-2 text-sm">
-                                <li className="bg-slate-800 p-2 rounded"><b>COUNT()</b>: Count rows</li>
-                                <li className="bg-slate-800 p-2 rounded"><b>SUM()</b>: Add totals</li>
-                                <li className="bg-slate-800 p-2 rounded"><b>AVG()</b>: Average</li>
-                                <li className="bg-slate-800 p-2 rounded"><b>MAX()</b>: Highest value</li>
-                            </ul>
-                        </div>
-                    </div>
-                ),
-                viz: (
-                    <div className="h-full flex flex-col items-center justify-center p-6 gap-4">
-                        <SyntaxCard 
-                            title="Filter & Sort" 
-                            code="SELECT name, salary FROM staff WHERE salary > 50000 ORDER BY salary DESC;"
-                            note="Finds high earners and puts the richest on top."
-                        />
-                        <SyntaxCard 
-                            title="Aggregation" 
-                            code="SELECT department, AVG(salary) FROM staff GROUP BY department;"
-                            note="Calculates the average salary for every single department automatically."
-                        />
-                    </div>
-                )
-            },
-            {
-                title: "Excel vs. SQL Task",
-                subtitle: "Finding the Regional Average Sales",
-                text: (
-                    <div className="space-y-4">
-                        <p>When dealing with huge datasets (millions of rows), the **workflow** and **performance** drastically favor SQL.</p>
-                        <p className="font-bold text-blue-300">The Goal:</p>
-                        <p className="italic text-slate-400 text-sm">Find the average sales amount for each region, excluding all transactions from the 'Service' category in 2024.</p>
-                        <p>The visual to the right breaks down the time and steps for this kind of analytical query.</p>
-                    </div>
-                ),
-                viz: <ExcelSQLTaskComparison />
-            },
-            {
-                title: "Interactive Playground",
-                subtitle: "Test Your Queries",
-                text: (
-                    <div className="space-y-4">
-                        <p>Use the console to the right to test basic <b>SELECT</b> queries against a mock table named <code>products</code>. Try different <b>WHERE</b> conditions to filter the results.</p>
-                        <p className="text-sm text-slate-400">Try these queries:</p>
-                        <ul className="list-disc list-inside space-y-1 text-slate-400 ml-4 text-sm">
-                            <li><span className="font-mono text-yellow-300">SELECT * FROM products;</span> (View all)</li>
-                            <li><span className="font-mono text-yellow-300">SELECT * FROM products WHERE category = 'Electronics';</span> (Filter by text)</li>
-                            <li><span className="font-mono text-yellow-300">SELECT * FROM products WHERE price &gt; 100;</span> (Filter by number)</li>
-                        </ul>
-                        <p className="text-xs text-red-400 mt-4">Note: This simple playground supports `SELECT * FROM products WHERE [column] [operator] [value]` only.</p>
-                    </div>
-                ),
-                viz: <SQLPlayground />,
-            },
-            {
-                title: "Summary",
-                subtitle: "Your Journey Begins",
-                text: (
-                    <div className="space-y-6">
-                        <p>SQL is not just a language; it's a superpower for data analysis.</p>
-                        <div className="grid grid-cols-3 gap-4">
-                            <div className="p-3 bg-slate-800 rounded border border-slate-700">
-                                <div className="text-blue-400 font-bold">DDL</div>
-                                <div className="text-xs text-slate-400">Structure</div>
-                            </div>
-                            <div className="p-3 bg-slate-800 rounded border border-slate-700">
-                                <div className="text-green-400 font-bold">DML</div>
-                                <div className="text-xs text-slate-400">Data (CRUD)</div>
-                            </div>
-                            <div className="p-3 bg-slate-800 rounded border border-slate-700">
-                                <div className="text-purple-400 font-bold">TCL</div>
-                                <div className="text-xs text-slate-400">Safety/Commit</div>
-                            </div>
-                            <div className="p-3 bg-slate-800 rounded border border-slate-700 col-span-2">
-                                <div className="text-yellow-400 font-bold">DQL</div>
-                                <div className="text-xs text-slate-400">Ask Questions (SELECT)</div>
-                            </div>
-                            <div className="p-3 bg-slate-800 rounded border border-slate-700">
-                                <div className="text-slate-400 font-bold">Scale</div>
-                                <div className="text-xs text-slate-400">Massive</div>
-                            </div>
-                        </div>
-                    </div>
-                ),
-                viz: (
-                    <div className="h-full flex items-center justify-center">
-                        <div className="text-center p-8 border border-slate-700 rounded-2xl bg-slate-800/50">
-                            <h2 className="text-3xl font-bold mb-4">Ready to Query?</h2>
-                            <p className="text-slate-400 mb-6">"Data is the new oil. SQL is the drill."</p>
-                            <button onClick={() => setCurrentSlide(0)} className="px-6 py-2 bg-blue-600 hover:bg-blue-500 rounded-full text-white font-bold transition-colors">
-                                Restart Presentation
-                            </button>
-                        </div>
-                    </div>
-                )
-            }
-        ];
-
-        // Keypress navigation
-        useEffect(() => {
-            const handleKeyDown = (e) => {
-                if (e.key === 'ArrowRight' || e.key === ' ') {
-                    setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
-                } else if (e.key === 'ArrowLeft') {
-                    setCurrentSlide(curr => Math.max(curr - 1, 0));
-                }
-            };
-            window.addEventListener('keydown', handleKeyDown);
-            return () => window.removeEventListener('keydown', handleKeyDown);
-        }, []);
-
-        const CurrentContent = slides[currentSlide];
-
-        return (
-            <div className="h-screen w-screen bg-slate-950 flex flex-col p-6 md:p-12 relative overflow-hidden">
-                {/* Background Decor */}
-                <div className="absolute top-0 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2 pointer-events-none"></div>
-
-                {/* Header */}
-                <header className="flex justify-between items-center mb-8 z-10">
-                    <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/20">
-                            <span className="font-bold text-white">SQL</span>
-                        </div>
-                        <h1 className="font-bold text-xl tracking-tight text-slate-200">Data Mastery <span className="text-slate-600 mx-2">/</span> Module 1</h1>
-                    </div>
-                    <div className="text-xs font-mono text-slate-500 bg-slate-900 px-3 py-1 rounded-full border border-slate-800">
-                        {new Date().toLocaleDateString()}
-                    </div>
-                </header>
-
-                {/* Main Content Area */}
-                <div className="flex-1 flex gap-8 z-10 relative h-full">
-                    {/* Text Column */}
-                    <div key={currentSlide} className="flex-1 flex flex-col justify-center slide-enter max-w-xl">
-                        <div className="mb-2">
-                            <span className="text-blue-400 font-mono text-xs tracking-wider uppercase">{CurrentContent.subtitle}</span>
-                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 leading-tight mt-2">{CurrentContent.title}</h2>
-                        </div>
-                        <div className="h-1 w-20 bg-blue-500 rounded mb-8"></div>
-                        <div className="text-slate-300 leading-relaxed text-lg">
-                            {CurrentContent.text}
-                        </div>
-                    </div>
-
-                    {/* Visual Column */}
-                    <div className="flex-1 hidden md:block slide-enter delay-100">
-                        <div className="h-full w-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative">
-                            {CurrentContent.viz}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Controls */}
-                <div className="absolute bottom-6 right-6 md:right-12 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/90 p-2 rounded-lg border border-slate-800 backdrop-blur shadow-xl">
-                    <button onClick={() => setCurrentSlide(s => Math.max(0, s-1))} disabled={currentSlide === 0} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 disabled:opacity-30 transition-colors">PREV</button>
-                    <span className="self-center text-slate-300 min-w-[40px] text-center">{currentSlide + 1} / {slides.length}</span>
-                    <button onClick={() => setCurrentSlide(s => Math.min(slides.length-1, s+1))} disabled={currentSlide === slides.length - 1} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 disabled:opacity-30 transition-colors">NEXT</button>
-                </div>
-
-                {/* Mobile View Visual Helper */}
-                <div className="md:hidden mt-8 p-4 bg-slate-800 rounded-xl border border-slate-700">
-                    <p className="text-xs text-center text-slate-500 mb-2">[ VISUAL CONTENT HIDDEN ON MOBILE ]</p>
-                    <div className="h-40 overflow-hidden relative opacity-50">
-                        {CurrentContent.viz}
-                    </div>
-                </div>
-            </div>
-        );
-    };
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-</script>
-
-</body>
-</html>
+</body></html>

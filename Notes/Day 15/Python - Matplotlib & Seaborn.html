@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mastering Python Visualizations | Presented by Jayan</title>
@@ -8,9 +6,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -129,515 +127,1012 @@
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>const {
+  useState,
+  useEffect
+} = React;
 
-        // --- 🎨 HIGH-FIDELITY SVG VISUALIZATIONS ---
+// --- 🎨 HIGH-FIDELITY SVG VISUALIZATIONS ---
 
-        const GridBackground = () => (
-            <g opacity="0.1">
-                {[10, 30, 50, 70, 90].map(y => <line key={`h${y}`} x1="10" y1={y} x2="90" y2={y} stroke="#F8FAFC" strokeWidth="0.5" className="draw-grid" />)}
-                {[10, 30, 50, 70, 90].map(x => <line key={`v${x}`} x1={x} y1="10" x2={x} y2="90" stroke="#F8FAFC" strokeWidth="0.5" className="draw-grid" />)}
-            </g>
-        );
+const GridBackground = () => /*#__PURE__*/React.createElement("g", {
+  opacity: "0.1"
+}, [10, 30, 50, 70, 90].map(y => /*#__PURE__*/React.createElement("line", {
+  key: `h${y}`,
+  x1: "10",
+  y1: y,
+  x2: "90",
+  y2: y,
+  stroke: "#F8FAFC",
+  strokeWidth: "0.5",
+  className: "draw-grid"
+})), [10, 30, 50, 70, 90].map(x => /*#__PURE__*/React.createElement("line", {
+  key: `v${x}`,
+  x1: x,
+  y1: "10",
+  x2: x,
+  y2: "90",
+  stroke: "#F8FAFC",
+  strokeWidth: "0.5",
+  className: "draw-grid"
+})));
 
-        // 1. Anatomy of a Figure
-        const AnatomyViz = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full max-h-full overflow-visible">
-                    <defs>
-                        <pattern id="blueprint" width="5" height="5" patternUnits="userSpaceOnUse">
-                            <rect width="5" height="5" fill="none" stroke="#1E293B" strokeWidth="0.5"/>
-                        </pattern>
-                    </defs>
-                    {/* Figure */}
-                    <rect x="0" y="0" width="100" height="100" fill="url(#blueprint)" rx="4" />
-                    <rect x="0" y="0" width="100" height="100" fill="none" stroke="#38BDF8" strokeWidth="1" strokeDasharray="2" rx="4" className="draw-path" />
-                    <text x="3" y="6" fill="#38BDF8" fontSize="3" fontWeight="bold" className="font-code">1. Figure (Canvas)</text>
-                    
-                    {/* Axes */}
-                    <rect x="15" y="15" width="75" height="70" fill="#1E293B" stroke="#F472B6" strokeWidth="0.5" className="pop-in" style={{animationDelay:'0.3s'}} />
-                    <text x="52.5" y="50" fill="#F472B6" fontSize="4" textAnchor="middle" className="pop-in font-code" style={{animationDelay:'0.4s'}}>2. Axes (Plot Area)</text>
-                    
-                    {/* Spines / Axis Lines */}
-                    <line x1="15" y1="85" x2="90" y2="85" stroke="#F8FAFC" strokeWidth="1" className="draw-path" style={{animationDelay:'0.5s'}} />
-                    <line x1="15" y1="85" x2="15" y2="15" stroke="#F8FAFC" strokeWidth="1" className="draw-path" style={{animationDelay:'0.6s'}} />
-                    
-                    {/* Labels */}
-                    <g className="pop-in" style={{animationDelay:'0.8s'}}>
-                        <text x="52.5" y="12" fill="#34D399" fontSize="4" textAnchor="middle" fontWeight="bold">3. Title</text>
-                    </g>
-                    <g className="pop-in" style={{animationDelay:'1.0s'}}>
-                        <text x="8" y="50" fill="#A78BFA" fontSize="3" transform="rotate(-90, 8, 50)" textAnchor="middle">4. Y-Axis (Label)</text>
-                    </g>
-                    <g className="pop-in" style={{animationDelay:'1.2s'}}>
-                        <text x="52.5" y="95" fill="#A78BFA" fontSize="3" textAnchor="middle">4. X-Axis (Label)</text>
-                    </g>
-                </svg>
-            </div>
-        );
+// 1. Anatomy of a Figure
+const AnatomyViz = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full max-h-full overflow-visible"
+}, /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("pattern", {
+  id: "blueprint",
+  width: "5",
+  height: "5",
+  patternUnits: "userSpaceOnUse"
+}, /*#__PURE__*/React.createElement("rect", {
+  width: "5",
+  height: "5",
+  fill: "none",
+  stroke: "#1E293B",
+  strokeWidth: "0.5"
+}))), /*#__PURE__*/React.createElement("rect", {
+  x: "0",
+  y: "0",
+  width: "100",
+  height: "100",
+  fill: "url(#blueprint)",
+  rx: "4"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: "0",
+  y: "0",
+  width: "100",
+  height: "100",
+  fill: "none",
+  stroke: "#38BDF8",
+  strokeWidth: "1",
+  strokeDasharray: "2",
+  rx: "4",
+  className: "draw-path"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "3",
+  y: "6",
+  fill: "#38BDF8",
+  fontSize: "3",
+  fontWeight: "bold",
+  className: "font-code"
+}, "1. Figure (Canvas)"), /*#__PURE__*/React.createElement("rect", {
+  x: "15",
+  y: "15",
+  width: "75",
+  height: "70",
+  fill: "#1E293B",
+  stroke: "#F472B6",
+  strokeWidth: "0.5",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.3s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "52.5",
+  y: "50",
+  fill: "#F472B6",
+  fontSize: "4",
+  textAnchor: "middle",
+  className: "pop-in font-code",
+  style: {
+    animationDelay: '0.4s'
+  }
+}, "2. Axes (Plot Area)"), /*#__PURE__*/React.createElement("line", {
+  x1: "15",
+  y1: "85",
+  x2: "90",
+  y2: "85",
+  stroke: "#F8FAFC",
+  strokeWidth: "1",
+  className: "draw-path",
+  style: {
+    animationDelay: '0.5s'
+  }
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "15",
+  y1: "85",
+  x2: "15",
+  y2: "15",
+  stroke: "#F8FAFC",
+  strokeWidth: "1",
+  className: "draw-path",
+  style: {
+    animationDelay: '0.6s'
+  }
+}), /*#__PURE__*/React.createElement("g", {
+  className: "pop-in",
+  style: {
+    animationDelay: '0.8s'
+  }
+}, /*#__PURE__*/React.createElement("text", {
+  x: "52.5",
+  y: "12",
+  fill: "#34D399",
+  fontSize: "4",
+  textAnchor: "middle",
+  fontWeight: "bold"
+}, "3. Title")), /*#__PURE__*/React.createElement("g", {
+  className: "pop-in",
+  style: {
+    animationDelay: '1.0s'
+  }
+}, /*#__PURE__*/React.createElement("text", {
+  x: "8",
+  y: "50",
+  fill: "#A78BFA",
+  fontSize: "3",
+  transform: "rotate(-90, 8, 50)",
+  textAnchor: "middle"
+}, "4. Y-Axis (Label)")), /*#__PURE__*/React.createElement("g", {
+  className: "pop-in",
+  style: {
+    animationDelay: '1.2s'
+  }
+}, /*#__PURE__*/React.createElement("text", {
+  x: "52.5",
+  y: "95",
+  fill: "#A78BFA",
+  fontSize: "3",
+  textAnchor: "middle"
+}, "4. X-Axis (Label)"))));
 
-        // 2. Line Plot (MPL)
-        const LinePlotMPL = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <GridBackground />
-                    <line x1="10" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="10" y1="90" x2="10" y2="5" stroke="#64748B" strokeWidth="1" />
-                    <text x="50" y="98" fill="#94A3B8" fontSize="3" textAnchor="middle">Date (X-Axis)</text>
-                    <text x="4" y="50" fill="#94A3B8" fontSize="3" transform="rotate(-90, 4, 50)" textAnchor="middle">Sales (Y-Axis)</text>
-                    
-                    <path d="M10 40 L 30 70 L 50 30 L 70 15 L 90 60" fill="none" stroke="#38BDF8" strokeWidth="1.5" className="draw-path" />
-                    
-                    {[[10,40], [30,70], [50,30], [70,15], [90,60]].map((pt, i) => (
-                        <circle key={i} cx={pt[0]} cy={pt[1]} r="2" fill="#0F172A" stroke="#38BDF8" strokeWidth="1" className="pop-in glow-point" style={{animationDelay: `${0.2 + (i*0.2)}s`, color: '#38BDF8'}} />
-                    ))}
-                </svg>
-            </div>
-        );
+// 2. Line Plot (MPL)
+const LinePlotMPL = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "10",
+  y2: "5",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "50",
+  y: "98",
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "middle"
+}, "Date (X-Axis)"), /*#__PURE__*/React.createElement("text", {
+  x: "4",
+  y: "50",
+  fill: "#94A3B8",
+  fontSize: "3",
+  transform: "rotate(-90, 4, 50)",
+  textAnchor: "middle"
+}, "Sales (Y-Axis)"), /*#__PURE__*/React.createElement("path", {
+  d: "M10 40 L 30 70 L 50 30 L 70 15 L 90 60",
+  fill: "none",
+  stroke: "#38BDF8",
+  strokeWidth: "1.5",
+  className: "draw-path"
+}), [[10, 40], [30, 70], [50, 30], [70, 15], [90, 60]].map((pt, i) => /*#__PURE__*/React.createElement("circle", {
+  key: i,
+  cx: pt[0],
+  cy: pt[1],
+  r: "2",
+  fill: "#0F172A",
+  stroke: "#38BDF8",
+  strokeWidth: "1",
+  className: "pop-in glow-point",
+  style: {
+    animationDelay: `${0.2 + i * 0.2}s`,
+    color: '#38BDF8'
+  }
+}))));
 
-        // 3. Bar Chart (MPL)
-        const BarChartMPL = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <GridBackground />
-                    <line x1="10" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="10" y1="90" x2="10" y2="5" stroke="#64748B" strokeWidth="1" />
-                    
-                    <defs>
-                        <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#38BDF8" />
-                            <stop offset="100%" stopColor="#1D4ED8" />
-                        </linearGradient>
-                    </defs>
+// 3. Bar Chart (MPL)
+const BarChartMPL = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "10",
+  y2: "5",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("linearGradient", {
+  id: "barGrad",
+  x1: "0",
+  y1: "0",
+  x2: "0",
+  y2: "1"
+}, /*#__PURE__*/React.createElement("stop", {
+  offset: "0%",
+  stopColor: "#38BDF8"
+}), /*#__PURE__*/React.createElement("stop", {
+  offset: "100%",
+  stopColor: "#1D4ED8"
+}))), [{
+  x: 20,
+  h: 70,
+  l: 'Elec'
+}, {
+  x: 50,
+  h: 30,
+  l: 'Cloth'
+}, {
+  x: 80,
+  h: 45,
+  l: 'Home'
+}].map((bar, i) => /*#__PURE__*/React.createElement("g", {
+  key: i
+}, /*#__PURE__*/React.createElement("rect", {
+  x: bar.x - 10,
+  y: 90 - bar.h,
+  width: "20",
+  height: bar.h,
+  fill: "url(#barGrad)",
+  rx: "1",
+  className: "bar-grow",
+  style: {
+    animationDelay: `${i * 0.2}s`
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: bar.x,
+  y: "96",
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "middle",
+  className: "pop-in font-code",
+  style: {
+    animationDelay: `${0.5 + i * 0.2}s`
+  }
+}, bar.l), /*#__PURE__*/React.createElement("text", {
+  x: bar.x,
+  y: 90 - bar.h - 2,
+  fill: "#38BDF8",
+  fontSize: "3",
+  textAnchor: "middle",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: `${0.6 + i * 0.2}s`
+  }
+}, bar.h * 100)))));
 
-                    {[{x: 20, h: 70, l: 'Elec'}, {x: 50, h: 30, l: 'Cloth'}, {x: 80, h: 45, l: 'Home'}].map((bar, i) => (
-                        <g key={i}>
-                            <rect x={bar.x - 10} y={90 - bar.h} width="20" height={bar.h} fill="url(#barGrad)" rx="1" className="bar-grow" style={{animationDelay: `${i*0.2}s`}} />
-                            <text x={bar.x} y="96" fill="#94A3B8" fontSize="3" textAnchor="middle" className="pop-in font-code" style={{animationDelay: `${0.5 + i*0.2}s`}}>{bar.l}</text>
-                            <text x={bar.x} y={90 - bar.h - 2} fill="#38BDF8" fontSize="3" textAnchor="middle" className="pop-in font-code font-bold" style={{animationDelay: `${0.6 + i*0.2}s`}}>{bar.h * 100}</text>
-                        </g>
-                    ))}
-                </svg>
-            </div>
-        );
+// 4. Pie Chart (MPL)
+const PieChartMPL = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M 50 50 L 50 10 A 40 40 0 1 1 11.9 62.3 Z",
+  fill: "#38BDF8",
+  stroke: "#0F172A",
+  strokeWidth: "1",
+  className: "pie-slice",
+  style: {
+    animationDelay: '0s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "65",
+  y: "45",
+  fill: "#0F172A",
+  fontSize: "4",
+  fontWeight: "bold",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.5s'
+  }
+}, "60%"), /*#__PURE__*/React.createElement("path", {
+  d: "M 50 50 L 11.9 62.3 A 40 40 0 0 1 26.5 17.6 Z",
+  fill: "#A78BFA",
+  stroke: "#0F172A",
+  strokeWidth: "1",
+  className: "pie-slice",
+  style: {
+    transformOrigin: '48px 48px',
+    animationDelay: '0.2s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "25",
+  y: "55",
+  fill: "#fff",
+  fontSize: "3",
+  fontWeight: "bold",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.7s'
+  }
+}, "25%"), /*#__PURE__*/React.createElement("path", {
+  d: "M 48 48 L 24.5 15.6 A 40 40 0 0 1 48 8 Z",
+  fill: "#F472B6",
+  stroke: "#0F172A",
+  strokeWidth: "1",
+  className: "pie-slice",
+  style: {
+    transformOrigin: '52px 48px',
+    animationDelay: '0.4s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "40",
+  y: "25",
+  fill: "#fff",
+  fontSize: "3",
+  fontWeight: "bold",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.9s'
+  }
+}, "15%")));
 
-        // 4. Pie Chart (MPL)
-        const PieChartMPL = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    {/* Elec (60%) */}
-                    <path d="M 50 50 L 50 10 A 40 40 0 1 1 11.9 62.3 Z" fill="#38BDF8" stroke="#0F172A" strokeWidth="1" className="pie-slice" style={{animationDelay: '0s'}} />
-                    <text x="65" y="45" fill="#0F172A" fontSize="4" fontWeight="bold" className="pop-in" style={{animationDelay:'0.5s'}}>60%</text>
+// 5. Histogram (MPL)
+const HistChartMPL = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "10",
+  y2: "5",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "50",
+  y: "98",
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "middle"
+}, "Profit Range (Bins)"), /*#__PURE__*/React.createElement("text", {
+  x: "4",
+  y: "50",
+  fill: "#94A3B8",
+  fontSize: "3",
+  transform: "rotate(-90, 4, 50)",
+  textAnchor: "middle"
+}, "Frequency"), [{
+  x: 10.5,
+  w: 16.5,
+  h: 60
+}, {
+  x: 27,
+  w: 16.5,
+  h: 20
+}, {
+  x: 43.5,
+  w: 16.5,
+  h: 40
+}, {
+  x: 60,
+  w: 16.5,
+  h: 80
+}, {
+  x: 76.5,
+  w: 16.5,
+  h: 10
+}].map((bin, i) => /*#__PURE__*/React.createElement("rect", {
+  key: i,
+  x: bin.x,
+  y: 90 - bin.h,
+  width: bin.w,
+  height: bin.h,
+  fill: "#34D399",
+  fillOpacity: "0.8",
+  stroke: "#0F172A",
+  strokeWidth: "0.5",
+  className: "bar-grow",
+  style: {
+    animationDelay: `${i * 0.1}s`
+  }
+}))));
 
-                    {/* Home (25%) */}
-                    <path d="M 50 50 L 11.9 62.3 A 40 40 0 0 1 26.5 17.6 Z" fill="#A78BFA" stroke="#0F172A" strokeWidth="1" className="pie-slice" style={{transformOrigin: '48px 48px', animationDelay: '0.2s'}} />
-                    <text x="25" y="55" fill="#fff" fontSize="3" fontWeight="bold" className="pop-in" style={{animationDelay:'0.7s'}}>25%</text>
+// 6. Line Plot (SNS)
+const LinePlotSNS = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement("rect", {
+  x: "10",
+  y: "5",
+  width: "85",
+  height: "85",
+  fill: "#1E293B",
+  opacity: "0.3",
+  rx: "2"
+}), /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "10",
+  y2: "5",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M10 50 L 30 80 L 50 40 L 70 25 L 90 70 L 90 50 L 70 5 L 50 20 L 30 60 L 10 30 Z",
+  fill: "#F472B6",
+  fillOpacity: "0.2",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.5s'
+  }
+}), /*#__PURE__*/React.createElement("path", {
+  d: "M10 40 L 30 70 L 50 30 L 70 15 L 90 60",
+  fill: "none",
+  stroke: "#F472B6",
+  strokeWidth: "2",
+  className: "draw-path"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "75",
+  y: "12",
+  fill: "#F472B6",
+  fontSize: "3",
+  opacity: "0.8",
+  className: "pop-in font-code",
+  style: {
+    animationDelay: '1s'
+  }
+}, "95% Confidence")));
 
-                    {/* Cloth (15%) - Exploded slightly */}
-                    <path d="M 48 48 L 24.5 15.6 A 40 40 0 0 1 48 8 Z" fill="#F472B6" stroke="#0F172A" strokeWidth="1" className="pie-slice" style={{transformOrigin: '52px 48px', animationDelay: '0.4s'}} />
-                    <text x="40" y="25" fill="#fff" fontSize="3" fontWeight="bold" className="pop-in" style={{animationDelay:'0.9s'}}>15%</text>
-                </svg>
-            </div>
-        );
+// 7. Count Plot (SNS)
+const CountPlotSNS = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "20",
+  y1: "10",
+  x2: "20",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "20",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "57",
+  y: "98",
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "middle"
+}, "Count"), [{
+  y: 20,
+  w: 70,
+  l: 'North'
+}, {
+  y: 40,
+  w: 35,
+  l: 'South'
+}, {
+  y: 60,
+  w: 35,
+  l: 'East'
+}, {
+  y: 80,
+  w: 15,
+  l: 'West'
+}].map((bar, i) => /*#__PURE__*/React.createElement("g", {
+  key: i
+}, /*#__PURE__*/React.createElement("text", {
+  x: "18",
+  y: bar.y + 2,
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "end",
+  className: "font-code"
+}, bar.l), /*#__PURE__*/React.createElement("rect", {
+  x: "20",
+  y: bar.y - 3,
+  height: "6",
+  fill: "#38BDF8",
+  rx: "1"
+}, /*#__PURE__*/React.createElement("animate", {
+  attributeName: "width",
+  from: "0",
+  to: bar.w,
+  dur: "1s",
+  fill: "freeze",
+  begin: `${i * 0.2}s`
+})), /*#__PURE__*/React.createElement("text", {
+  x: 20 + bar.w + 2,
+  y: bar.y + 1,
+  fill: "#38BDF8",
+  fontSize: "3",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: `${1 + i * 0.2}s`
+  }
+}, bar.w)))));
 
-        // 5. Histogram (MPL)
-        const HistChartMPL = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <GridBackground />
-                    <line x1="10" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="10" y1="90" x2="10" y2="5" stroke="#64748B" strokeWidth="1" />
-                    <text x="50" y="98" fill="#94A3B8" fontSize="3" textAnchor="middle">Profit Range (Bins)</text>
-                    <text x="4" y="50" fill="#94A3B8" fontSize="3" transform="rotate(-90, 4, 50)" textAnchor="middle">Frequency</text>
+// 8. Box Plot (SNS)
+const BoxPlotSNS = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement("rect", {
+  x: "10",
+  y: "5",
+  width: "85",
+  height: "85",
+  fill: "#1E293B",
+  opacity: "0.3",
+  rx: "2"
+}), /*#__PURE__*/React.createElement(GridBackground, null), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "95",
+  y2: "90",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: "10",
+  y1: "90",
+  x2: "10",
+  y2: "5",
+  stroke: "#64748B",
+  strokeWidth: "1"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "4",
+  y: "50",
+  fill: "#94A3B8",
+  fontSize: "3",
+  transform: "rotate(-90, 4, 50)",
+  textAnchor: "middle"
+}, "Profit ($)"), [{
+  x: 25,
+  q1: 40,
+  q2: 50,
+  q3: 70,
+  min: 20,
+  max: 80,
+  out: [10, 85],
+  c: '#38BDF8',
+  l: 'Elec'
+}, {
+  x: 50,
+  q1: 20,
+  q2: 30,
+  q3: 45,
+  min: 10,
+  max: 60,
+  out: [],
+  c: '#F472B6',
+  l: 'Cloth'
+}, {
+  x: 75,
+  q1: 55,
+  q2: 65,
+  q3: 75,
+  min: 40,
+  max: 85,
+  out: [95],
+  c: '#A78BFA',
+  l: 'Home'
+}].map((box, i) => /*#__PURE__*/React.createElement("g", {
+  key: i,
+  className: "pop-in",
+  style: {
+    animationDelay: `${i * 0.3}s`
+  }
+}, /*#__PURE__*/React.createElement("text", {
+  x: box.x,
+  y: "96",
+  fill: "#94A3B8",
+  fontSize: "3",
+  textAnchor: "middle",
+  className: "font-code"
+}, box.l), /*#__PURE__*/React.createElement("line", {
+  x1: box.x,
+  y1: 100 - box.min,
+  x2: box.x,
+  y2: 100 - box.max,
+  stroke: box.c,
+  strokeWidth: "0.5"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: box.x - 2,
+  y1: 100 - box.min,
+  x2: box.x + 2,
+  y2: 100 - box.min,
+  stroke: box.c,
+  strokeWidth: "0.5"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: box.x - 2,
+  y1: 100 - box.max,
+  x2: box.x + 2,
+  y2: 100 - box.max,
+  stroke: box.c,
+  strokeWidth: "0.5"
+}), /*#__PURE__*/React.createElement("rect", {
+  x: box.x - 5,
+  y: 100 - box.q3,
+  width: "10",
+  height: box.q3 - box.q1,
+  fill: box.c,
+  fillOpacity: "0.4",
+  stroke: box.c,
+  strokeWidth: "1",
+  rx: "0.5"
+}), /*#__PURE__*/React.createElement("line", {
+  x1: box.x - 5,
+  y1: 100 - box.q2,
+  x2: box.x + 5,
+  y2: 100 - box.q2,
+  stroke: "#fff",
+  strokeWidth: "1"
+}), box.out.map((o, j) => /*#__PURE__*/React.createElement("circle", {
+  key: j,
+  cx: box.x,
+  cy: 100 - o,
+  r: "1",
+  fill: "none",
+  stroke: box.c,
+  strokeWidth: "0.5"
+}))))));
 
-                    {[{x: 10.5, w: 16.5, h: 60}, {x: 27, w: 16.5, h: 20}, {x: 43.5, w: 16.5, h: 40}, {x: 60, w: 16.5, h: 80}, {x: 76.5, w: 16.5, h: 10}].map((bin, i) => (
-                        <rect key={i} x={bin.x} y={90 - bin.h} width={bin.w} height={bin.h} fill="#34D399" fillOpacity="0.8" stroke="#0F172A" strokeWidth="0.5" className="bar-grow" style={{animationDelay: `${i*0.1}s`}} />
-                    ))}
-                </svg>
-            </div>
-        );
+// 9. Heatmap (SNS)
+const HeatmapSNS = () => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl"
+}, /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 100 100",
+  className: "w-full h-full overflow-visible"
+}, /*#__PURE__*/React.createElement("text", {
+  x: "15",
+  y: "32",
+  fill: "#94A3B8",
+  fontSize: "4",
+  textAnchor: "end",
+  className: "font-code"
+}, "Sales"), /*#__PURE__*/React.createElement("text", {
+  x: "15",
+  y: "72",
+  fill: "#94A3B8",
+  fontSize: "4",
+  textAnchor: "end",
+  className: "font-code"
+}, "Profit"), /*#__PURE__*/React.createElement("text", {
+  x: "35",
+  y: "95",
+  fill: "#94A3B8",
+  fontSize: "4",
+  textAnchor: "middle",
+  className: "font-code"
+}, "Sales"), /*#__PURE__*/React.createElement("text", {
+  x: "75",
+  y: "95",
+  fill: "#94A3B8",
+  fontSize: "4",
+  textAnchor: "middle",
+  className: "font-code"
+}, "Profit"), /*#__PURE__*/React.createElement("rect", {
+  x: "20",
+  y: "15",
+  width: "35",
+  height: "35",
+  fill: "#BE185D",
+  className: "pop-in",
+  style: {
+    animationDelay: '0s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "37.5",
+  y: "34",
+  fill: "#fff",
+  fontSize: "6",
+  textAnchor: "middle",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: '0.2s'
+  }
+}, "1.0"), /*#__PURE__*/React.createElement("rect", {
+  x: "58",
+  y: "15",
+  width: "35",
+  height: "35",
+  fill: "#F472B6",
+  fillOpacity: "0.7",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.1s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "75.5",
+  y: "34",
+  fill: "#fff",
+  fontSize: "6",
+  textAnchor: "middle",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: '0.3s'
+  }
+}, "0.7"), /*#__PURE__*/React.createElement("rect", {
+  x: "20",
+  y: "52",
+  width: "35",
+  height: "35",
+  fill: "#F472B6",
+  fillOpacity: "0.7",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.2s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "37.5",
+  y: "71",
+  fill: "#fff",
+  fontSize: "6",
+  textAnchor: "middle",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: '0.4s'
+  }
+}, "0.7"), /*#__PURE__*/React.createElement("rect", {
+  x: "58",
+  y: "52",
+  width: "35",
+  height: "35",
+  fill: "#BE185D",
+  className: "pop-in",
+  style: {
+    animationDelay: '0.3s'
+  }
+}), /*#__PURE__*/React.createElement("text", {
+  x: "75.5",
+  y: "71",
+  fill: "#fff",
+  fontSize: "6",
+  textAnchor: "middle",
+  className: "pop-in font-code font-bold",
+  style: {
+    animationDelay: '0.5s'
+  }
+}, "1.0")));
 
-        // 6. Line Plot (SNS)
-        const LinePlotSNS = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <rect x="10" y="5" width="85" height="85" fill="#1E293B" opacity="0.3" rx="2" />
-                    <GridBackground />
-                    <line x1="10" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="10" y1="90" x2="10" y2="5" stroke="#64748B" strokeWidth="1" />
-                    
-                    {/* Confidence Interval (The Shadow) */}
-                    <path d="M10 50 L 30 80 L 50 40 L 70 25 L 90 70 L 90 50 L 70 5 L 50 20 L 30 60 L 10 30 Z" fill="#F472B6" fillOpacity="0.2" className="pop-in" style={{animationDelay: '0.5s'}} />
-                    
-                    {/* Main Trend Line */}
-                    <path d="M10 40 L 30 70 L 50 30 L 70 15 L 90 60" fill="none" stroke="#F472B6" strokeWidth="2" className="draw-path" />
-                    
-                    <text x="75" y="12" fill="#F472B6" fontSize="3" opacity="0.8" className="pop-in font-code" style={{animationDelay: '1s'}}>95% Confidence</text>
-                </svg>
-            </div>
-        );
+// --- 📊 SLIDE DATA ---
+const slides = [{
+  type: 'intro',
+  title: "Python Data Visualization",
+  subtitle: "Matplotlib & Seaborn Architecture",
+  details: ["Welcome! This module explores the structural foundation of Python plotting.", "We will dissect <span class='font-code text-blue-400'>Matplotlib</span>, the absolute bedrock of Python visualizations.", "Then, we will elevate our analysis with <span class='font-code text-pink-400'>Seaborn</span>, which adds powerful statistical aggregations out-of-the-box."],
+  viz: /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full text-center bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-8xl mb-6 drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]"
+  }, "📈"), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-400 font-code tracking-widest uppercase text-sm border border-slate-700 px-4 py-1 rounded-full bg-slate-800/50"
+  }, "Presented by Jayan")),
+  code: ""
+}, {
+  type: 'concept',
+  title: "Anatomy of a Plot",
+  subtitle: "The Matplotlib Object Hierarchy",
+  details: ["Everything in Matplotlib is organized hierarchically as objects.", "<span class='text-blue-400 font-bold'>1. Figure:</span> The overarching blank canvas or window. It can contain multiple plots.", "<span class='text-pink-400 font-bold'>2. Axes:</span> The actual individual plot (the bounding box with data). A Figure can have many Axes.", "<span class='text-emerald-400 font-bold'>3. Title:</span> Contextual header for the specific Axes.", "<span class='text-purple-400 font-bold'>4. Axis & Labels:</span> The number lines (X and Y) that define the scale and their descriptive labels."],
+  viz: /*#__PURE__*/React.createElement(AnatomyViz, null),
+  code: `<span class="comment"># Create a Figure and an Axes object</span>\nfig, ax = plt.<span class="func">subplots</span>(<span class="arg">figsize</span>=(<span class="num">8</span>, <span class="num">5</span>))\n\n<span class="comment"># Modify the Axes object</span>\nax.<span class="func">set_title</span>(<span class="str">"My First Plot"</span>)\nax.<span class="func">set_xlabel</span>(<span class="str">"X-Axis"</span>)\nax.<span class="func">set_ylabel</span>(<span class="str">"Y-Axis"</span>)\n\nplt.<span class="func">show</span>()`
+}, {
+  type: 'data',
+  title: "Data Initialization",
+  subtitle: "Preparing the Pandas DataFrame",
+  details: ["Before plotting, we need structured data. We use <span class='font-code text-blue-400'>Pandas</span> to organize this.", "Our sample dataset contains:", "▹ <span class='font-code text-yellow-300'>Categorical Data:</span> Category (Electronics, Clothing, Home)", "▹ <span class='font-code text-yellow-300'>Continuous Data:</span> Sales ($), Profit ($)"],
+  viz: /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center h-full bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center"
+  }, /*#__PURE__*/React.createElement("svg", {
+    className: "w-20 h-20 mx-auto text-emerald-400 mb-4 animate-bounce",
+    fill: "none",
+    viewBox: "0 0 24 24",
+    stroke: "currentColor"
+  }, /*#__PURE__*/React.createElement("path", {
+    strokeLinecap: "round",
+    strokeLinejoin: "round",
+    strokeWidth: 1.5,
+    d: "M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-emerald-400 font-code font-bold uppercase tracking-widest text-sm bg-emerald-400/10 px-4 py-2 rounded border border-emerald-400/20"
+  }, "Data Loaded in Memory"))),
+  code: `<span class="kwd">import</span> pandas <span class="kwd">as</span> pd\n<span class="kwd">import</span> matplotlib.pyplot <span class="kwd">as</span> plt\n<span class="kwd">import</span> seaborn <span class="kwd">as</span> sns\n\n<span class="comment"># Dictionary representing raw data</span>\ndata = {\n    <span class="str">'Date'</span>: [<span class="str">'2023-01'</span>, <span class="str">'2023-02'</span>, <span class="str">'...'</span>],\n    <span class="str">'Category'</span>: [<span class="str">'Electronics'</span>, <span class="str">'Clothing'</span>, <span class="str">'...'</span>],\n    <span class="str">'Sales'</span>: [<span class="num">1200</span>, <span class="num">450</span>, <span class="num">800</span>]\n}\n\n<span class="comment"># Convert to DataFrame</span>\ndf = pd.<span class="func">DataFrame</span>(data)`
+}, {
+  type: 'plt',
+  title: "Line Plot",
+  subtitle: "matplotlib.pyplot.plot()",
+  details: ["The structural foundation of plotting. Points connected by straight line segments.", "Best used for <span class='text-blue-400 font-bold'>Time Series Data</span> to visualize trends and changes over specific intervals.", "<span class='font-code text-blue-400'>marker='o'</span> places a visible dot at every actual data point.", "<span class='font-code text-blue-400'>linestyle='-'</span> connects them with a solid line."],
+  viz: /*#__PURE__*/React.createElement(LinePlotMPL, null),
+  code: `<span class="func">plt.plot</span>(\n    df[<span class="str">'Date'</span>],          <span class="comment"># X-Axis data</span>\n    df[<span class="str">'Sales'</span>],         <span class="comment"># Y-Axis data</span>\n    <span class="arg">marker</span>=<span class="str">'o'</span>,          <span class="comment"># Circle markers</span>\n    <span class="arg">color</span>=<span class="str">'#38BDF8'</span>      <span class="comment"># Custom hex color</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Sales Trend Over Time"</span>)\n<span class="func">plt.xlabel</span>(<span class="str">"Date"</span>)\n<span class="func">plt.ylabel</span>(<span class="str">"Sales ($)"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'plt',
+  title: "Bar Chart",
+  subtitle: "matplotlib.pyplot.bar()",
+  details: ["Displays rectangular bars where the length is proportional to the value.", "Best used for comparing quantities across <span class='text-blue-400 font-bold'>Discrete Categories</span>.", "<span class='text-red-400 font-bold'>Crucial Step:</span> In standard Matplotlib, if you have multiple rows for 'Electronics', you MUST aggregate them (using <span class='font-code'>groupby().sum()</span>) before plotting, otherwise bars draw on top of each other!"],
+  viz: /*#__PURE__*/React.createElement(BarChartMPL, null),
+  code: `<span class="comment"># 1. Aggregate Data First!</span>\ndf_agg = df.<span class="func">groupby</span>(<span class="str">'Category'</span>)[<span class="str">'Sales'</span>].<span class="func">sum</span>()\n\n<span class="comment"># 2. Plot the aggregated series</span>\n<span class="func">plt.bar</span>(\n    <span class="arg">x</span>=df_agg.<span class="obj">index</span>,      <span class="comment"># ['Electronics', 'Clothing'...]</span>\n    <span class="arg">height</span>=df_agg.<span class="obj">values</span> <span class="comment"># [2700, 750...]</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Total Sales by Category"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'plt',
+  title: "Pie Chart",
+  subtitle: "matplotlib.pyplot.pie()",
+  details: ["Visualizes proportions and percentages. Best for <span class='text-blue-400 font-bold'>Part-to-Whole relationships</span>.", "Like Bar Charts, data must be aggregated first.", "<span class='font-code text-blue-400'>autopct='%1.1f%%'</span> is a string formatting tool that automatically calculates and displays the percentages to one decimal place."],
+  viz: /*#__PURE__*/React.createElement(PieChartMPL, null),
+  code: `<span class="comment"># Aggregate Data</span>\nsums = df.<span class="func">groupby</span>(<span class="str">'Category'</span>)[<span class="str">'Sales'</span>].<span class="func">sum</span>()\n\n<span class="func">plt.pie</span>(\n    <span class="arg">x</span>=sums.<span class="obj">values</span>,\n    <span class="arg">labels</span>=sums.<span class="obj">index</span>,\n    <span class="arg">autopct</span>=<span class="str">'%1.1f%%'</span>,   <span class="comment"># Format percentages</span>\n    <span class="arg">startangle</span>=<span class="num">90</span>        <span class="comment"># Rotate starting point</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Market Share"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'plt',
+  title: "Histogram",
+  subtitle: "matplotlib.pyplot.hist()",
+  details: ["Visualizes the <span class='text-blue-400 font-bold'>Distribution</span> of a single continuous variable.", "It automatically divides the data range into equal intervals called <span class='font-code text-blue-400'>bins</span>, and counts how many data points fall into each bin.", "Essential for detecting outliers and checking if data follows a normal distribution (bell curve)."],
+  viz: /*#__PURE__*/React.createElement(HistChartMPL, null),
+  code: `<span class="func">plt.hist</span>(\n    <span class="arg">x</span>=df[<span class="str">'Profit'</span>],      <span class="comment"># Single numerical column</span>\n    <span class="arg">bins</span>=<span class="num">5</span>,              <span class="comment"># Number of buckets</span>\n    <span class="arg">edgecolor</span>=<span class="str">'black'</span>,   <span class="comment"># Border for readability</span>\n    <span class="arg">color</span>=<span class="str">'#34D399'</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Profit Distribution"</span>)\n<span class="func">plt.xlabel</span>(<span class="str">"Profit Range"</span>)\n<span class="func">plt.ylabel</span>(<span class="str">"Frequency"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'transition',
+  title: "Enter Seaborn",
+  subtitle: "Statistical Layer Abstraction",
+  details: ["While Matplotlib is powerful, it requires manual data manipulation (like the <span class='font-code'>groupby</span> steps we just did).", "Seaborn is built <span class='italic'>on top of</span> Matplotlib.", "It inherently understands Pandas DataFrames and automatically performs <span class='text-pink-400 font-bold'>Statistical Aggregations</span> (like means and confidence intervals) for you under the hood."],
+  viz: /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full text-center bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-8xl mb-6 animate-pulse drop-shadow-[0_0_15px_rgba(244,114,182,0.5)]"
+  }, "🧬"), /*#__PURE__*/React.createElement("div", {
+    className: "text-pink-400 font-code tracking-widest uppercase text-sm border border-pink-700/50 px-4 py-1 rounded-full bg-pink-900/30"
+  }, "Statistical Plotting")),
+  code: ""
+}, {
+  type: 'sns',
+  title: "Statistical Line Plot",
+  subtitle: "seaborn.lineplot()",
+  details: ["Unlike Matplotlib, if you pass raw, unaggregated data to <span class='font-code text-pink-400'>sns.lineplot()</span>, it won't draw a messy zig-zag.", "Instead, if multiple data points exist for a single Date, it automatically calculates the <span class='text-pink-400 font-bold'>Mean</span> and plots that as the central line.", "It also calculates the <span class='text-pink-400 font-bold'>95% Confidence Interval</span> and draws it as the shaded band around the line, representing uncertainty."],
+  viz: /*#__PURE__*/React.createElement(LinePlotSNS, null),
+  code: `<span class="comment"># Pass the ENTIRE dataframe directly</span>\n<span class="func">sns.lineplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">x</span>=<span class="str">'Date'</span>,\n    <span class="arg">y</span>=<span class="str">'Sales'</span>,\n    <span class="arg">color</span>=<span class="str">'#F472B6'</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Sales Trend with Confidence Interval"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'sns',
+  title: "Count Plot",
+  subtitle: "seaborn.countplot()",
+  details: ["A specialized, streamlined version of a Bar Chart.", "You don't need to specify a Y-axis or aggregate the data. You just provide the categorical X-axis.", "Seaborn automatically counts the occurrences of each category and plots the frequencies."],
+  viz: /*#__PURE__*/React.createElement(CountPlotSNS, null),
+  code: `<span class="comment"># Only specify 'y' (or 'x'), Seaborn counts the rest!</span>\n<span class="func">sns.countplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">y</span>=<span class="str">'Region'</span>,          <span class="comment"># Horizontal bars</span>\n    <span class="arg">palette</span>=<span class="str">'viridis'</span>    <span class="comment"># Built-in color theme</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Transactions by Region"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'sns',
+  title: "Box Plot",
+  subtitle: "seaborn.boxplot()",
+  details: ["The ultimate statistical visualization. Displays the <span class='text-pink-400 font-bold'>5-Number Summary</span>.", "▹ <span class='font-code'>Box</span>: Spans from Q1 (25th percentile) to Q3 (75th percentile). This is the Interquartile Range (IQR).", "▹ <span class='font-code'>Middle Line</span>: The Median (50th percentile).", "▹ <span class='font-code'>Whiskers</span>: Represent the spread of the data excluding outliers.", "▹ <span class='font-code'>Dots</span>: Mathematically identified outliers."],
+  viz: /*#__PURE__*/React.createElement(BoxPlotSNS, null),
+  code: `<span class="func">sns.boxplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">x</span>=<span class="str">'Category'</span>,        <span class="comment"># Group by category</span>\n    <span class="arg">y</span>=<span class="str">'Profit'</span>           <span class="comment"># Measure spread of profit</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Profit Distribution and Outliers"</span>)\n<span class="func">plt.show</span>()`
+}, {
+  type: 'sns',
+  title: "Heatmap",
+  subtitle: "seaborn.heatmap()",
+  details: ["Maps numerical values in a matrix to color intensity.", "Most commonly used in Data Science to visualize <span class='text-pink-400 font-bold'>Correlation Matrices</span> (how closely different numeric variables are related).", "<span class='font-code text-pink-400'>annot=True</span> overlays the actual numerical values inside the colored blocks for precise readability."],
+  viz: /*#__PURE__*/React.createElement(HeatmapSNS, null),
+  code: `<span class="comment"># 1. Generate Correlation Matrix</span>\ncorr_matrix = df.<span class="func">corr</span>(<span class="arg">numeric_only</span>=<span class="kwd">True</span>)\n\n<span class="comment"># 2. Plot Matrix</span>\n<span class="func">sns.heatmap</span>(\n    <span class="arg">data</span>=corr_matrix,\n    <span class="arg">annot</span>=<span class="kwd">True</span>,          <span class="comment"># Show numbers</span>\n    <span class="arg">cmap</span>=<span class="str">'RdPu'</span>,         <span class="comment"># Red-Purple color scale</span>\n    <span class="arg">linewidths</span>=<span class="num">0.5</span>       <span class="comment"># Grid lines</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Feature Correlation"</span>)\n<span class="func">plt.show</span>()`
+}];
 
-        // 7. Count Plot (SNS)
-        const CountPlotSNS = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <GridBackground />
-                    <line x1="20" y1="10" x2="20" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="20" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <text x="57" y="98" fill="#94A3B8" fontSize="3" textAnchor="middle">Count</text>
+// --- 🖥️ MAIN APPLICATION COMPONENT ---
+const App = () => {
+  const [idx, setIdx] = useState(0);
+  const content = slides[idx];
+  const [key, setKey] = useState(0); // Used to force re-render/animation of SVGs
 
-                    {[{y: 20, w: 70, l: 'North'}, {y: 40, w: 35, l: 'South'}, {y: 60, w: 35, l: 'East'}, {y: 80, w: 15, l: 'West'}].map((bar, i) => (
-                        <g key={i}>
-                            <text x="18" y={bar.y + 2} fill="#94A3B8" fontSize="3" textAnchor="end" className="font-code">{bar.l}</text>
-                            <rect x="20" y={bar.y - 3} height="6" fill="#38BDF8" rx="1">
-                                <animate attributeName="width" from="0" to={bar.w} dur="1s" fill="freeze" begin={`${i*0.2}s`} />
-                            </rect>
-                            <text x={20 + bar.w + 2} y={bar.y + 1} fill="#38BDF8" fontSize="3" className="pop-in font-code font-bold" style={{animationDelay: `${1 + i*0.2}s`}}>{bar.w}</text>
-                        </g>
-                    ))}
-                </svg>
-            </div>
-        );
+  useEffect(() => {
+    setKey(prev => prev + 1);
+  }, [idx]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col relative text-white selection:bg-blue-500/30 selection:text-blue-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-1 bg-slate-900 absolute top-0 z-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gradient-to-r from-[#38BDF8] via-[#A78BFA] to-[#F472B6] transition-all duration-500 ease-out shadow-[0_0_10px_rgba(56,189,248,0.5)]",
+    style: {
+      width: `${(idx + 1) / slides.length * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 md:p-10 flex items-center justify-center overflow-hidden pt-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl w-full h-full flex flex-col lg:flex-row gap-10 items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 flex flex-col gap-6 w-full h-full justify-center fade-in-up",
+    key: `content-${key}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `px-2.5 py-0.5 rounded text-[11px] font-code font-bold uppercase tracking-wider border ${content.type === 'plt' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : content.type === 'sns' ? 'bg-pink-500/10 text-pink-400 border-pink-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`
+  }, "Module ", idx + 1)), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl lg:text-5xl font-bold text-white mb-2 tracking-tight"
+  }, content.title), /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl text-[#94A3B8] font-medium border-b border-[#334155] pb-4 mb-5"
+  }, content.subtitle), /*#__PURE__*/React.createElement("ul", {
+    className: "pointer-list text-[15px] text-[#CBD5E1] leading-relaxed max-w-2xl"
+  }, content.details.map((detail, i) => /*#__PURE__*/React.createElement("li", {
+    key: i,
+    dangerouslySetInnerHTML: {
+      __html: detail
+    }
+  })))), content.code && /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 min-h-[250px] mt-2 flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "code-window rounded-xl overflow-hidden flex flex-col h-full shadow-2xl relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#181818] border-b border-[#333] px-4 py-2 flex items-center gap-4 shrink-0"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1.5"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-[#FF5F56]"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-[#FFBD2E]"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-[#27C93F]"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "text-[11px] font-code text-[#858585] flex-1 text-center pr-10"
+  }, "jayan_visuals.py")), /*#__PURE__*/React.createElement("div", {
+    className: "p-5 font-code text-[14px] leading-relaxed overflow-y-auto custom-scroll flex-1"
+  }, /*#__PURE__*/React.createElement("pre", {
+    className: "m-0",
+    dangerouslySetInnerHTML: {
+      __html: content.code
+    }
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "w-full lg:w-[45%] h-[400px] lg:h-[650px] glass-panel rounded-xl flex flex-col overflow-hidden fade-in-up shadow-2xl border border-slate-700",
+    key: `viz-${key}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#1E293B] border-b border-[#334155] px-5 py-3 flex justify-between items-center shrink-0"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-[12px] text-slate-400 font-code tracking-wide"
+  }, "Figure_", idx, ".png"), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-500 font-bold tracking-widest text-[10px]"
+  }, "OUTPUT")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 relative overflow-hidden flex items-center justify-center p-0"
+  }, content.viz)))), /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#0F172A] border-t border-[#1E293B] p-4 flex justify-between items-center z-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs text-slate-500 font-code hidden md:flex items-center gap-2 pl-4"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-2 h-2 rounded-full bg-emerald-500 animate-pulse"
+  }), "Python 3.10 | Kernel Ready"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-4 mx-auto md:mx-0 pr-4"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIdx(Math.max(0, idx - 1)),
+    disabled: idx === 0,
+    className: `font-code text-sm px-5 py-2.5 rounded-lg transition-all duration-200 border ${idx === 0 ? 'bg-transparent text-slate-700 border-slate-800 cursor-not-allowed' : 'bg-[#1E293B] text-slate-300 border-[#334155] hover:bg-[#334155] hover:text-white'}`
+  }, "← Back"), /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#1E293B] border border-[#334155] text-slate-400 font-code text-xs flex items-center justify-center px-4 rounded-lg"
+  }, idx + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIdx(Math.min(slides.length - 1, idx + 1)),
+    disabled: idx === slides.length - 1,
+    className: `font-code text-sm px-5 py-2.5 rounded-lg shadow-lg transition-all duration-200 ${idx === slides.length - 1 ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-[#38BDF8] text-[#0B1120] hover:bg-[#7DD3FC] hover:shadow-[0_0_15px_rgba(56,189,248,0.4)] font-bold'}`
+  }, "Next Step →"))));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-        // 8. Box Plot (SNS)
-        const BoxPlotSNS = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    <rect x="10" y="5" width="85" height="85" fill="#1E293B" opacity="0.3" rx="2" />
-                    <GridBackground />
-                    <line x1="10" y1="90" x2="95" y2="90" stroke="#64748B" strokeWidth="1" />
-                    <line x1="10" y1="90" x2="10" y2="5" stroke="#64748B" strokeWidth="1" />
-                    <text x="4" y="50" fill="#94A3B8" fontSize="3" transform="rotate(-90, 4, 50)" textAnchor="middle">Profit ($)</text>
-                    
-                    {[
-                        {x: 25, q1: 40, q2: 50, q3: 70, min: 20, max: 80, out: [10, 85], c: '#38BDF8', l: 'Elec'},
-                        {x: 50, q1: 20, q2: 30, q3: 45, min: 10, max: 60, out: [], c: '#F472B6', l: 'Cloth'},
-                        {x: 75, q1: 55, q2: 65, q3: 75, min: 40, max: 85, out: [95], c: '#A78BFA', l: 'Home'}
-                    ].map((box, i) => (
-                        <g key={i} className="pop-in" style={{animationDelay: `${i*0.3}s`}}>
-                            <text x={box.x} y="96" fill="#94A3B8" fontSize="3" textAnchor="middle" className="font-code">{box.l}</text>
-                            {/* Whiskers */}
-                            <line x1={box.x} y1={100-box.min} x2={box.x} y2={100-box.max} stroke={box.c} strokeWidth="0.5" />
-                            <line x1={box.x-2} y1={100-box.min} x2={box.x+2} y2={100-box.min} stroke={box.c} strokeWidth="0.5" />
-                            <line x1={box.x-2} y1={100-box.max} x2={box.x+2} y2={100-box.max} stroke={box.c} strokeWidth="0.5" />
-                            {/* IQR Box */}
-                            <rect x={box.x-5} y={100-box.q3} width="10" height={box.q3-box.q1} fill={box.c} fillOpacity="0.4" stroke={box.c} strokeWidth="1" rx="0.5" />
-                            {/* Median */}
-                            <line x1={box.x-5} y1={100-box.q2} x2={box.x+5} y2={100-box.q2} stroke="#fff" strokeWidth="1" />
-                            {/* Outliers */}
-                            {box.out.map((o, j) => <circle key={j} cx={box.x} cy={100-o} r="1" fill="none" stroke={box.c} strokeWidth="0.5" />)}
-                        </g>
-                    ))}
-                </svg>
-            </div>
-        );
-
-        // 9. Heatmap (SNS)
-        const HeatmapSNS = () => (
-            <div className="w-full h-full p-6 flex items-center justify-center bg-[#0F172A] rounded-b-xl">
-                <svg viewBox="0 0 100 100" className="w-full h-full overflow-visible">
-                    {/* Y Labels */}
-                    <text x="15" y="32" fill="#94A3B8" fontSize="4" textAnchor="end" className="font-code">Sales</text>
-                    <text x="15" y="72" fill="#94A3B8" fontSize="4" textAnchor="end" className="font-code">Profit</text>
-                    {/* X Labels */}
-                    <text x="35" y="95" fill="#94A3B8" fontSize="4" textAnchor="middle" className="font-code">Sales</text>
-                    <text x="75" y="95" fill="#94A3B8" fontSize="4" textAnchor="middle" className="font-code">Profit</text>
-
-                    {/* Matrix Cells */}
-                    <rect x="20" y="15" width="35" height="35" fill="#BE185D" className="pop-in" style={{animationDelay: '0s'}} />
-                    <text x="37.5" y="34" fill="#fff" fontSize="6" textAnchor="middle" className="pop-in font-code font-bold" style={{animationDelay: '0.2s'}}>1.0</text>
-
-                    <rect x="58" y="15" width="35" height="35" fill="#F472B6" fillOpacity="0.7" className="pop-in" style={{animationDelay: '0.1s'}} />
-                    <text x="75.5" y="34" fill="#fff" fontSize="6" textAnchor="middle" className="pop-in font-code font-bold" style={{animationDelay: '0.3s'}}>0.7</text>
-
-                    <rect x="20" y="52" width="35" height="35" fill="#F472B6" fillOpacity="0.7" className="pop-in" style={{animationDelay: '0.2s'}} />
-                    <text x="37.5" y="71" fill="#fff" fontSize="6" textAnchor="middle" className="pop-in font-code font-bold" style={{animationDelay: '0.4s'}}>0.7</text>
-
-                    <rect x="58" y="52" width="35" height="35" fill="#BE185D" className="pop-in" style={{animationDelay: '0.3s'}} />
-                    <text x="75.5" y="71" fill="#fff" fontSize="6" textAnchor="middle" className="pop-in font-code font-bold" style={{animationDelay: '0.5s'}}>1.0</text>
-                </svg>
-            </div>
-        );
-
-        // --- 📊 SLIDE DATA ---
-        const slides = [
-            {
-                type: 'intro',
-                title: "Python Data Visualization",
-                subtitle: "Matplotlib & Seaborn Architecture",
-                details: [
-                    "Welcome! This module explores the structural foundation of Python plotting.",
-                    "We will dissect <span class='font-code text-blue-400'>Matplotlib</span>, the absolute bedrock of Python visualizations.",
-                    "Then, we will elevate our analysis with <span class='font-code text-pink-400'>Seaborn</span>, which adds powerful statistical aggregations out-of-the-box."
-                ],
-                viz: (
-                    <div className="flex flex-col items-center justify-center h-full text-center bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]">
-                        <div className="text-8xl mb-6 drop-shadow-[0_0_15px_rgba(56,189,248,0.5)]">📈</div>
-                        <div className="text-slate-400 font-code tracking-widest uppercase text-sm border border-slate-700 px-4 py-1 rounded-full bg-slate-800/50">Presented by Jayan</div>
-                    </div>
-                ),
-                code: ""
-            },
-            {
-                type: 'concept',
-                title: "Anatomy of a Plot",
-                subtitle: "The Matplotlib Object Hierarchy",
-                details: [
-                    "Everything in Matplotlib is organized hierarchically as objects.",
-                    "<span class='text-blue-400 font-bold'>1. Figure:</span> The overarching blank canvas or window. It can contain multiple plots.",
-                    "<span class='text-pink-400 font-bold'>2. Axes:</span> The actual individual plot (the bounding box with data). A Figure can have many Axes.",
-                    "<span class='text-emerald-400 font-bold'>3. Title:</span> Contextual header for the specific Axes.",
-                    "<span class='text-purple-400 font-bold'>4. Axis & Labels:</span> The number lines (X and Y) that define the scale and their descriptive labels."
-                ],
-                viz: <AnatomyViz />,
-                code: `<span class="comment"># Create a Figure and an Axes object</span>\nfig, ax = plt.<span class="func">subplots</span>(<span class="arg">figsize</span>=(<span class="num">8</span>, <span class="num">5</span>))\n\n<span class="comment"># Modify the Axes object</span>\nax.<span class="func">set_title</span>(<span class="str">"My First Plot"</span>)\nax.<span class="func">set_xlabel</span>(<span class="str">"X-Axis"</span>)\nax.<span class="func">set_ylabel</span>(<span class="str">"Y-Axis"</span>)\n\nplt.<span class="func">show</span>()`
-            },
-            {
-                type: 'data',
-                title: "Data Initialization",
-                subtitle: "Preparing the Pandas DataFrame",
-                details: [
-                    "Before plotting, we need structured data. We use <span class='font-code text-blue-400'>Pandas</span> to organize this.",
-                    "Our sample dataset contains:",
-                    "▹ <span class='font-code text-yellow-300'>Categorical Data:</span> Category (Electronics, Clothing, Home)",
-                    "▹ <span class='font-code text-yellow-300'>Continuous Data:</span> Sales ($), Profit ($)"
-                ],
-                viz: (
-                    <div className="flex items-center justify-center h-full bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]">
-                        <div className="text-center">
-                            <svg className="w-20 h-20 mx-auto text-emerald-400 mb-4 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
-                            <div className="text-emerald-400 font-code font-bold uppercase tracking-widest text-sm bg-emerald-400/10 px-4 py-2 rounded border border-emerald-400/20">Data Loaded in Memory</div>
-                        </div>
-                    </div>
-                ),
-                code: `<span class="kwd">import</span> pandas <span class="kwd">as</span> pd\n<span class="kwd">import</span> matplotlib.pyplot <span class="kwd">as</span> plt\n<span class="kwd">import</span> seaborn <span class="kwd">as</span> sns\n\n<span class="comment"># Dictionary representing raw data</span>\ndata = {\n    <span class="str">'Date'</span>: [<span class="str">'2023-01'</span>, <span class="str">'2023-02'</span>, <span class="str">'...'</span>],\n    <span class="str">'Category'</span>: [<span class="str">'Electronics'</span>, <span class="str">'Clothing'</span>, <span class="str">'...'</span>],\n    <span class="str">'Sales'</span>: [<span class="num">1200</span>, <span class="num">450</span>, <span class="num">800</span>]\n}\n\n<span class="comment"># Convert to DataFrame</span>\ndf = pd.<span class="func">DataFrame</span>(data)`
-            },
-            {
-                type: 'plt',
-                title: "Line Plot",
-                subtitle: "matplotlib.pyplot.plot()",
-                details: [
-                    "The structural foundation of plotting. Points connected by straight line segments.",
-                    "Best used for <span class='text-blue-400 font-bold'>Time Series Data</span> to visualize trends and changes over specific intervals.",
-                    "<span class='font-code text-blue-400'>marker='o'</span> places a visible dot at every actual data point.",
-                    "<span class='font-code text-blue-400'>linestyle='-'</span> connects them with a solid line."
-                ],
-                viz: <LinePlotMPL />,
-                code: `<span class="func">plt.plot</span>(\n    df[<span class="str">'Date'</span>],          <span class="comment"># X-Axis data</span>\n    df[<span class="str">'Sales'</span>],         <span class="comment"># Y-Axis data</span>\n    <span class="arg">marker</span>=<span class="str">'o'</span>,          <span class="comment"># Circle markers</span>\n    <span class="arg">color</span>=<span class="str">'#38BDF8'</span>      <span class="comment"># Custom hex color</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Sales Trend Over Time"</span>)\n<span class="func">plt.xlabel</span>(<span class="str">"Date"</span>)\n<span class="func">plt.ylabel</span>(<span class="str">"Sales ($)"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'plt',
-                title: "Bar Chart",
-                subtitle: "matplotlib.pyplot.bar()",
-                details: [
-                    "Displays rectangular bars where the length is proportional to the value.",
-                    "Best used for comparing quantities across <span class='text-blue-400 font-bold'>Discrete Categories</span>.",
-                    "<span class='text-red-400 font-bold'>Crucial Step:</span> In standard Matplotlib, if you have multiple rows for 'Electronics', you MUST aggregate them (using <span class='font-code'>groupby().sum()</span>) before plotting, otherwise bars draw on top of each other!"
-                ],
-                viz: <BarChartMPL />,
-                code: `<span class="comment"># 1. Aggregate Data First!</span>\ndf_agg = df.<span class="func">groupby</span>(<span class="str">'Category'</span>)[<span class="str">'Sales'</span>].<span class="func">sum</span>()\n\n<span class="comment"># 2. Plot the aggregated series</span>\n<span class="func">plt.bar</span>(\n    <span class="arg">x</span>=df_agg.<span class="obj">index</span>,      <span class="comment"># ['Electronics', 'Clothing'...]</span>\n    <span class="arg">height</span>=df_agg.<span class="obj">values</span> <span class="comment"># [2700, 750...]</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Total Sales by Category"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'plt',
-                title: "Pie Chart",
-                subtitle: "matplotlib.pyplot.pie()",
-                details: [
-                    "Visualizes proportions and percentages. Best for <span class='text-blue-400 font-bold'>Part-to-Whole relationships</span>.",
-                    "Like Bar Charts, data must be aggregated first.",
-                    "<span class='font-code text-blue-400'>autopct='%1.1f%%'</span> is a string formatting tool that automatically calculates and displays the percentages to one decimal place."
-                ],
-                viz: <PieChartMPL />,
-                code: `<span class="comment"># Aggregate Data</span>\nsums = df.<span class="func">groupby</span>(<span class="str">'Category'</span>)[<span class="str">'Sales'</span>].<span class="func">sum</span>()\n\n<span class="func">plt.pie</span>(\n    <span class="arg">x</span>=sums.<span class="obj">values</span>,\n    <span class="arg">labels</span>=sums.<span class="obj">index</span>,\n    <span class="arg">autopct</span>=<span class="str">'%1.1f%%'</span>,   <span class="comment"># Format percentages</span>\n    <span class="arg">startangle</span>=<span class="num">90</span>        <span class="comment"># Rotate starting point</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Market Share"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'plt',
-                title: "Histogram",
-                subtitle: "matplotlib.pyplot.hist()",
-                details: [
-                    "Visualizes the <span class='text-blue-400 font-bold'>Distribution</span> of a single continuous variable.",
-                    "It automatically divides the data range into equal intervals called <span class='font-code text-blue-400'>bins</span>, and counts how many data points fall into each bin.",
-                    "Essential for detecting outliers and checking if data follows a normal distribution (bell curve)."
-                ],
-                viz: <HistChartMPL />,
-                code: `<span class="func">plt.hist</span>(\n    <span class="arg">x</span>=df[<span class="str">'Profit'</span>],      <span class="comment"># Single numerical column</span>\n    <span class="arg">bins</span>=<span class="num">5</span>,              <span class="comment"># Number of buckets</span>\n    <span class="arg">edgecolor</span>=<span class="str">'black'</span>,   <span class="comment"># Border for readability</span>\n    <span class="arg">color</span>=<span class="str">'#34D399'</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Profit Distribution"</span>)\n<span class="func">plt.xlabel</span>(<span class="str">"Profit Range"</span>)\n<span class="func">plt.ylabel</span>(<span class="str">"Frequency"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'transition',
-                title: "Enter Seaborn",
-                subtitle: "Statistical Layer Abstraction",
-                details: [
-                    "While Matplotlib is powerful, it requires manual data manipulation (like the <span class='font-code'>groupby</span> steps we just did).",
-                    "Seaborn is built <span class='italic'>on top of</span> Matplotlib.",
-                    "It inherently understands Pandas DataFrames and automatically performs <span class='text-pink-400 font-bold'>Statistical Aggregations</span> (like means and confidence intervals) for you under the hood."
-                ],
-                viz: (
-                    <div className="flex flex-col items-center justify-center h-full text-center bg-[#0F172A] rounded-b-xl border-t border-[#1E293B]">
-                        <div className="text-8xl mb-6 animate-pulse drop-shadow-[0_0_15px_rgba(244,114,182,0.5)]">🧬</div>
-                        <div className="text-pink-400 font-code tracking-widest uppercase text-sm border border-pink-700/50 px-4 py-1 rounded-full bg-pink-900/30">Statistical Plotting</div>
-                    </div>
-                ),
-                code: ""
-            },
-            {
-                type: 'sns',
-                title: "Statistical Line Plot",
-                subtitle: "seaborn.lineplot()",
-                details: [
-                    "Unlike Matplotlib, if you pass raw, unaggregated data to <span class='font-code text-pink-400'>sns.lineplot()</span>, it won't draw a messy zig-zag.",
-                    "Instead, if multiple data points exist for a single Date, it automatically calculates the <span class='text-pink-400 font-bold'>Mean</span> and plots that as the central line.",
-                    "It also calculates the <span class='text-pink-400 font-bold'>95% Confidence Interval</span> and draws it as the shaded band around the line, representing uncertainty."
-                ],
-                viz: <LinePlotSNS />,
-                code: `<span class="comment"># Pass the ENTIRE dataframe directly</span>\n<span class="func">sns.lineplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">x</span>=<span class="str">'Date'</span>,\n    <span class="arg">y</span>=<span class="str">'Sales'</span>,\n    <span class="arg">color</span>=<span class="str">'#F472B6'</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Sales Trend with Confidence Interval"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'sns',
-                title: "Count Plot",
-                subtitle: "seaborn.countplot()",
-                details: [
-                    "A specialized, streamlined version of a Bar Chart.",
-                    "You don't need to specify a Y-axis or aggregate the data. You just provide the categorical X-axis.",
-                    "Seaborn automatically counts the occurrences of each category and plots the frequencies."
-                ],
-                viz: <CountPlotSNS />,
-                code: `<span class="comment"># Only specify 'y' (or 'x'), Seaborn counts the rest!</span>\n<span class="func">sns.countplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">y</span>=<span class="str">'Region'</span>,          <span class="comment"># Horizontal bars</span>\n    <span class="arg">palette</span>=<span class="str">'viridis'</span>    <span class="comment"># Built-in color theme</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Transactions by Region"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'sns',
-                title: "Box Plot",
-                subtitle: "seaborn.boxplot()",
-                details: [
-                    "The ultimate statistical visualization. Displays the <span class='text-pink-400 font-bold'>5-Number Summary</span>.",
-                    "▹ <span class='font-code'>Box</span>: Spans from Q1 (25th percentile) to Q3 (75th percentile). This is the Interquartile Range (IQR).",
-                    "▹ <span class='font-code'>Middle Line</span>: The Median (50th percentile).",
-                    "▹ <span class='font-code'>Whiskers</span>: Represent the spread of the data excluding outliers.",
-                    "▹ <span class='font-code'>Dots</span>: Mathematically identified outliers."
-                ],
-                viz: <BoxPlotSNS />,
-                code: `<span class="func">sns.boxplot</span>(\n    <span class="arg">data</span>=df,\n    <span class="arg">x</span>=<span class="str">'Category'</span>,        <span class="comment"># Group by category</span>\n    <span class="arg">y</span>=<span class="str">'Profit'</span>           <span class="comment"># Measure spread of profit</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Profit Distribution and Outliers"</span>)\n<span class="func">plt.show</span>()`
-            },
-            {
-                type: 'sns',
-                title: "Heatmap",
-                subtitle: "seaborn.heatmap()",
-                details: [
-                    "Maps numerical values in a matrix to color intensity.",
-                    "Most commonly used in Data Science to visualize <span class='text-pink-400 font-bold'>Correlation Matrices</span> (how closely different numeric variables are related).",
-                    "<span class='font-code text-pink-400'>annot=True</span> overlays the actual numerical values inside the colored blocks for precise readability."
-                ],
-                viz: <HeatmapSNS />,
-                code: `<span class="comment"># 1. Generate Correlation Matrix</span>\ncorr_matrix = df.<span class="func">corr</span>(<span class="arg">numeric_only</span>=<span class="kwd">True</span>)\n\n<span class="comment"># 2. Plot Matrix</span>\n<span class="func">sns.heatmap</span>(\n    <span class="arg">data</span>=corr_matrix,\n    <span class="arg">annot</span>=<span class="kwd">True</span>,          <span class="comment"># Show numbers</span>\n    <span class="arg">cmap</span>=<span class="str">'RdPu'</span>,         <span class="comment"># Red-Purple color scale</span>\n    <span class="arg">linewidths</span>=<span class="num">0.5</span>       <span class="comment"># Grid lines</span>\n)\n\n<span class="func">plt.title</span>(<span class="str">"Feature Correlation"</span>)\n<span class="func">plt.show</span>()`
-            }
-        ];
-
-        // --- 🖥️ MAIN APPLICATION COMPONENT ---
-        const App = () => {
-            const [idx, setIdx] = useState(0);
-            const content = slides[idx];
-            const [key, setKey] = useState(0); // Used to force re-render/animation of SVGs
-
-            useEffect(() => {
-                setKey(prev => prev + 1);
-            }, [idx]);
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative text-white selection:bg-blue-500/30 selection:text-blue-200">
-                    
-                    {/* Top Progress Bar */}
-                    <div className="w-full h-1 bg-slate-900 absolute top-0 z-50">
-                        <div className="h-full bg-gradient-to-r from-[#38BDF8] via-[#A78BFA] to-[#F472B6] transition-all duration-500 ease-out shadow-[0_0_10px_rgba(56,189,248,0.5)]" style={{ width: `${((idx + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    <div className="flex-1 p-6 md:p-10 flex items-center justify-center overflow-hidden pt-10">
-                        <div className="max-w-7xl w-full h-full flex flex-col lg:flex-row gap-10 items-center">
-                            
-                            {/* LEFT SIDE: Educational Content & Code */}
-                            <div className="flex-1 flex flex-col gap-6 w-full h-full justify-center fade-in-up" key={`content-${key}`}>
-                                
-                                {/* Header Section */}
-                                <div className="shrink-0">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className={`px-2.5 py-0.5 rounded text-[11px] font-code font-bold uppercase tracking-wider border ${content.type === 'plt' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : content.type === 'sns' ? 'bg-pink-500/10 text-pink-400 border-pink-500/20' : 'bg-slate-500/10 text-slate-400 border-slate-500/20'}`}>
-                                            Module {idx + 1}
-                                        </div>
-                                    </div>
-                                    <h1 className="text-4xl lg:text-5xl font-bold text-white mb-2 tracking-tight">{content.title}</h1>
-                                    <h2 className="text-xl text-[#94A3B8] font-medium border-b border-[#334155] pb-4 mb-5">{content.subtitle}</h2>
-                                    
-                                    <ul className="pointer-list text-[15px] text-[#CBD5E1] leading-relaxed max-w-2xl">
-                                        {content.details.map((detail, i) => (
-                                            <li key={i} dangerouslySetInnerHTML={{__html: detail}}></li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                
-                                {/* Code Section (if exists) */}
-                                {content.code && (
-                                    <div className="flex-1 min-h-[250px] mt-2 flex flex-col">
-                                        <div className="code-window rounded-xl overflow-hidden flex flex-col h-full shadow-2xl relative">
-                                            {/* IDE Header */}
-                                            <div className="bg-[#181818] border-b border-[#333] px-4 py-2 flex items-center gap-4 shrink-0">
-                                                <div className="flex gap-1.5">
-                                                    <div className="w-3 h-3 rounded-full bg-[#FF5F56]"></div>
-                                                    <div className="w-3 h-3 rounded-full bg-[#FFBD2E]"></div>
-                                                    <div className="w-3 h-3 rounded-full bg-[#27C93F]"></div>
-                                                </div>
-                                                <div className="text-[11px] font-code text-[#858585] flex-1 text-center pr-10">jayan_visuals.py</div>
-                                            </div>
-                                            {/* IDE Content */}
-                                            <div className="p-5 font-code text-[14px] leading-relaxed overflow-y-auto custom-scroll flex-1">
-                                                <pre className="m-0" dangerouslySetInnerHTML={{__html: content.code}}></pre>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-
-                            {/* RIGHT SIDE: Visual Output */}
-                            <div className="w-full lg:w-[45%] h-[400px] lg:h-[650px] glass-panel rounded-xl flex flex-col overflow-hidden fade-in-up shadow-2xl border border-slate-700" key={`viz-${key}`}>
-                                <div className="bg-[#1E293B] border-b border-[#334155] px-5 py-3 flex justify-between items-center shrink-0">
-                                    <span className="text-[12px] text-slate-400 font-code tracking-wide">Figure_{idx}.png</span>
-                                    <div className="text-slate-500 font-bold tracking-widest text-[10px]">OUTPUT</div>
-                                </div>
-                                <div className="flex-1 relative overflow-hidden flex items-center justify-center p-0">
-                                    {content.viz}
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </div>
-
-                    {/* Bottom Navigation Bar */}
-                    <div className="bg-[#0F172A] border-t border-[#1E293B] p-4 flex justify-between items-center z-50">
-                        <div className="text-xs text-slate-500 font-code hidden md:flex items-center gap-2 pl-4">
-                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Python 3.10 | Kernel Ready
-                        </div>
-                        <div className="flex gap-4 mx-auto md:mx-0 pr-4">
-                            <button 
-                                onClick={() => setIdx(Math.max(0, idx - 1))} 
-                                disabled={idx === 0}
-                                className={`font-code text-sm px-5 py-2.5 rounded-lg transition-all duration-200 border ${idx === 0 ? 'bg-transparent text-slate-700 border-slate-800 cursor-not-allowed' : 'bg-[#1E293B] text-slate-300 border-[#334155] hover:bg-[#334155] hover:text-white'}`}>
-                                ← Back
-                            </button>
-                            <div className="bg-[#1E293B] border border-[#334155] text-slate-400 font-code text-xs flex items-center justify-center px-4 rounded-lg">
-                                {idx + 1} / {slides.length}
-                            </div>
-                            <button 
-                                onClick={() => setIdx(Math.min(slides.length - 1, idx + 1))} 
-                                disabled={idx === slides.length - 1}
-                                className={`font-code text-sm px-5 py-2.5 rounded-lg shadow-lg transition-all duration-200 ${idx === slides.length - 1 ? 'bg-slate-800 text-slate-600 cursor-not-allowed' : 'bg-[#38BDF8] text-[#0B1120] hover:bg-[#7DD3FC] hover:shadow-[0_0_15px_rgba(56,189,248,0.4)] font-bold'}`}>
-                                Next Step →
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+</body></html>

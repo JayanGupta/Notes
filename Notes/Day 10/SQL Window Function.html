@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Jayan's BI Terminal | SQL Window Masterclass</title>
@@ -8,9 +6,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
     <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
 
     <script>
@@ -47,399 +45,742 @@
 <body>
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
-        const motion = window.Motion.motion;
-        const AnimatePresence = window.Motion.AnimatePresence;
+    <script>const {
+  useState,
+  useEffect
+} = React;
+const motion = window.Motion.motion;
+const AnimatePresence = window.Motion.AnimatePresence;
 
-        // Pre-calculated, 100% accurate datasets sorted exactly as the SQL query would return them.
-        const SLIDES = [
-            {
-                title: "Window Functions",
-                subtitle: "The 'Big Picture' View",
-                desc: "Window functions calculate a result for every single row. Unlike a GROUP BY, which collapses rows into one, a Window Function keeps the row detail visible while adding a summary column.",
-                code: "SELECT name, score, \nSUM(score) OVER() as total_class_score \nFROM students;",
-                type: "full",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 480 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 480 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 480 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 480 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 480 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 480 }
-                ]
-            },
-            {
-                title: "The OVER() Clause",
-                subtitle: "Defining your Scope",
-                desc: "The OVER() clause tells SQL how to look at your data. Empty parentheses mean 'look at the whole table' for the calculation.",
-                code: "SELECT name, score, \nAVG(score) OVER() as class_average \nFROM students;",
-                type: "full",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 80 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 80 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 80 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 80 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 80 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 80 }
-                ]
-            },
-            {
-                title: "PARTITION BY",
-                subtitle: "Creating Small Groups",
-                desc: "PARTITION BY is like GROUP BY, but inside the window. It resets the calculation for every unique group (like calculating the average score per Team).",
-                code: "SELECT team, name, score, \nAVG(score) OVER(PARTITION BY team) as team_avg \nFROM students;",
-                type: "partition",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 90 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 90 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 90 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 70 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 70 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 70 }
-                ]
-            },
-            {
-                title: "ROW_NUMBER()",
-                subtitle: "Unique Row IDs",
-                desc: "Assigns a simple 1, 2, 3... to every row. Even if scores are tied, every person gets a unique sequential number.",
-                code: "SELECT name, score, \nROW_NUMBER() OVER(ORDER BY score DESC) as position \nFROM students;",
-                type: "rank",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 1 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 2 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 3 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 4 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 5 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 6 }
-                ]
-            },
-            {
-                title: "RANK()",
-                subtitle: "The Medal System",
-                desc: "If people tie, they get the exact same rank. However, the subsequent rank is skipped (1, 1, 3).",
-                code: "SELECT name, score, \nRANK() OVER(ORDER BY score DESC) as rank_pos \nFROM students;",
-                type: "rank",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 1 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 1 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 3 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 3 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 5 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 6 }
-                ]
-            },
-            {
-                title: "DENSE_RANK()",
-                subtitle: "No Gaps Allowed",
-                desc: "Similar to RANK, but it absolutely does not skip numbers after a tie (1, 1, 2, 2, 3). It keeps the rankings 'dense'.",
-                code: "SELECT name, score, \nDENSE_RANK() OVER(ORDER BY score DESC) as dense_pos \nFROM students;",
-                type: "rank",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 1 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 1 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 2 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 2 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 3 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 4 }
-                ]
-            },
-            {
-                title: "Running Totals",
-                subtitle: "Cumulative Growth",
-                desc: "By adding ORDER BY inside the OVER clause, SQL calculates a 'running' sum starting from the first row down to the current one.",
-                code: "SELECT name, score, \nSUM(score) OVER(ORDER BY id) as running_total \nFROM students;",
-                type: "running",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 95 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 175 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 255 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 325 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 420 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 480 }
-                ]
-            },
-            {
-                title: "Moving Average",
-                subtitle: "Smoothing the Data",
-                desc: "Calculates the average as the window frame physically moves down. Great for seeing if scores are improving over time.",
-                code: "SELECT name, score, \nAVG(score) OVER(ORDER BY id) as moving_avg \nFROM students;",
-                type: "running",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 95 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 87.5 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 85 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 81.25 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 84 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 80 }
-                ]
-            },
-            {
-                title: "LAG()",
-                subtitle: "The Previous Row",
-                desc: "LAG lets you 'look back' at the previous student's score in the sorted dataset. Essential for comparing current metrics to past metrics.",
-                code: "SELECT name, score, \nLAG(score) OVER(ORDER BY score DESC) as prev_score \nFROM students;",
-                type: "lag",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: null },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 95 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 95 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 80 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 80 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 70 }
-                ]
-            },
-            {
-                title: "LEAD()",
-                subtitle: "The Next Row",
-                desc: "LEAD looks 'ahead' to the next student. It is the direct opposite of LAG, useful for identifying future events.",
-                code: "SELECT name, score, \nLEAD(score) OVER(ORDER BY score DESC) as next_score \nFROM students;",
-                type: "lead",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 95 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 80 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 80 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 70 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 60 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: null }
-                ]
-            },
-            {
-                title: "NTILE()",
-                subtitle: "Grouping into Buckets",
-                desc: "Splits the sorted rows into a specified number of equally-sized groups. NTILE(2) strictly splits the class into a 'Top Half' (1) and 'Bottom Half' (2).",
-                code: "SELECT name, score, \nNTILE(2) OVER(ORDER BY score DESC) as bucket \nFROM students;",
-                type: "rank",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 1 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 1 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 1 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 2 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 2 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 2 }
-                ]
-            },
-            {
-                title: "The Ultimate Query",
-                subtitle: "Partitioning + Ordering",
-                desc: "You can combine Partitions and Order together! This advanced query independently ranks students strictly against their own teammates.",
-                code: "SELECT team, name, score, \nRANK() OVER(PARTITION BY team ORDER BY score DESC) as team_rank \nFROM students;",
-                type: "complex",
-                data: [
-                    { id: 1, name: "Alice", team: "Red", score: 95, answer: 1 },
-                    { id: 5, name: "Eve", team: "Red", score: 95, answer: 1 },
-                    { id: 3, name: "Charlie", team: "Red", score: 80, answer: 3 },
-                    { id: 2, name: "Bob", team: "Blue", score: 80, answer: 1 },
-                    { id: 4, name: "David", team: "Blue", score: 70, answer: 2 },
-                    { id: 6, name: "Frank", team: "Blue", score: 60, answer: 3 }
-                ]
-            }
-        ];
+// Pre-calculated, 100% accurate datasets sorted exactly as the SQL query would return them.
+const SLIDES = [{
+  title: "Window Functions",
+  subtitle: "The 'Big Picture' View",
+  desc: "Window functions calculate a result for every single row. Unlike a GROUP BY, which collapses rows into one, a Window Function keeps the row detail visible while adding a summary column.",
+  code: "SELECT name, score, \nSUM(score) OVER() as total_class_score \nFROM students;",
+  type: "full",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 480
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 480
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 480
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 480
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 480
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 480
+  }]
+}, {
+  title: "The OVER() Clause",
+  subtitle: "Defining your Scope",
+  desc: "The OVER() clause tells SQL how to look at your data. Empty parentheses mean 'look at the whole table' for the calculation.",
+  code: "SELECT name, score, \nAVG(score) OVER() as class_average \nFROM students;",
+  type: "full",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 80
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 80
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 80
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 80
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 80
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 80
+  }]
+}, {
+  title: "PARTITION BY",
+  subtitle: "Creating Small Groups",
+  desc: "PARTITION BY is like GROUP BY, but inside the window. It resets the calculation for every unique group (like calculating the average score per Team).",
+  code: "SELECT team, name, score, \nAVG(score) OVER(PARTITION BY team) as team_avg \nFROM students;",
+  type: "partition",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 90
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 90
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 90
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 70
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 70
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 70
+  }]
+}, {
+  title: "ROW_NUMBER()",
+  subtitle: "Unique Row IDs",
+  desc: "Assigns a simple 1, 2, 3... to every row. Even if scores are tied, every person gets a unique sequential number.",
+  code: "SELECT name, score, \nROW_NUMBER() OVER(ORDER BY score DESC) as position \nFROM students;",
+  type: "rank",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 2
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 3
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 4
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 5
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 6
+  }]
+}, {
+  title: "RANK()",
+  subtitle: "The Medal System",
+  desc: "If people tie, they get the exact same rank. However, the subsequent rank is skipped (1, 1, 3).",
+  code: "SELECT name, score, \nRANK() OVER(ORDER BY score DESC) as rank_pos \nFROM students;",
+  type: "rank",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 3
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 3
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 5
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 6
+  }]
+}, {
+  title: "DENSE_RANK()",
+  subtitle: "No Gaps Allowed",
+  desc: "Similar to RANK, but it absolutely does not skip numbers after a tie (1, 1, 2, 2, 3). It keeps the rankings 'dense'.",
+  code: "SELECT name, score, \nDENSE_RANK() OVER(ORDER BY score DESC) as dense_pos \nFROM students;",
+  type: "rank",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 2
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 2
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 3
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 4
+  }]
+}, {
+  title: "Running Totals",
+  subtitle: "Cumulative Growth",
+  desc: "By adding ORDER BY inside the OVER clause, SQL calculates a 'running' sum starting from the first row down to the current one.",
+  code: "SELECT name, score, \nSUM(score) OVER(ORDER BY id) as running_total \nFROM students;",
+  type: "running",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 95
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 175
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 255
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 325
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 420
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 480
+  }]
+}, {
+  title: "Moving Average",
+  subtitle: "Smoothing the Data",
+  desc: "Calculates the average as the window frame physically moves down. Great for seeing if scores are improving over time.",
+  code: "SELECT name, score, \nAVG(score) OVER(ORDER BY id) as moving_avg \nFROM students;",
+  type: "running",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 95
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 87.5
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 85
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 81.25
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 84
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 80
+  }]
+}, {
+  title: "LAG()",
+  subtitle: "The Previous Row",
+  desc: "LAG lets you 'look back' at the previous student's score in the sorted dataset. Essential for comparing current metrics to past metrics.",
+  code: "SELECT name, score, \nLAG(score) OVER(ORDER BY score DESC) as prev_score \nFROM students;",
+  type: "lag",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: null
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 95
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 95
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 80
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 80
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 70
+  }]
+}, {
+  title: "LEAD()",
+  subtitle: "The Next Row",
+  desc: "LEAD looks 'ahead' to the next student. It is the direct opposite of LAG, useful for identifying future events.",
+  code: "SELECT name, score, \nLEAD(score) OVER(ORDER BY score DESC) as next_score \nFROM students;",
+  type: "lead",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 95
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 80
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 80
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 70
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 60
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: null
+  }]
+}, {
+  title: "NTILE()",
+  subtitle: "Grouping into Buckets",
+  desc: "Splits the sorted rows into a specified number of equally-sized groups. NTILE(2) strictly splits the class into a 'Top Half' (1) and 'Bottom Half' (2).",
+  code: "SELECT name, score, \nNTILE(2) OVER(ORDER BY score DESC) as bucket \nFROM students;",
+  type: "rank",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 1
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 2
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 2
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 2
+  }]
+}, {
+  title: "The Ultimate Query",
+  subtitle: "Partitioning + Ordering",
+  desc: "You can combine Partitions and Order together! This advanced query independently ranks students strictly against their own teammates.",
+  code: "SELECT team, name, score, \nRANK() OVER(PARTITION BY team ORDER BY score DESC) as team_rank \nFROM students;",
+  type: "complex",
+  data: [{
+    id: 1,
+    name: "Alice",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 5,
+    name: "Eve",
+    team: "Red",
+    score: 95,
+    answer: 1
+  }, {
+    id: 3,
+    name: "Charlie",
+    team: "Red",
+    score: 80,
+    answer: 3
+  }, {
+    id: 2,
+    name: "Bob",
+    team: "Blue",
+    score: 80,
+    answer: 1
+  }, {
+    id: 4,
+    name: "David",
+    team: "Blue",
+    score: 70,
+    answer: 2
+  }, {
+    id: 6,
+    name: "Frank",
+    team: "Blue",
+    score: 60,
+    answer: 3
+  }]
+}];
 
-        // Typewriter Component
-        const TypewriterCode = ({ code, onComplete }) => {
-            const [displayCode, setDisplayCode] = useState("");
-            const [isDone, setIsDone] = useState(false);
-            
-            useEffect(() => {
-                setDisplayCode("");
-                setIsDone(false);
-                let i = 0;
-                const interval = setInterval(() => {
-                    if (i < code.length) {
-                        setDisplayCode(prev => prev + code.charAt(i));
-                        i++;
-                    } else {
-                        clearInterval(interval);
-                        setIsDone(true);
-                        onComplete();
-                    }
-                }, 15); // Slightly faster typing speed
-                return () => clearInterval(interval);
-            }, [code]);
+// Typewriter Component
+const TypewriterCode = ({
+  code,
+  onComplete
+}) => {
+  const [displayCode, setDisplayCode] = useState("");
+  const [isDone, setIsDone] = useState(false);
+  useEffect(() => {
+    setDisplayCode("");
+    setIsDone(false);
+    let i = 0;
+    const interval = setInterval(() => {
+      if (i < code.length) {
+        setDisplayCode(prev => prev + code.charAt(i));
+        i++;
+      } else {
+        clearInterval(interval);
+        setIsDone(true);
+        onComplete();
+      }
+    }, 15); // Slightly faster typing speed
+    return () => clearInterval(interval);
+  }, [code]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "font-mono text-sm text-cyan-100 leading-relaxed min-h-[80px]"
+  }, /*#__PURE__*/React.createElement("pre", {
+    className: "whitespace-pre-wrap"
+  }, displayCode, !isDone && /*#__PURE__*/React.createElement("span", {
+    className: "code-cursor"
+  })));
+};
+const App = () => {
+  const [index, setIndex] = useState(0);
+  const [isTyping, setIsTyping] = useState(true);
+  const [activeRow, setActiveRow] = useState(0);
+  const current = SLIDES[index];
+  const rows = current.data; // Using the strictly accurate dataset
 
-            return (
-                <div className="font-mono text-sm text-cyan-100 leading-relaxed min-h-[80px]">
-                    <pre className="whitespace-pre-wrap">
-                        {displayCode}
-                        {!isDone && <span className="code-cursor" />}
-                    </pre>
-                </div>
-            );
-        };
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!isTyping) {
+        setActiveRow(prev => (prev + 1) % rows.length);
+      }
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [isTyping, rows.length]);
+  const getHighlight = i => {
+    if (isTyping) return "";
+    const row = rows[i];
+    const active = rows[activeRow];
+    if (current.type === "full") return "row-highlight";
+    if ((current.type === "partition" || current.type === "complex") && row.team === active.team) return "row-highlight";
+    if (current.type === "running" && i <= activeRow) return "row-highlight";
+    if (current.type === "lag" && i === activeRow - 1) return "bg-white/5 opacity-50";
+    if (current.type === "lead" && i === activeRow + 1) return "bg-white/5 opacity-50";
+    return i === activeRow ? "bg-white/10" : "";
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "h-screen w-screen flex flex-col bg-cyber-dark overflow-hidden selection:bg-cyber-secondary/30"
+  }, /*#__PURE__*/React.createElement("header", {
+    className: "px-8 py-5 border-b border-white/5 flex justify-between items-center z-50 bg-cyber-dark/80 backdrop-blur-xl"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-10 h-10 bg-gradient-to-br from-cyber-primary to-cyber-secondary rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-graduation-cap text-cyber-dark text-lg"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    className: "text-xl font-bold tracking-tight uppercase"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-gradient"
+  }, "SQL Masterclass")), /*#__PURE__*/React.createElement("p", {
+    className: "text-[10px] font-mono text-slate-500 tracking-[0.2em]"
+  }, "ENGINE // BUILD_8.3"))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1"
+  }, SLIDES.map((_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: `h-1 w-6 rounded-full transition-all duration-500 ${i <= index ? 'bg-cyber-secondary' : 'bg-slate-800'}`
+  })))), /*#__PURE__*/React.createElement("main", {
+    className: "flex-1 flex p-8 gap-8 overflow-hidden relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-cyber-primary/5 rounded-full blur-[100px] -z-10"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-[38%] flex flex-col gap-6"
+  }, /*#__PURE__*/React.createElement(AnimatePresence, {
+    mode: "wait"
+  }, /*#__PURE__*/React.createElement(motion.div, {
+    key: index,
+    initial: {
+      opacity: 0,
+      x: -20
+    },
+    animate: {
+      opacity: 1,
+      x: 0
+    },
+    exit: {
+      opacity: 0,
+      x: 20
+    },
+    className: "flex flex-col flex-1"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-6"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-cyber-accent font-mono text-xs font-bold uppercase tracking-widest"
+  }, "Lesson ", index + 1, " of 12"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-4xl font-bold text-white mt-1"
+  }, current.title), /*#__PURE__*/React.createElement("p", {
+    className: "text-cyber-secondary font-medium text-lg mt-1 italic opacity-80"
+  }, current.subtitle)), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 leading-relaxed text-base mb-8"
+  }, current.desc), /*#__PURE__*/React.createElement("div", {
+    className: "mt-auto"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-card rounded-2xl p-6 border-l-4 border-cyber-secondary shadow-xl overflow-hidden relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono text-slate-500 uppercase mb-3 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-terminal"
+  }), " Query Engine"), /*#__PURE__*/React.createElement(TypewriterCode, {
+    code: current.code,
+    onComplete: () => setIsTyping(false)
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 right-0 w-32 h-32 bg-cyber-secondary/5 rounded-full blur-2xl"
+  })))))), /*#__PURE__*/React.createElement("div", {
+    className: "w-[62%] flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-card rounded-3xl p-8 flex-1 flex flex-col border border-white/10 shadow-2xl overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mb-6"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "font-mono text-xs text-slate-500 flex items-center gap-2 uppercase tracking-widest"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `w-2 h-2 rounded-full ${isTyping ? 'bg-amber-500 animate-pulse' : 'bg-cyber-success'}`
+  }), isTyping ? 'Compiling Query...' : 'Execution Output'), !isTyping && /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      opacity: 0
+    },
+    animate: {
+      opacity: 1
+    },
+    className: "text-[10px] text-cyber-secondary font-bold uppercase tracking-widest bg-cyber-secondary/10 px-3 py-1 rounded"
+  }, "Scanning Window Frame")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 overflow-y-auto custom-scroll pr-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-6 gap-4 px-4 py-3 text-[10px] text-slate-500 font-mono uppercase tracking-widest border-b border-white/5 bg-white/5 rounded-t-lg"
+  }, /*#__PURE__*/React.createElement("div", null, "ID"), /*#__PURE__*/React.createElement("div", null, "Team"), /*#__PURE__*/React.createElement("div", null, "Name"), /*#__PURE__*/React.createElement("div", null, "Score"), /*#__PURE__*/React.createElement("div", {
+    className: "col-span-2 text-cyber-secondary"
+  }, "Answer")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-2 space-y-1"
+  }, rows.map((row, i) => /*#__PURE__*/React.createElement(motion.div, {
+    key: `${index}-${i}`,
+    className: `grid grid-cols-6 gap-4 px-4 py-4 rounded-xl transition-all duration-500 ${getHighlight(i)}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-600 font-mono"
+  }, "#", row.id), /*#__PURE__*/React.createElement("div", {
+    className: `font-bold ${row.team === 'Red' ? 'text-rose-400' : 'text-blue-400'}`
+  }, row.team), /*#__PURE__*/React.createElement("div", {
+    className: "text-white font-medium"
+  }, row.name), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-400"
+  }, row.score), /*#__PURE__*/React.createElement("div", {
+    className: "col-span-2 flex items-center gap-3"
+  }, !isTyping ? /*#__PURE__*/React.createElement(motion.div, {
+    initial: {
+      scale: 0,
+      opacity: 0,
+      x: -10
+    },
+    animate: {
+      scale: 1,
+      opacity: 1,
+      x: 0
+    },
+    transition: {
+      delay: i * 0.1
+    },
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-arrow-right text-slate-700 text-[10px]"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "result-glow font-mono"
+  }, row.answer === null ? 'NULL' : typeof row.answer === 'number' && !Number.isInteger(row.answer) ? row.answer.toFixed(2) : row.answer)) : /*#__PURE__*/React.createElement("div", {
+    className: "h-4 w-12 bg-white/5 rounded animate-pulse"
+  }))))))))), /*#__PURE__*/React.createElement("footer", {
+    className: "p-6 bg-cyber-dark/90 border-t border-white/5 flex justify-between items-center z-50 backdrop-blur-xl"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setIndex(prev => Math.max(0, prev - 1));
+      setIsTyping(true);
+    },
+    disabled: index === 0,
+    className: `px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-3 transition-all ${index === 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'bg-slate-800 text-white hover:bg-slate-700'}`
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-chevron-left"
+  }), " PREVIOUS"), /*#__PURE__*/React.createElement("div", {
+    className: "text-[10px] font-mono text-slate-600 uppercase tracking-widest flex flex-col items-center"
+  }, /*#__PURE__*/React.createElement("span", null, "Developed by Jayan Gupta"), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-700"
+  }, "Data Science Node // Secured")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setIndex(prev => Math.min(SLIDES.length - 1, prev + 1));
+      setIsTyping(true);
+    },
+    className: "px-10 py-4 rounded-xl font-bold text-xs bg-gradient-to-r from-cyber-primary to-cyber-secondary text-cyber-dark shadow-xl shadow-cyan-500/10 hover:scale-105 active:scale-95 transition-all"
+  }, index === SLIDES.length - 1 ? 'RESTART CLASS' : 'NEXT LESSON', " ", /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-chevron-right ml-2"
+  }))));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-        const App = () => {
-            const [index, setIndex] = useState(0);
-            const [isTyping, setIsTyping] = useState(true);
-            const [activeRow, setActiveRow] = useState(0);
-            
-            const current = SLIDES[index];
-            const rows = current.data; // Using the strictly accurate dataset
-
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    if (!isTyping) {
-                        setActiveRow(prev => (prev + 1) % rows.length);
-                    }
-                }, 2000);
-                return () => clearInterval(interval);
-            }, [isTyping, rows.length]);
-
-            const getHighlight = (i) => {
-                if (isTyping) return "";
-                const row = rows[i];
-                const active = rows[activeRow];
-                
-                if (current.type === "full") return "row-highlight";
-                if ((current.type === "partition" || current.type === "complex") && row.team === active.team) return "row-highlight";
-                if (current.type === "running" && i <= activeRow) return "row-highlight";
-                if (current.type === "lag" && i === activeRow - 1) return "bg-white/5 opacity-50";
-                if (current.type === "lead" && i === activeRow + 1) return "bg-white/5 opacity-50";
-                
-                return i === activeRow ? "bg-white/10" : "";
-            };
-
-            return (
-                <div className="h-screen w-screen flex flex-col bg-cyber-dark overflow-hidden selection:bg-cyber-secondary/30">
-                    
-                    {/* Header */}
-                    <header className="px-8 py-5 border-b border-white/5 flex justify-between items-center z-50 bg-cyber-dark/80 backdrop-blur-xl">
-                        <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 bg-gradient-to-br from-cyber-primary to-cyber-secondary rounded-lg flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                                <i className="fa-solid fa-graduation-cap text-cyber-dark text-lg"></i>
-                            </div>
-                            <div>
-                                <h1 className="text-xl font-bold tracking-tight uppercase"><span className="text-gradient">SQL Masterclass</span></h1>
-                                <p className="text-[10px] font-mono text-slate-500 tracking-[0.2em]">ENGINE // BUILD_8.3</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-1">
-                            {SLIDES.map((_, i) => (
-                                <div key={i} className={`h-1 w-6 rounded-full transition-all duration-500 ${i <= index ? 'bg-cyber-secondary' : 'bg-slate-800'}`} />
-                            ))}
-                        </div>
-                    </header>
-
-                    <main className="flex-1 flex p-8 gap-8 overflow-hidden relative">
-                        {/* Decor */}
-                        <div className="absolute top-1/2 left-1/4 w-[400px] h-[400px] bg-cyber-primary/5 rounded-full blur-[100px] -z-10" />
-
-                        {/* Explanation Section */}
-                        <div className="w-[38%] flex flex-col gap-6">
-                            <AnimatePresence mode="wait">
-                                <motion.div 
-                                    key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 20 }}
-                                    className="flex flex-col flex-1"
-                                >
-                                    <div className="mb-6">
-                                        <span className="text-cyber-accent font-mono text-xs font-bold uppercase tracking-widest">Lesson {index + 1} of 12</span>
-                                        <h2 className="text-4xl font-bold text-white mt-1">{current.title}</h2>
-                                        <p className="text-cyber-secondary font-medium text-lg mt-1 italic opacity-80">{current.subtitle}</p>
-                                    </div>
-                                    
-                                    <p className="text-slate-400 leading-relaxed text-base mb-8">{current.desc}</p>
-                                    
-                                    <div className="mt-auto">
-                                        <div className="glass-card rounded-2xl p-6 border-l-4 border-cyber-secondary shadow-xl overflow-hidden relative">
-                                            <div className="text-[10px] font-mono text-slate-500 uppercase mb-3 flex items-center gap-2">
-                                                <i className="fa-solid fa-terminal"></i> Query Engine
-                                            </div>
-                                            <TypewriterCode 
-                                                code={current.code} 
-                                                onComplete={() => setIsTyping(false)} 
-                                            />
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-secondary/5 rounded-full blur-2xl" />
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-
-                        {/* Visualizer Section */}
-                        <div className="w-[62%] flex flex-col">
-                            <div className="glass-card rounded-3xl p-8 flex-1 flex flex-col border border-white/10 shadow-2xl overflow-hidden">
-                                <div className="flex justify-between items-center mb-6">
-                                    <h3 className="font-mono text-xs text-slate-500 flex items-center gap-2 uppercase tracking-widest">
-                                        <div className={`w-2 h-2 rounded-full ${isTyping ? 'bg-amber-500 animate-pulse' : 'bg-cyber-success'}`} />
-                                        {isTyping ? 'Compiling Query...' : 'Execution Output'}
-                                    </h3>
-                                    {!isTyping && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-[10px] text-cyber-secondary font-bold uppercase tracking-widest bg-cyber-secondary/10 px-3 py-1 rounded">
-                                            Scanning Window Frame
-                                        </motion.div>
-                                    )}
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto custom-scroll pr-2">
-                                    <div className="grid grid-cols-6 gap-4 px-4 py-3 text-[10px] text-slate-500 font-mono uppercase tracking-widest border-b border-white/5 bg-white/5 rounded-t-lg">
-                                        <div>ID</div><div>Team</div><div>Name</div><div>Score</div><div className="col-span-2 text-cyber-secondary">Answer</div>
-                                    </div>
-                                    <div className="mt-2 space-y-1">
-                                        {rows.map((row, i) => (
-                                            <motion.div 
-                                                key={`${index}-${i}`}
-                                                className={`grid grid-cols-6 gap-4 px-4 py-4 rounded-xl transition-all duration-500 ${getHighlight(i)}`}
-                                            >
-                                                <div className="text-slate-600 font-mono">#{row.id}</div>
-                                                <div className={`font-bold ${row.team === 'Red' ? 'text-rose-400' : 'text-blue-400'}`}>{row.team}</div>
-                                                <div className="text-white font-medium">{row.name}</div>
-                                                <div className="text-slate-400">{row.score}</div>
-                                                <div className="col-span-2 flex items-center gap-3">
-                                                    {!isTyping ? (
-                                                        <motion.div 
-                                                            initial={{ scale: 0, opacity: 0, x: -10 }}
-                                                            animate={{ scale: 1, opacity: 1, x: 0 }}
-                                                            transition={{ delay: i * 0.1 }}
-                                                            className="flex items-center gap-2"
-                                                        >
-                                                            <i className="fa-solid fa-arrow-right text-slate-700 text-[10px]"></i>
-                                                            <span className="result-glow font-mono">
-                                                                {row.answer === null ? 'NULL' : (typeof row.answer === 'number' && !Number.isInteger(row.answer) ? row.answer.toFixed(2) : row.answer)}
-                                                            </span>
-                                                        </motion.div>
-                                                    ) : (
-                                                        <div className="h-4 w-12 bg-white/5 rounded animate-pulse" />
-                                                    )}
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </main>
-
-                    {/* Navigation Footer */}
-                    <footer className="p-6 bg-cyber-dark/90 border-t border-white/5 flex justify-between items-center z-50 backdrop-blur-xl">
-                        <button 
-                            onClick={() => { setIndex(prev => Math.max(0, prev - 1)); setIsTyping(true); }}
-                            disabled={index === 0}
-                            className={`px-8 py-3 rounded-xl font-bold text-xs flex items-center gap-3 transition-all ${index === 0 ? 'opacity-20 grayscale cursor-not-allowed' : 'bg-slate-800 text-white hover:bg-slate-700'}`}
-                        >
-                            <i className="fa-solid fa-chevron-left"></i> PREVIOUS
-                        </button>
-                        
-                        <div className="text-[10px] font-mono text-slate-600 uppercase tracking-widest flex flex-col items-center">
-                            <span>Developed by Jayan Gupta</span>
-                            <span className="text-slate-700">Data Science Node // Secured</span>
-                        </div>
-
-                        <button 
-                            onClick={() => { setIndex(prev => Math.min(SLIDES.length - 1, prev + 1)); setIsTyping(true); }}
-                            className="px-10 py-4 rounded-xl font-bold text-xs bg-gradient-to-r from-cyber-primary to-cyber-secondary text-cyber-dark shadow-xl shadow-cyan-500/10 hover:scale-105 active:scale-95 transition-all"
-                        >
-                            {index === SLIDES.length - 1 ? 'RESTART CLASS' : 'NEXT LESSON'} <i className="fa-solid fa-chevron-right ml-2"></i>
-                        </button>
-                    </footer>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+</body></html>

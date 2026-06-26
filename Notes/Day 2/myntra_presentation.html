@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Myntra Dataset: Analysis Masterclass</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -71,494 +66,784 @@
 
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>
+const _jsxDEV = (type, props, key) => React.createElement(type, key !== undefined ? { ...props, key } : props);
+const _Fragment = React.Fragment;
 
-        // --- VISUALIZATION COMPONENTS ---
+const {
+  useState,
+  useEffect
+} = React;
 
-        // 1. DATA EXPLORER (Live Table Simulation)
-        const DataExplorerViz = () => {
-            const [filter, setFilter] = useState('all');
+// --- VISUALIZATION COMPONENTS ---
 
-            const rawData = [
-                { id: 101, brand: "Nike", product: "Air Max", price: 8999, rating: 4.5, sizes: "7,8,9,10" },
-                { id: 102, brand: "Nike", product: "Dri-Fit Tee", price: 1299, rating: 4.2, sizes: "S,M,L,XL" },
-                { id: 103, brand: "Puma", product: "Running Shoes", price: 4500, rating: 0, sizes: "6,7,8" },
-                { id: 104, brand: "Adidas", product: "Track Pants", price: 2999, rating: 4.0, sizes: "M,L" },
-                { id: 105, brand: "H&M", product: "Cotton Shirt", price: 1499, rating: 4.1, sizes: "39,40,42" },
-                { id: 106, brand: "Puma", product: "Gym Bag", price: 899, rating: 3.8, sizes: "Onesize" },
-            ];
+// 1. DATA EXPLORER (Live Table Simulation)
+const DataExplorerViz = () => {
+  const [filter, setFilter] = useState('all');
+  const rawData = [{
+    id: 101,
+    brand: "Nike",
+    product: "Air Max",
+    price: 8999,
+    rating: 4.5,
+    sizes: "7,8,9,10"
+  }, {
+    id: 102,
+    brand: "Nike",
+    product: "Dri-Fit Tee",
+    price: 1299,
+    rating: 4.2,
+    sizes: "S,M,L,XL"
+  }, {
+    id: 103,
+    brand: "Puma",
+    product: "Running Shoes",
+    price: 4500,
+    rating: 0,
+    sizes: "6,7,8"
+  }, {
+    id: 104,
+    brand: "Adidas",
+    product: "Track Pants",
+    price: 2999,
+    rating: 4.0,
+    sizes: "M,L"
+  }, {
+    id: 105,
+    brand: "H&M",
+    product: "Cotton Shirt",
+    price: 1499,
+    rating: 4.1,
+    sizes: "39,40,42"
+  }, {
+    id: 106,
+    brand: "Puma",
+    product: "Gym Bag",
+    price: 899,
+    rating: 3.8,
+    sizes: "Onesize"
+  }];
+  const displayData = filter === 'all' ? rawData : filter === 'zero_rating' ? rawData.filter(r => r.rating === 0) : rawData.filter(r => r.brand === 'Nike');
+  return /*#__PURE__*/_jsxDEV("div", {
+    className: "flex flex-col h-full gap-4",
+    children: [/*#__PURE__*/_jsxDEV("div", {
+      className: "flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-700",
+      children: [/*#__PURE__*/_jsxDEV("div", {
+        className: "text-xs font-mono text-slate-400",
+        children: "DATASET_PREVIEW.csv"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+        className: "flex gap-2",
+        children: [/*#__PURE__*/_jsxDEV("button", {
+          onClick: () => setFilter('all'),
+          className: `px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'all' ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`,
+          children: "All Data"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+          onClick: () => setFilter('nike'),
+          className: `px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'nike' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`,
+          children: "Filter: Nike"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+          onClick: () => setFilter('zero_rating'),
+          className: `px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'zero_rating' ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`,
+          children: "Filter: 0 Ratings"
+        }, void 0, false)]
+      }, void 0, true)]
+    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+      className: "flex-1 bg-white rounded-lg overflow-hidden relative shadow-xl",
+      children: [/*#__PURE__*/_jsxDEV("table", {
+        className: "w-full text-left text-sm text-slate-800",
+        children: [/*#__PURE__*/_jsxDEV("thead", {
+          className: "bg-slate-100 border-b border-slate-200",
+          children: /*#__PURE__*/_jsxDEV("tr", {
+            children: [/*#__PURE__*/_jsxDEV("th", {
+              className: "p-3 font-bold",
+              children: "Brand"
+            }, void 0, false), /*#__PURE__*/_jsxDEV("th", {
+              className: "p-3 font-bold",
+              children: "Product Name"
+            }, void 0, false), /*#__PURE__*/_jsxDEV("th", {
+              className: "p-3 font-bold",
+              children: "Price (MRP)"
+            }, void 0, false), /*#__PURE__*/_jsxDEV("th", {
+              className: "p-3 font-bold",
+              children: "Rating"
+            }, void 0, false), /*#__PURE__*/_jsxDEV("th", {
+              className: "p-3 font-bold",
+              children: "Sizes"
+            }, void 0, false)]
+          }, void 0, true)
+        }, void 0, false), /*#__PURE__*/_jsxDEV("tbody", {
+          className: "divide-y divide-slate-100",
+          children: displayData.map(row => /*#__PURE__*/_jsxDEV("tr", {
+            className: "hover:bg-slate-50 transition-colors animate-fade-in",
+            children: [/*#__PURE__*/_jsxDEV("td", {
+              className: "p-3 font-bold text-blue-600",
+              children: row.brand
+            }, void 0, false), /*#__PURE__*/_jsxDEV("td", {
+              className: "p-3",
+              children: row.product
+            }, void 0, false), /*#__PURE__*/_jsxDEV("td", {
+              className: "p-3 font-mono",
+              children: ["₹", row.price.toLocaleString()]
+            }, void 0, true), /*#__PURE__*/_jsxDEV("td", {
+              className: `p-3 font-bold ${row.rating === 0 ? 'text-red-500 bg-red-50' : 'text-green-600'}`,
+              children: row.rating === 0 ? "0.0 (New)" : row.rating
+            }, void 0, false), /*#__PURE__*/_jsxDEV("td", {
+              className: "p-3 text-xs text-slate-500 font-mono",
+              children: row.sizes
+            }, void 0, false)]
+          }, row.id, true))
+        }, void 0, false)]
+      }, void 0, true), displayData.length === 0 && /*#__PURE__*/_jsxDEV("div", {
+        className: "p-8 text-center text-slate-400",
+        children: "No records found."
+      }, void 0, false)]
+    }, void 0, true)]
+  }, void 0, true);
+};
 
-            const displayData = filter === 'all'
-                ? rawData
-                : filter === 'zero_rating'
-                    ? rawData.filter(r => r.rating === 0)
-                    : rawData.filter(r => r.brand === 'Nike');
+// 2. RELATIONSHIP MAPPER (One-to-Many)
+const RelationshipViz = () => {
+  const [activeBrand, setActiveBrand] = useState('Nike'); // 'Nike' or 'Adidas'
 
-            return (
-                <div className="flex flex-col h-full gap-4">
-                    <div className="flex justify-between items-center bg-slate-900 p-3 rounded-lg border border-slate-700">
-                        <div className="text-xs font-mono text-slate-400">DATASET_PREVIEW.csv</div>
-                        <div className="flex gap-2">
-                            <button onClick={() => setFilter('all')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'all' ? 'bg-pink-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>All Data</button>
-                            <button onClick={() => setFilter('nike')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'nike' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Filter: Nike</button>
-                            <button onClick={() => setFilter('zero_rating')} className={`px-3 py-1 rounded text-xs font-bold transition-all ${filter === 'zero_rating' ? 'bg-yellow-600 text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}>Filter: 0 Ratings</button>
-                        </div>
-                    </div>
+  return /*#__PURE__*/_jsxDEV("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8 relative",
+    children: [/*#__PURE__*/_jsxDEV("div", {
+      className: "absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900 via-slate-900 to-slate-950"
+    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+      className: "flex gap-4 z-10",
+      children: [/*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setActiveBrand('Nike'),
+        className: `px-4 py-2 rounded-full font-bold ${activeBrand === 'Nike' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`,
+        children: "Nike (BrandID: 1001)"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setActiveBrand('Adidas'),
+        className: `px-4 py-2 rounded-full font-bold ${activeBrand === 'Adidas' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'}`,
+        children: "Adidas (BrandID: 1002)"
+      }, void 0, false)]
+    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+      className: "relative w-full max-w-3xl h-64 flex items-center justify-center",
+      children: [/*#__PURE__*/_jsxDEV("div", {
+        className: "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20",
+        children: /*#__PURE__*/_jsxDEV("div", {
+          className: `w-32 h-32 bg-slate-900 border-2 rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-500 ${activeBrand === 'Nike' ? 'border-blue-500' : 'border-purple-500'}`,
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-3xl mb-1",
+            children: "🏢"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "font-bold text-white",
+            children: activeBrand
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "text-[10px] text-slate-400 font-mono",
+            children: ["BrandID: ", activeBrand === 'Nike' ? '1001' : '1002']
+          }, void 0, true)]
+        }, void 0, true)
+      }, void 0, false), (activeBrand === 'Nike' ? [{
+        label: '👟 Air Max',
+        pid: '5001'
+      }, {
+        label: '👕 Dri-Fit',
+        pid: '5002'
+      }, {
+        label: '🧢 Cap',
+        pid: '5003'
+      }] : [{
+        label: '👟 Ultraboost',
+        pid: '6001'
+      }, {
+        label: '🩳 Shorts',
+        pid: '6002'
+      }, {
+        label: '🎒 Bag',
+        pid: '6003'
+      }]).map((item, i) => {
+        const angle = (i * 120 - 90) * (Math.PI / 180);
+        const radius = 220;
+        const x = Math.cos(angle) * radius;
+        const y = Math.sin(angle) * radius;
+        return /*#__PURE__*/_jsxDEV("div", {
+          className: "absolute left-1/2 top-1/2 transition-all duration-700 ease-out flex flex-col items-center",
+          style: {
+            transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`
+          },
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "absolute top-1/2 left-1/2 h-0.5 origin-left z-0 transition-colors duration-500",
+            style: {
+              width: `${radius}px`,
+              backgroundColor: activeBrand === 'Nike' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(147, 51, 234, 0.5)',
+              transform: `rotate(${i * 120 - 90}deg) translate(-100%, -50%)`,
+              left: '50%',
+              top: '50%'
+            }
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "w-28 h-28 bg-slate-800 border border-slate-600 rounded-xl flex flex-col items-center justify-center shadow-lg z-10 relative animate-fade-in p-2",
+            children: [/*#__PURE__*/_jsxDEV("div", {
+              className: "text-2xl mb-1",
+              children: item.label.split(' ')[0]
+            }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+              className: "text-xs font-bold text-slate-300",
+              children: item.label.split(' ').slice(1).join(' ')
+            }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+              className: "text-[10px] text-slate-500 font-mono mt-2 pt-1 border-t border-slate-700 w-full text-center",
+              children: [/*#__PURE__*/_jsxDEV("div", {
+                children: ["BrandID: ", activeBrand === 'Nike' ? '1001' : '1002']
+              }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+                className: "text-white font-bold",
+                children: ["ProdID: ", item.pid]
+              }, void 0, true)]
+            }, void 0, true)]
+          }, void 0, true)]
+        }, i, true);
+      })]
+    }, void 0, true)]
+  }, void 0, true);
+};
 
-                    <div className="flex-1 bg-white rounded-lg overflow-hidden relative shadow-xl">
-                        <table className="w-full text-left text-sm text-slate-800">
-                            <thead className="bg-slate-100 border-b border-slate-200">
-                                <tr>
-                                    <th className="p-3 font-bold">Brand</th>
-                                    <th className="p-3 font-bold">Product Name</th>
-                                    <th className="p-3 font-bold">Price (MRP)</th>
-                                    <th className="p-3 font-bold">Rating</th>
-                                    <th className="p-3 font-bold">Sizes</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-100">
-                                {displayData.map((row) => (
-                                    <tr key={row.id} className="hover:bg-slate-50 transition-colors animate-fade-in">
-                                        <td className="p-3 font-bold text-blue-600">{row.brand}</td>
-                                        <td className="p-3">{row.product}</td>
-                                        <td className="p-3 font-mono">₹{row.price.toLocaleString()}</td>
-                                        <td className={`p-3 font-bold ${row.rating === 0 ? 'text-red-500 bg-red-50' : 'text-green-600'}`}>
-                                            {row.rating === 0 ? "0.0 (New)" : row.rating}
-                                        </td>
-                                        <td className="p-3 text-xs text-slate-500 font-mono">{row.sizes}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                        {displayData.length === 0 && <div className="p-8 text-center text-slate-400">No records found.</div>}
-                    </div>
-                </div>
-            );
-        };
+// 3. DQ SCANNER (Data Quality & Logic)
+const DQScanner = () => {
+  const [mode, setMode] = useState('scan'); // 'scan' or 'fix'
 
-        // 2. RELATIONSHIP MAPPER (One-to-Many)
-        const RelationshipViz = () => {
-            const [activeBrand, setActiveBrand] = useState('Nike'); // 'Nike' or 'Adidas'
+  return /*#__PURE__*/_jsxDEV("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8",
+    children: [/*#__PURE__*/_jsxDEV("div", {
+      className: "flex bg-slate-900 p-1 rounded-full border border-slate-700",
+      children: [/*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setMode('scan'),
+        className: `px-6 py-2 rounded-full font-bold transition-all ${mode === 'scan' ? 'bg-red-600 text-white' : 'text-slate-400'}`,
+        children: "1. Scan Issues"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setMode('fix'),
+        className: `px-6 py-2 rounded-full font-bold transition-all ${mode === 'fix' ? 'bg-green-600 text-white' : 'text-slate-400'}`,
+        children: "2. Apply Fixes"
+      }, void 0, false)]
+    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+      className: "grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl",
+      children: [/*#__PURE__*/_jsxDEV("div", {
+        className: "glass-panel p-6 rounded-xl border-l-4 border-yellow-500",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "flex justify-between items-start mb-2",
+          children: [/*#__PURE__*/_jsxDEV("h3", {
+            className: "font-bold text-white",
+            children: "Missing Prices"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            className: "text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded",
+            children: "Numeric"
+          }, void 0, false)]
+        }, void 0, true), mode === 'scan' ? /*#__PURE__*/_jsxDEV("p", {
+          className: "text-sm text-slate-300",
+          children: "Found 120 rows with NULL price. Cannot compute revenue."
+        }, void 0, false) : /*#__PURE__*/_jsxDEV("div", {
+          className: "text-sm text-green-300",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "font-bold",
+            children: "✅ FIX: Imputation"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-slate-400 mt-1",
+            children: ["Replace NULLs with ", /*#__PURE__*/_jsxDEV("strong", {
+              children: "Median"
+            }, void 0, false), " price of the *same category*. (Mean is sensitive to outliers)."]
+          }, void 0, true)]
+        }, void 0, true)]
+      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+        className: "glass-panel p-6 rounded-xl border-l-4 border-red-500",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "flex justify-between items-start mb-2",
+          children: [/*#__PURE__*/_jsxDEV("h3", {
+            className: "font-bold text-white",
+            children: "Impossible Ratings"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            className: "text-xs bg-red-500/20 text-red-500 px-2 py-1 rounded",
+            children: "Logic"
+          }, void 0, false)]
+        }, void 0, true), mode === 'scan' ? /*#__PURE__*/_jsxDEV("p", {
+          className: "text-sm text-slate-300",
+          children: ["Found: Rating = 4.5 but Rating_Count = 0. ", /*#__PURE__*/_jsxDEV("br", {}, void 0, false), /*#__PURE__*/_jsxDEV("em", {
+            children: "Impossible!"
+          }, void 0, false)]
+        }, void 0, true) : /*#__PURE__*/_jsxDEV("div", {
+          className: "text-sm text-green-300",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "font-bold",
+            children: "✅ FIX: Correction"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-slate-400 mt-1",
+            children: "Set Rating to 0. You cannot have a star rating without any votes."
+          }, void 0, false)]
+        }, void 0, true)]
+      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+        className: "glass-panel p-6 rounded-xl border-l-4 border-blue-500",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "flex justify-between items-start mb-2",
+          children: [/*#__PURE__*/_jsxDEV("h3", {
+            className: "font-bold text-white",
+            children: "Dirty Text"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            className: "text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded",
+            children: "Text"
+          }, void 0, false)]
+        }, void 0, true), mode === 'scan' ? /*#__PURE__*/_jsxDEV("p", {
+          className: "text-sm text-slate-300",
+          children: "Values: \"Nike\", \"nike \", \"NIKE Inc.\" treated as 3 different brands."
+        }, void 0, false) : /*#__PURE__*/_jsxDEV("div", {
+          className: "text-sm text-green-300",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "font-bold",
+            children: "✅ FIX: Standardization"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-slate-400 mt-1",
+            children: ["Apply ", /*#__PURE__*/_jsxDEV("code", {
+              children: ".lower().strip()"
+            }, void 0, false), " to merge all into \"nike\"."]
+          }, void 0, true)]
+        }, void 0, true)]
+      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+        className: "glass-panel p-6 rounded-xl border-l-4 border-purple-500",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "flex justify-between items-start mb-2",
+          children: [/*#__PURE__*/_jsxDEV("h3", {
+            className: "font-bold text-white",
+            children: "Price Outliers"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            className: "text-xs bg-purple-500/20 text-purple-500 px-2 py-1 rounded",
+            children: "Statistical"
+          }, void 0, false)]
+        }, void 0, true), mode === 'scan' ? /*#__PURE__*/_jsxDEV("p", {
+          className: "text-sm text-slate-300",
+          children: "T-Shirt priced at ₹50,000. Skews the average."
+        }, void 0, false) : /*#__PURE__*/_jsxDEV("div", {
+          className: "text-sm text-green-300",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "font-bold",
+            children: "✅ FIX: Capping"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-slate-400 mt-1",
+            children: "Remove or cap values above the 99th percentile (IQR Method)."
+          }, void 0, false)]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true)]
+  }, void 0, true);
+};
 
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8 relative">
-                    <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900 via-slate-900 to-slate-950"></div>
+// 4. LEVELS OF ANALYSIS
+const AnalysisLevelsViz = () => {
+  const [level, setLevel] = useState(1);
+  return /*#__PURE__*/_jsxDEV("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8",
+    children: [/*#__PURE__*/_jsxDEV("div", {
+      className: "flex gap-4",
+      children: [/*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setLevel(1),
+        className: `px-4 py-2 rounded-lg border transition-all ${level === 1 ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`,
+        children: "1. Uni-variate"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setLevel(2),
+        className: `px-4 py-2 rounded-lg border transition-all ${level === 2 ? 'bg-purple-600 border-purple-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`,
+        children: "2. Bi-variate"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setLevel(3),
+        className: `px-4 py-2 rounded-lg border transition-all ${level === 3 ? 'bg-pink-600 border-pink-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`,
+        children: "3. Multi-variate"
+      }, void 0, false)]
+    }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+      className: "glass-panel p-8 rounded-2xl w-full max-w-3xl min-h-[300px] flex items-center justify-center relative overflow-hidden",
+      children: [level === 1 && /*#__PURE__*/_jsxDEV("div", {
+        className: "text-center animate-fade-in",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "text-4xl mb-4",
+          children: "📊"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+          className: "text-2xl font-bold text-blue-400 mb-2",
+          children: "Analyzing ONE Variable"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-slate-300 mb-4",
+          children: "\"What is the distribution of Prices?\""
+        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+          className: "flex items-end justify-center gap-1 h-24",
+          children: [20, 50, 80, 40, 10].map((h, i) => /*#__PURE__*/_jsxDEV("div", {
+            className: "w-8 bg-blue-500 rounded-t",
+            style: {
+              height: `${h}%`
+            }
+          }, i, false))
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-xs text-slate-500 mt-2",
+          children: "Histogram / Boxplot"
+        }, void 0, false)]
+      }, void 0, true), level === 2 && /*#__PURE__*/_jsxDEV("div", {
+        className: "text-center animate-fade-in",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "text-4xl mb-4",
+          children: "📉"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+          className: "text-2xl font-bold text-purple-400 mb-2",
+          children: "Analyzing TWO Variables"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-slate-300 mb-4",
+          children: "\"Does Price affect Rating?\""
+        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+          className: "relative w-48 h-24 border-l border-b border-slate-500 mx-auto",
+          children: [...Array(10)].map((_, i) => /*#__PURE__*/_jsxDEV("div", {
+            className: "absolute w-2 h-2 bg-purple-500 rounded-full",
+            style: {
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`
+            }
+          }, i, false))
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-xs text-slate-500 mt-2",
+          children: "Scatter Plot / Correlation"
+        }, void 0, false)]
+      }, void 0, true), level === 3 && /*#__PURE__*/_jsxDEV("div", {
+        className: "text-center animate-fade-in",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "text-4xl mb-4",
+          children: "🧊"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+          className: "text-2xl font-bold text-pink-400 mb-2",
+          children: "Analyzing MANY Variables"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-slate-300 mb-4",
+          children: "\"How do Brand, Category, AND Discount impact Sales?\""
+        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+          className: "grid grid-cols-2 gap-2 w-48 mx-auto",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "bg-pink-900/50 p-2 rounded border border-pink-500",
+            children: "Brand"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "bg-pink-900/50 p-2 rounded border border-pink-500",
+            children: "Category"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "bg-pink-900/50 p-2 rounded border border-pink-500",
+            children: "Discount"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "bg-white text-black p-2 rounded font-bold",
+            children: "Sales ⬆"
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-xs text-slate-500 mt-2",
+          children: "Heatmaps / Regression Models"
+        }, void 0, false)]
+      }, void 0, true)]
+    }, void 0, true)]
+  }, void 0, true);
+};
 
-                    <div className="flex gap-4 z-10">
-                        <button onClick={() => setActiveBrand('Nike')} className={`px-4 py-2 rounded-full font-bold ${activeBrand === 'Nike' ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Nike (BrandID: 1001)</button>
-                        <button onClick={() => setActiveBrand('Adidas')} className={`px-4 py-2 rounded-full font-bold ${activeBrand === 'Adidas' ? 'bg-purple-600 text-white' : 'bg-slate-800 text-slate-400'}`}>Adidas (BrandID: 1002)</button>
-                    </div>
+// --- MAIN APP ---
 
-                    <div className="relative w-full max-w-3xl h-64 flex items-center justify-center">
-                        {/* Parent Node */}
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                            <div className={`w-32 h-32 bg-slate-900 border-2 rounded-full flex flex-col items-center justify-center shadow-xl transition-all duration-500 ${activeBrand === 'Nike' ? 'border-blue-500' : 'border-purple-500'}`}>
-                                <div className="text-3xl mb-1">🏢</div>
-                                <div className="font-bold text-white">{activeBrand}</div>
-                                <div className="text-[10px] text-slate-400 font-mono">BrandID: {activeBrand === 'Nike' ? '1001' : '1002'}</div>
-                            </div>
-                        </div>
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [{
+    layout: "center",
+    content: /*#__PURE__*/_jsxDEV("div", {
+      className: "text-center animate-fade-in max-w-4xl",
+      children: [/*#__PURE__*/_jsxDEV("div", {
+        className: "inline-block p-2 px-4 rounded-full bg-pink-900/30 border border-pink-500/30 text-pink-300 text-xs font-mono mb-8",
+        children: "DATASET_REVIEW_SESSION"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("h1", {
+        className: "text-5xl md:text-7xl font-black text-white mb-6 tracking-tight",
+        children: "The Product Catalogue"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("h2", {
+        className: "text-2xl md:text-4xl font-light text-slate-400 mb-12",
+        children: ["Structure, Quality, and ", /*#__PURE__*/_jsxDEV("span", {
+          className: "text-pink-500 font-bold",
+          children: "Analysis Strategy"
+        }, void 0, false)]
+      }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+        className: "flex justify-center gap-8",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "text-center",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-3xl font-bold text-white mb-1",
+            children: "21,605"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "text-xs text-slate-500 uppercase tracking-wider",
+            children: "Total Products"
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "w-px bg-slate-800"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+          className: "text-center",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-3xl font-bold text-white mb-1",
+            children: "2,139"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "text-xs text-slate-500 uppercase tracking-wider",
+            children: "Unique Brands"
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "w-px bg-slate-800"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+          className: "text-center",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-3xl font-bold text-white mb-1",
+            children: "11"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "text-xs text-slate-500 uppercase tracking-wider",
+            children: "Data Fields"
+          }, void 0, false)]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true)
+  }, {
+    layout: "split",
+    title: "Dataset Snapshot",
+    subtitle: "What are we looking at?",
+    text: /*#__PURE__*/_jsxDEV("div", {
+      className: "space-y-6",
+      children: [/*#__PURE__*/_jsxDEV("p", {
+        className: "text-lg text-slate-300",
+        children: "This dataset represents a snapshot of an e-commerce inventory. It contains products from various categories like Fashion, Accessories, and Footwear."
+      }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+        className: "p-4 bg-slate-800/50 rounded-lg border-l-4 border-pink-500",
+        children: [/*#__PURE__*/_jsxDEV("h4", {
+          className: "text-pink-400 font-bold mb-2",
+          children: "Key Goal"
+        }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+          className: "text-sm text-slate-300",
+          children: ["To understand the raw data structure before we attempt any analysis. We must know ", /*#__PURE__*/_jsxDEV("em", {
+            children: "what"
+          }, void 0, false), " we have before we decide ", /*#__PURE__*/_jsxDEV("em", {
+            children: "how"
+          }, void 0, false), " to use it."]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true),
+    viz: /*#__PURE__*/_jsxDEV(DataExplorerViz, {}, void 0, false)
+  }, {
+    layout: "split",
+    title: "Relational Structure",
+    subtitle: "Brand ID vs. Product ID",
+    text: /*#__PURE__*/_jsxDEV("div", {
+      className: "space-y-6",
+      children: [/*#__PURE__*/_jsxDEV("p", {
+        className: "text-lg text-slate-300",
+        children: /*#__PURE__*/_jsxDEV("strong", {
+          children: "Why does Brand ID repeat, but Product ID doesn't?"
+        }, void 0, false)
+      }, void 0, false), /*#__PURE__*/_jsxDEV("ul", {
+        className: "space-y-3 text-sm text-slate-300",
+        children: [/*#__PURE__*/_jsxDEV("li", {
+          className: "flex items-start gap-3",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "w-6 h-6 rounded-full bg-blue-900/50 text-blue-400 flex flex-shrink-0 items-center justify-center text-xs border border-blue-500/30",
+            children: "1"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            children: [/*#__PURE__*/_jsxDEV("strong", {
+              children: "Brand ID:"
+            }, void 0, false), " Shared by ", /*#__PURE__*/_jsxDEV("em", {
+              children: "all"
+            }, void 0, false), " products from the same brand (e.g., Nike = 1001). It groups items together."]
+          }, void 0, true)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("li", {
+          className: "flex items-start gap-3",
+          children: [/*#__PURE__*/_jsxDEV("span", {
+            className: "w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex flex-shrink-0 items-center justify-center text-xs border border-purple-500/30",
+            children: "N"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+            children: [/*#__PURE__*/_jsxDEV("strong", {
+              children: "Product ID:"
+            }, void 0, false), " Unique for ", /*#__PURE__*/_jsxDEV("em", {
+              children: "every single item"
+            }, void 0, false), ". Even if two shirts look similar, they have different IDs (e.g., 5001 vs 5002)."]
+          }, void 0, true)]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true),
+    viz: /*#__PURE__*/_jsxDEV(RelationshipViz, {}, void 0, false)
+  }, {
+    layout: "split",
+    title: "Data Quality & Logic",
+    subtitle: "Scanning & Fixing Issues",
+    text: /*#__PURE__*/_jsxDEV("div", {
+      className: "space-y-6",
+      children: [/*#__PURE__*/_jsxDEV("p", {
+        className: "text-lg text-slate-300",
+        children: "Raw data is messy. We need to handle each data type differently:"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("ul", {
+        className: "space-y-3 text-sm text-slate-400",
+        children: [/*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Numeric (Prices):"
+          }, void 0, false), " Fix missing values with Median. Cap outliers."]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Categorical (Brands):"
+          }, void 0, false), " Standardize text (Nike vs nike) to avoid duplicates."]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Logical (Ratings):"
+          }, void 0, false), " Ensure data makes sense (e.g., You can't have a rating if no one voted)."]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true),
+    viz: /*#__PURE__*/_jsxDEV(DQScanner, {}, void 0, false)
+  }, {
+    layout: "split",
+    title: "Levels of Analysis",
+    subtitle: "From Simple to Complex",
+    text: /*#__PURE__*/_jsxDEV("div", {
+      className: "space-y-6",
+      children: [/*#__PURE__*/_jsxDEV("p", {
+        className: "text-lg text-slate-300",
+        children: "Analysis happens in stages. Don't jump to complex models immediately."
+      }, void 0, false), /*#__PURE__*/_jsxDEV("ol", {
+        className: "space-y-4 text-sm text-slate-400 list-decimal pl-4",
+        children: [/*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Uni-variate:"
+          }, void 0, false), " Understand one column at a time. (e.g., \"Is our inventory mostly expensive or cheap?\")"]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Bi-variate:"
+          }, void 0, false), " Find relationships between two things. (e.g., \"Do expensive items get better ratings?\")"]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("li", {
+          children: [/*#__PURE__*/_jsxDEV("strong", {
+            children: "Multi-variate:"
+          }, void 0, false), " The real world is complex. We mix multiple factors to find the \"Secret Sauce\" of a successful product."]
+        }, void 0, true)]
+      }, void 0, true)]
+    }, void 0, true),
+    viz: /*#__PURE__*/_jsxDEV(AnalysisLevelsViz, {}, void 0, false)
+  }, {
+    layout: "center",
+    title: "Potential Dashboards",
+    subtitle: "What can we build?",
+    content: /*#__PURE__*/_jsxDEV("div", {
+      className: "h-full flex flex-col justify-center gap-8",
+      children: /*#__PURE__*/_jsxDEV("div", {
+        className: "grid grid-cols-2 gap-6 max-w-4xl mx-auto w-full",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "p-6 bg-slate-800/50 border border-slate-700 hover:border-blue-500 transition-all rounded-xl group",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-4xl mb-4 group-hover:scale-110 transition-transform",
+            children: "🏆"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+            className: "text-xl font-bold text-white mb-2",
+            children: "Brand Performance"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-sm text-slate-400",
+            children: "Which brands have the highest average rating? Who offers the best discounts?"
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "p-6 bg-slate-800/50 border border-slate-700 hover:border-pink-500 transition-all rounded-xl group",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-4xl mb-4 group-hover:scale-110 transition-transform",
+            children: "💲"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+            className: "text-xl font-bold text-white mb-2",
+            children: "Pricing Strategy"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-sm text-slate-400",
+            children: "Analyze the relationship between Discount % and Sales Rank."
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "p-6 bg-slate-800/50 border border-slate-700 hover:border-green-500 transition-all rounded-xl group",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-4xl mb-4 group-hover:scale-110 transition-transform",
+            children: "🩺"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+            className: "text-xl font-bold text-white mb-2",
+            children: "Catalog Health"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-sm text-slate-400",
+            children: "Track missing images, incomplete descriptions, or zero-stock items."
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "p-6 bg-slate-800/50 border border-slate-700 hover:border-yellow-500 transition-all rounded-xl group",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            className: "text-4xl mb-4 group-hover:scale-110 transition-transform",
+            children: "⭐"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+            className: "text-xl font-bold text-white mb-2",
+            children: "Customer Sentiment"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("p", {
+            className: "text-sm text-slate-400",
+            children: "Correlate rating counts with review scores to find \"Hidden Gems\"."
+          }, void 0, false)]
+        }, void 0, true)]
+      }, void 0, true)
+    }, void 0, false)
+  }];
+  useEffect(() => {
+    const handleKey = e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [slides.length]);
+  const CurrentContent = slides[currentSlide];
+  return /*#__PURE__*/_jsxDEV("div", {
+    className: "w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950",
+    children: [/*#__PURE__*/_jsxDEV("div", {
+      className: "absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] pointer-events-none"
+    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+      className: "absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"
+    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+      className: "w-full h-1 bg-slate-900 z-50",
+      children: /*#__PURE__*/_jsxDEV("div", {
+        className: "h-full bg-gradient-to-r from-pink-500 to-blue-500 transition-all duration-300",
+        style: {
+          width: `${(currentSlide + 1) / slides.length * 100}%`
+        }
+      }, void 0, false)
+    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+      className: "flex-1 flex items-center justify-center p-8 z-10",
+      children: CurrentContent.layout === 'center' ? /*#__PURE__*/_jsxDEV("div", {
+        className: "w-full h-full flex flex-col items-center justify-center animate-fade-in",
+        children: [CurrentContent.title && /*#__PURE__*/_jsxDEV("div", {
+          className: "text-center mb-8",
+          children: [/*#__PURE__*/_jsxDEV("h2", {
+            className: "text-4xl font-bold text-white mb-2",
+            children: CurrentContent.title
+          }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+            className: "text-xl text-pink-400 font-mono",
+            children: CurrentContent.subtitle
+          }, void 0, false)]
+        }, void 0, true), CurrentContent.content]
+      }, void 0, true) : /*#__PURE__*/_jsxDEV("div", {
+        className: "grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center",
+        children: [/*#__PURE__*/_jsxDEV("div", {
+          className: "flex flex-col justify-center h-full space-y-6",
+          children: [/*#__PURE__*/_jsxDEV("div", {
+            children: [/*#__PURE__*/_jsxDEV("h2", {
+              className: "text-4xl md:text-5xl font-bold text-white mb-2",
+              children: CurrentContent.title
+            }, void 0, false), /*#__PURE__*/_jsxDEV("h3", {
+              className: "text-2xl text-pink-400 font-light",
+              children: CurrentContent.subtitle
+            }, void 0, false)]
+          }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+            className: "h-1 w-20 bg-pink-500 rounded"
+          }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+            className: "text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4",
+            children: CurrentContent.text
+          }, void 0, false)]
+        }, void 0, true), /*#__PURE__*/_jsxDEV("div", {
+          className: "h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6",
+          children: CurrentContent.viz
+        }, void 0, false)]
+      }, void 0, true)
+    }, void 0, false), /*#__PURE__*/_jsxDEV("div", {
+      className: "absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur",
+      children: [/*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+        className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors",
+        children: "PREV"
+      }, void 0, false), /*#__PURE__*/_jsxDEV("span", {
+        className: "self-center text-slate-300 min-w-[3rem] text-center",
+        children: [currentSlide + 1, " / ", slides.length]
+      }, void 0, true), /*#__PURE__*/_jsxDEV("button", {
+        onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+        className: "hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors",
+        children: "NEXT"
+      }, void 0, false)]
+    }, void 0, true)]
+  }, void 0, true);
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/_jsxDEV(App, {}, void 0, false));</script>
 
-                        {/* Children Nodes */}
-                        {(activeBrand === 'Nike' ?
-                            [{ label: '👟 Air Max', pid: '5001' }, { label: '👕 Dri-Fit', pid: '5002' }, { label: '🧢 Cap', pid: '5003' }] :
-                            [{ label: '👟 Ultraboost', pid: '6001' }, { label: '🩳 Shorts', pid: '6002' }, { label: '🎒 Bag', pid: '6003' }]
-                        ).map((item, i) => {
-                            const angle = (i * 120 - 90) * (Math.PI / 180);
-                            const radius = 220;
-                            const x = Math.cos(angle) * radius;
-                            const y = Math.sin(angle) * radius;
 
-                            return (
-                                <div
-                                    key={i}
-                                    className="absolute left-1/2 top-1/2 transition-all duration-700 ease-out flex flex-col items-center"
-                                    style={{ transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))` }}
-                                >
-                                    <div
-                                        className="absolute top-1/2 left-1/2 h-0.5 origin-left z-0 transition-colors duration-500"
-                                        style={{
-                                            width: `${radius}px`,
-                                            backgroundColor: activeBrand === 'Nike' ? 'rgba(59, 130, 246, 0.5)' : 'rgba(147, 51, 234, 0.5)',
-                                            transform: `rotate(${i * 120 - 90}deg) translate(-100%, -50%)`,
-                                            left: '50%', top: '50%'
-                                        }}
-                                    ></div>
 
-                                    <div className="w-28 h-28 bg-slate-800 border border-slate-600 rounded-xl flex flex-col items-center justify-center shadow-lg z-10 relative animate-fade-in p-2">
-                                        <div className="text-2xl mb-1">{item.label.split(' ')[0]}</div>
-                                        <div className="text-xs font-bold text-slate-300">{item.label.split(' ').slice(1).join(' ')}</div>
-                                        <div className="text-[10px] text-slate-500 font-mono mt-2 pt-1 border-t border-slate-700 w-full text-center">
-                                            <div>BrandID: {activeBrand === 'Nike' ? '1001' : '1002'}</div>
-                                            <div className="text-white font-bold">ProdID: {item.pid}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </div>
-            );
-        };
-
-        // 3. DQ SCANNER (Data Quality & Logic)
-        const DQScanner = () => {
-            const [mode, setMode] = useState('scan'); // 'scan' or 'fix'
-
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8">
-                    <div className="flex bg-slate-900 p-1 rounded-full border border-slate-700">
-                        <button onClick={() => setMode('scan')} className={`px-6 py-2 rounded-full font-bold transition-all ${mode === 'scan' ? 'bg-red-600 text-white' : 'text-slate-400'}`}>1. Scan Issues</button>
-                        <button onClick={() => setMode('fix')} className={`px-6 py-2 rounded-full font-bold transition-all ${mode === 'fix' ? 'bg-green-600 text-white' : 'text-slate-400'}`}>2. Apply Fixes</button>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-                        {/* Issue 1: Missing Data */}
-                        <div className="glass-panel p-6 rounded-xl border-l-4 border-yellow-500">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-white">Missing Prices</h3>
-                                <span className="text-xs bg-yellow-500/20 text-yellow-500 px-2 py-1 rounded">Numeric</span>
-                            </div>
-                            {mode === 'scan' ? (
-                                <p className="text-sm text-slate-300">Found 120 rows with NULL price. Cannot compute revenue.</p>
-                            ) : (
-                                <div className="text-sm text-green-300">
-                                    <span className="font-bold">✅ FIX: Imputation</span>
-                                    <p className="text-slate-400 mt-1">Replace NULLs with <strong>Median</strong> price of the *same category*. (Mean is sensitive to outliers).</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Issue 2: Logic Error */}
-                        <div className="glass-panel p-6 rounded-xl border-l-4 border-red-500">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-white">Impossible Ratings</h3>
-                                <span className="text-xs bg-red-500/20 text-red-500 px-2 py-1 rounded">Logic</span>
-                            </div>
-                            {mode === 'scan' ? (
-                                <p className="text-sm text-slate-300">Found: Rating = 4.5 but Rating_Count = 0. <br /><em>Impossible!</em></p>
-                            ) : (
-                                <div className="text-sm text-green-300">
-                                    <span className="font-bold">✅ FIX: Correction</span>
-                                    <p className="text-slate-400 mt-1">Set Rating to 0. You cannot have a star rating without any votes.</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Issue 3: Text Mess */}
-                        <div className="glass-panel p-6 rounded-xl border-l-4 border-blue-500">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-white">Dirty Text</h3>
-                                <span className="text-xs bg-blue-500/20 text-blue-500 px-2 py-1 rounded">Text</span>
-                            </div>
-                            {mode === 'scan' ? (
-                                <p className="text-sm text-slate-300">Values: "Nike", "nike ", "NIKE Inc." treated as 3 different brands.</p>
-                            ) : (
-                                <div className="text-sm text-green-300">
-                                    <span className="font-bold">✅ FIX: Standardization</span>
-                                    <p className="text-slate-400 mt-1">Apply <code>.lower().strip()</code> to merge all into "nike".</p>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Issue 4: Outliers */}
-                        <div className="glass-panel p-6 rounded-xl border-l-4 border-purple-500">
-                            <div className="flex justify-between items-start mb-2">
-                                <h3 className="font-bold text-white">Price Outliers</h3>
-                                <span className="text-xs bg-purple-500/20 text-purple-500 px-2 py-1 rounded">Statistical</span>
-                            </div>
-                            {mode === 'scan' ? (
-                                <p className="text-sm text-slate-300">T-Shirt priced at ₹50,000. Skews the average.</p>
-                            ) : (
-                                <div className="text-sm text-green-300">
-                                    <span className="font-bold">✅ FIX: Capping</span>
-                                    <p className="text-slate-400 mt-1">Remove or cap values above the 99th percentile (IQR Method).</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 4. LEVELS OF ANALYSIS
-        const AnalysisLevelsViz = () => {
-            const [level, setLevel] = useState(1);
-
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8">
-                    <div className="flex gap-4">
-                        <button onClick={() => setLevel(1)} className={`px-4 py-2 rounded-lg border transition-all ${level === 1 ? 'bg-blue-600 border-blue-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>1. Uni-variate</button>
-                        <button onClick={() => setLevel(2)} className={`px-4 py-2 rounded-lg border transition-all ${level === 2 ? 'bg-purple-600 border-purple-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>2. Bi-variate</button>
-                        <button onClick={() => setLevel(3)} className={`px-4 py-2 rounded-lg border transition-all ${level === 3 ? 'bg-pink-600 border-pink-400 text-white' : 'bg-slate-900 border-slate-700 text-slate-400'}`}>3. Multi-variate</button>
-                    </div>
-
-                    <div className="glass-panel p-8 rounded-2xl w-full max-w-3xl min-h-[300px] flex items-center justify-center relative overflow-hidden">
-                        {level === 1 && (
-                            <div className="text-center animate-fade-in">
-                                <div className="text-4xl mb-4">📊</div>
-                                <h3 className="text-2xl font-bold text-blue-400 mb-2">Analyzing ONE Variable</h3>
-                                <p className="text-slate-300 mb-4">"What is the distribution of Prices?"</p>
-                                <div className="flex items-end justify-center gap-1 h-24">
-                                    {[20, 50, 80, 40, 10].map((h, i) => (
-                                        <div key={i} className="w-8 bg-blue-500 rounded-t" style={{ height: `${h}%` }}></div>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2">Histogram / Boxplot</p>
-                            </div>
-                        )}
-
-                        {level === 2 && (
-                            <div className="text-center animate-fade-in">
-                                <div className="text-4xl mb-4">📉</div>
-                                <h3 className="text-2xl font-bold text-purple-400 mb-2">Analyzing TWO Variables</h3>
-                                <p className="text-slate-300 mb-4">"Does Price affect Rating?"</p>
-                                <div className="relative w-48 h-24 border-l border-b border-slate-500 mx-auto">
-                                    {[...Array(10)].map((_, i) => (
-                                        <div key={i} className="absolute w-2 h-2 bg-purple-500 rounded-full" style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}></div>
-                                    ))}
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2">Scatter Plot / Correlation</p>
-                            </div>
-                        )}
-
-                        {level === 3 && (
-                            <div className="text-center animate-fade-in">
-                                <div className="text-4xl mb-4">🧊</div>
-                                <h3 className="text-2xl font-bold text-pink-400 mb-2">Analyzing MANY Variables</h3>
-                                <p className="text-slate-300 mb-4">"How do Brand, Category, AND Discount impact Sales?"</p>
-                                <div className="grid grid-cols-2 gap-2 w-48 mx-auto">
-                                    <div className="bg-pink-900/50 p-2 rounded border border-pink-500">Brand</div>
-                                    <div className="bg-pink-900/50 p-2 rounded border border-pink-500">Category</div>
-                                    <div className="bg-pink-900/50 p-2 rounded border border-pink-500">Discount</div>
-                                    <div className="bg-white text-black p-2 rounded font-bold">Sales ⬆</div>
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2">Heatmaps / Regression Models</p>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        // --- MAIN APP ---
-
-        const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
-
-            const slides = [
-                {
-                    layout: "center",
-                    content: (
-                        <div className="text-center animate-fade-in max-w-4xl">
-                            <div className="inline-block p-2 px-4 rounded-full bg-pink-900/30 border border-pink-500/30 text-pink-300 text-xs font-mono mb-8">
-                                DATASET_REVIEW_SESSION
-                            </div>
-                            <h1 className="text-5xl md:text-7xl font-black text-white mb-6 tracking-tight">
-                                The Product Catalogue
-                            </h1>
-                            <h2 className="text-2xl md:text-4xl font-light text-slate-400 mb-12">
-                                Structure, Quality, and <span className="text-pink-500 font-bold">Analysis Strategy</span>
-                            </h2>
-
-                            <div className="flex justify-center gap-8">
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white mb-1">24,325</div>
-                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Total Products</div>
-                                </div>
-                                <div className="w-px bg-slate-800"></div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white mb-1">2,140</div>
-                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Unique Brands</div>
-                                </div>
-                                <div className="w-px bg-slate-800"></div>
-                                <div className="text-center">
-                                    <div className="text-3xl font-bold text-white mb-1">11</div>
-                                    <div className="text-xs text-slate-500 uppercase tracking-wider">Data Fields</div>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                },
-                {
-                    layout: "split",
-                    title: "Dataset Snapshot",
-                    subtitle: "What are we looking at?",
-                    text: (
-                        <div className="space-y-6">
-                            <p className="text-lg text-slate-300">
-                                This dataset represents a snapshot of an e-commerce inventory. It contains products from various categories like Fashion, Accessories, and Footwear.
-                            </p>
-                            <div className="p-4 bg-slate-800/50 rounded-lg border-l-4 border-pink-500">
-                                <h4 className="text-pink-400 font-bold mb-2">Key Goal</h4>
-                                <p className="text-sm text-slate-300">
-                                    To understand the raw data structure before we attempt any analysis. We must know <em>what</em> we have before we decide <em>how</em> to use it.
-                                </p>
-                            </div>
-                        </div>
-                    ),
-                    viz: <DataExplorerViz />
-                },
-                {
-                    layout: "split",
-                    title: "Relational Structure",
-                    subtitle: "Brand ID vs. Product ID",
-                    text: (
-                        <div className="space-y-6">
-                            <p className="text-lg text-slate-300">
-                                <strong>Why does Brand ID repeat, but Product ID doesn't?</strong>
-                            </p>
-                            <ul className="space-y-3 text-sm text-slate-300">
-                                <li className="flex items-start gap-3">
-                                    <span className="w-6 h-6 rounded-full bg-blue-900/50 text-blue-400 flex flex-shrink-0 items-center justify-center text-xs border border-blue-500/30">1</span>
-                                    <span><strong>Brand ID:</strong> Shared by <em>all</em> products from the same brand (e.g., Nike = 1001). It groups items together.</span>
-                                </li>
-                                <li className="flex items-start gap-3">
-                                    <span className="w-6 h-6 rounded-full bg-purple-900/50 text-purple-400 flex flex-shrink-0 items-center justify-center text-xs border border-purple-500/30">N</span>
-                                    <span><strong>Product ID:</strong> Unique for <em>every single item</em>. Even if two shirts look similar, they have different IDs (e.g., 5001 vs 5002).</span>
-                                </li>
-                            </ul>
-                        </div>
-                    ),
-                    viz: <RelationshipViz />
-                },
-                {
-                    layout: "split",
-                    title: "Data Quality & Logic",
-                    subtitle: "Scanning & Fixing Issues",
-                    text: (
-                        <div className="space-y-6">
-                            <p className="text-lg text-slate-300">
-                                Raw data is messy. We need to handle each data type differently:
-                            </p>
-                            <ul className="space-y-3 text-sm text-slate-400">
-                                <li><strong>Numeric (Prices):</strong> Fix missing values with Median. Cap outliers.</li>
-                                <li><strong>Categorical (Brands):</strong> Standardize text (Nike vs nike) to avoid duplicates.</li>
-                                <li><strong>Logical (Ratings):</strong> Ensure data makes sense (e.g., You can't have a rating if no one voted).</li>
-                            </ul>
-                        </div>
-                    ),
-                    viz: <DQScanner />
-                },
-                {
-                    layout: "split",
-                    title: "Levels of Analysis",
-                    subtitle: "From Simple to Complex",
-                    text: (
-                        <div className="space-y-6">
-                            <p className="text-lg text-slate-300">
-                                Analysis happens in stages. Don't jump to complex models immediately.
-                            </p>
-                            <ol className="space-y-4 text-sm text-slate-400 list-decimal pl-4">
-                                <li><strong>Uni-variate:</strong> Understand one column at a time. (e.g., "Is our inventory mostly expensive or cheap?")</li>
-                                <li><strong>Bi-variate:</strong> Find relationships between two things. (e.g., "Do expensive items get better ratings?")</li>
-                                <li><strong>Multi-variate:</strong> The real world is complex. We mix multiple factors to find the "Secret Sauce" of a successful product.</li>
-                            </ol>
-                        </div>
-                    ),
-                    viz: <AnalysisLevelsViz />
-                },
-                {
-                    layout: "center",
-                    title: "Potential Dashboards",
-                    subtitle: "What can we build?",
-                    content: (
-                        <div className="h-full flex flex-col justify-center gap-8">
-                            <div className="grid grid-cols-2 gap-6 max-w-4xl mx-auto w-full">
-                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-blue-500 transition-all rounded-xl group">
-                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🏆</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Brand Performance</h3>
-                                    <p className="text-sm text-slate-400">Which brands have the highest average rating? Who offers the best discounts?</p>
-                                </div>
-                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-pink-500 transition-all rounded-xl group">
-                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">💲</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Pricing Strategy</h3>
-                                    <p className="text-sm text-slate-400">Analyze the relationship between Discount % and Sales Rank.</p>
-                                </div>
-                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-green-500 transition-all rounded-xl group">
-                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">🩺</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Catalog Health</h3>
-                                    <p className="text-sm text-slate-400">Track missing images, incomplete descriptions, or zero-stock items.</p>
-                                </div>
-                                <div className="p-6 bg-slate-800/50 border border-slate-700 hover:border-yellow-500 transition-all rounded-xl group">
-                                    <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">⭐</div>
-                                    <h3 className="text-xl font-bold text-white mb-2">Customer Sentiment</h3>
-                                    <p className="text-sm text-slate-400">Correlate rating counts with review scores to find "Hidden Gems".</p>
-                                </div>
-                            </div>
-                        </div>
-                    )
-                }
-            ];
-
-            useEffect(() => {
-                const handleKey = (e) => {
-                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
-                };
-                window.addEventListener('keydown', handleKey);
-                return () => window.removeEventListener('keydown', handleKey);
-            }, [slides.length]);
-
-            const CurrentContent = slides[currentSlide];
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative overflow-hidden bg-slate-950">
-                    {/* Background Decor */}
-                    <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] bg-pink-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-                    <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none"></div>
-
-                    {/* Progress Bar */}
-                    <div className="w-full h-1 bg-slate-900 z-50">
-                        <div className="h-full bg-gradient-to-r from-pink-500 to-blue-500 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    {/* Main Content Area */}
-                    <div className="flex-1 flex items-center justify-center p-8 z-10">
-                        {CurrentContent.layout === 'center' ? (
-                            <div className="w-full h-full flex flex-col items-center justify-center animate-fade-in">
-                                {CurrentContent.title && (
-                                    <div className="text-center mb-8">
-                                        <h2 className="text-4xl font-bold text-white mb-2">{CurrentContent.title}</h2>
-                                        <h3 className="text-xl text-pink-400 font-mono">{CurrentContent.subtitle}</h3>
-                                    </div>
-                                )}
-                                {CurrentContent.content}
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 w-full max-w-7xl h-[85vh] items-center">
-                                <div className="flex flex-col justify-center h-full space-y-6">
-                                    <div>
-                                        <h2 className="text-4xl md:text-5xl font-bold text-white mb-2">{CurrentContent.title}</h2>
-                                        <h3 className="text-2xl text-pink-400 font-light">{CurrentContent.subtitle}</h3>
-                                    </div>
-                                    <div className="h-1 w-20 bg-pink-500 rounded"></div>
-                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4">
-                                        {CurrentContent.text}
-                                    </div>
-                                </div>
-                                <div className="h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden relative p-6">
-                                    {CurrentContent.viz}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Navigation Controls */}
-                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
-                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">PREV</button>
-                        <span className="self-center text-slate-300 min-w-[3rem] text-center">{currentSlide + 1} / {slides.length}</span>
-                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white px-3 py-1 rounded hover:bg-white/10 transition-colors">NEXT</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-
-</body>
-
-</html>
+</body></html>

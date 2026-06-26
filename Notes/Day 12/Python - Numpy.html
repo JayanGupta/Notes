@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Numpy: Code & Output</title>
+    <title>NumPy Data Science Masterclass</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;family=Fira+Code:wght@400;600&amp;display=swap" rel="stylesheet">
     <style>
         body { background-color: #0f172a; color: #e2e8f0; font-family: 'Inter', sans-serif; overflow: hidden; }
         .font-code { font-family: 'Fira Code', monospace; }
@@ -19,160 +17,185 @@
         .syntax-str { color: #4ade80; } /* green */
         .fade-in { animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
     </style>
 </head>
 <body>
     <div id="root"></div>
-    <script type="text/babel">
-        const { useState } = React;
+    <script>const {
+  useState
+} = React;
+const NotebookCell = ({
+  input,
+  output,
+  comments
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "flex flex-col h-full gap-4 fade-in"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex flex-col bg-slate-900 rounded-lg border border-slate-700 overflow-hidden shadow-lg"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "bg-slate-800/50 px-4 py-1 text-[10px] text-slate-500 font-mono border-b border-slate-700 flex justify-between"
+}, /*#__PURE__*/React.createElement("span", null, "INPUT [ ]"), /*#__PURE__*/React.createElement("span", null, "Python 3.10")), /*#__PURE__*/React.createElement("div", {
+  className: "p-4 font-code text-sm leading-relaxed relative"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "absolute left-2 top-4 text-slate-600 select-none text-right w-6 opacity-50 text-xs"
+}, input.split('\n').map((_, i) => /*#__PURE__*/React.createElement("div", {
+  key: i
+}, i + 1))), /*#__PURE__*/React.createElement("div", {
+  className: "pl-10 whitespace-pre-wrap"
+}, input.split('\n').map((line, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  dangerouslySetInnerHTML: {
+    __html: line
+  }
+}))))), comments && /*#__PURE__*/React.createElement("div", {
+  className: "bg-blue-900/20 border-l-4 border-blue-500 p-3 text-sm text-blue-200"
+}, comments), /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 flex flex-col min-h-0"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "text-[10px] text-slate-500 font-mono mb-1 ml-1"
+}, "OUTPUT"), /*#__PURE__*/React.createElement("div", {
+  className: "flex-1 bg-black rounded-lg border border-slate-800 p-4 font-code text-sm text-slate-300 overflow-auto whitespace-pre custom-scroll shadow-inner"
+}, output)));
+const slides = [{
+  title: "Creating Arrays",
+  subtitle: "The Basics",
+  text: "Converting Python lists into NumPy arrays for high-performance computing.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `<span class="syntax-kwd">import</span> numpy <span class="syntax-kwd">as</span> np\n\narr = np.<span class="syntax-func">array</span>([<span class="syntax-num">1</span>, <span class="syntax-num">2</span>, <span class="syntax-num">3</span>, <span class="syntax-num">4</span>])\n<span class="syntax-func">print</span>(arr)`,
+    output: `[1 2 3 4]`
+  })
+}, {
+  title: "Creating Arrays",
+  subtitle: "Ranges & Spacing",
+  text: "Use arange for steps and linspace for a specific number of samples between values.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `<span class="text-slate-500"># Range: Start, Stop, Step</span>\nrange_arr = np.<span class="syntax-func">arange</span>(<span class="syntax-num">0</span>, <span class="syntax-num">10</span>, <span class="syntax-num">2</span>)\n\n<span class="text-slate-500"># Linspace: Start, Stop, Number of samples</span>\nlin_arr = np.<span class="syntax-func">linspace</span>(<span class="syntax-num">0</span>, <span class="syntax-num">1</span>, <span class="syntax-num">5</span>)\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Arange:"</span>, range_arr)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Linspace:"</span>, lin_arr)`,
+    output: `Arange: [0 2 4 6 8]\nLinspace: [0. 0.25 0.5 0.75 1. ]`
+  })
+}, {
+  title: "Special Arrays",
+  subtitle: "Placeholders & Identity",
+  text: "Quickly initialize arrays for weights or math operations.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `zeros = np.<span class="syntax-func">zeros</span>((<span class="syntax-num">2</span>, <span class="syntax-num">3</span>))\nones = np.<span class="syntax-func">ones</span>((<span class="syntax-num">2</span>, <span class="syntax-num">2</span>))\nidentity = np.<span class="syntax-func">eye</span>(<span class="syntax-num">3</span>)\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Zeros:\\n"</span>, zeros)\n<span class="syntax-func">print</span>(<span class="syntax-str">"\\nIdentity Matrix:\\n"</span>, identity)`,
+    output: `Zeros:\n [[0. 0. 0.]\n  [0. 0. 0.]]\n\nIdentity Matrix:\n [[1. 0. 0.]\n  [0. 1. 0.]\n  [0. 0. 1.]]`
+  })
+}, {
+  title: "Array Information",
+  subtitle: "Metadata",
+  text: "Checking dimensions, shape, and size is critical for debugging model layers.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `arr = np.<span class="syntax-func">array</span>([[<span class="syntax-num">1</span>, <span class="syntax-num">2</span>, <span class="syntax-num">3</span>], [<span class="syntax-num">4</span>, <span class="syntax-num">5</span>, <span class="syntax-num">6</span>]])\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Shape:"</span>, arr.shape)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Dimensions:"</span>, arr.ndim)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Size:"</span>, arr.size)`,
+    output: `Shape: (2, 3)\nDimensions: 2\nSize: 6`
+  })
+}, {
+  title: "Reshaping Arrays",
+  subtitle: "Shape Shifting",
+  text: "Reshape transforms dimensions; flatten collapses everything to 1D.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `arr = np.<span class="syntax-func">arange</span>(<span class="syntax-num">6</span>)\n\nreshaped = arr.<span class="syntax-func">reshape</span>(<span class="syntax-num">2</span>, <span class="syntax-num">3</span>)\nflat = reshaped.<span class="syntax-func">flatten</span>()\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"2D:\\n"</span>, reshaped)\n<span class="syntax-func">print</span>(<span class="syntax-str">"\\nBack to 1D:"</span>, flat)`,
+    output: `2D:\n [[0 1 2]\n  [3 4 5]]\n\nBack to 1D: [0 1 2 3 4 5]`
+  })
+}, {
+  title: "Mathematical Ops",
+  subtitle: "Vectorized Math",
+  text: "Perform complex operations across entire arrays instantly.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `vals = [<span class="syntax-num">4</span>, <span class="syntax-num">9</span>, <span class="syntax-num">16</span>]\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Sqrt: "</span>, np.<span class="syntax-func">sqrt</span>(vals))\n<span class="syntax-func">print</span>(<span class="syntax-str">"Power:"</span>, np.<span class="syntax-func">power</span>([<span class="syntax-num">2</span>, <span class="syntax-num">3</span>], <span class="syntax-num">2</span>))\n<span class="syntax-func">print</span>(<span class="syntax-str">"Sum:  "</span>, np.<span class="syntax-func">add</span>([<span class="syntax-num">1</span>, <span class="syntax-num">2</span>], [<span class="syntax-num">3</span>, <span class="syntax-num">4</span>]))`,
+    output: `Sqrt:  [2. 3. 4.]\nPower: [4 9]\nSum:   [4 6]`
+  })
+}, {
+  title: "Statistical Functions",
+  subtitle: "Data Analysis",
+  text: "The core tools for Exploratory Data Analysis (EDA).",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `data = np.<span class="syntax-func">array</span>([<span class="syntax-num">10</span>, <span class="syntax-num">20</span>, <span class="syntax-num">30</span>, <span class="syntax-num">40</span>])\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Mean:  "</span>, np.<span class="syntax-func">mean</span>(data))\n<span class="syntax-func">print</span>(<span class="syntax-str">"Median:"</span>, np.<span class="syntax-func">median</span>(data))\n<span class="syntax-func">print</span>(<span class="syntax-str">"Std:   "</span>, np.<span class="syntax-func">round</span>(np.<span class="syntax-func">std</span>(data), <span class="syntax-num">2</span>))`,
+    output: `Mean:   25.0\nMedian: 25.0\nStd:    11.18`
+  })
+}, {
+  title: "Indexing & Filtering",
+  subtitle: "Conditional Logic",
+  text: "Filter data using boolean logic or locate indices with np.where.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `arr = np.<span class="syntax-func">array</span>([<span class="syntax-num">1</span>, <span class="syntax-num">5</span>, <span class="syntax-num">7</span>, <span class="syntax-num">2</span>, <span class="syntax-num">8</span>])\n\n<span class="text-slate-500"># Filter values > 4</span>\nfiltered = arr[arr > <span class="syntax-num">4</span>]\n\n<span class="text-slate-500"># Find positions</span>\nindices = np.<span class="syntax-func">where</span>(arr > <span class="syntax-num">4</span>)\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Filtered:"</span>, filtered)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Positions:"</span>, indices)`,
+    output: `Filtered: [5 7 8]\nPositions: (array([1, 2, 4]),)`
+  })
+}, {
+  title: "Sorting",
+  subtitle: "Ordering Data",
+  text: "Sort returns the values; argsort returns the indices of those values.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `arr = np.<span class="syntax-func">array</span>([<span class="syntax-num">5</span>, <span class="syntax-num">2</span>, <span class="syntax-num">8</span>, <span class="syntax-num">1</span>])\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Sorted: "</span>, np.<span class="syntax-func">sort</span>(arr))\n<span class="syntax-func">print</span>(<span class="syntax-str">"Indices:"</span>, np.<span class="syntax-func">argsort</span>(arr))`,
+    output: `Sorted:  [1 2 5 8]\nIndices: [3 1 0 2]`
+  })
+}, {
+  title: "Random Numbers",
+  subtitle: "ML Initialization",
+  text: "Essential for random weight initialization and shuffling.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `<span class="text-slate-500"># 3 Random floats [0,1)</span>\nrand_f = np.random.<span class="syntax-func">rand</span>(<span class="syntax-num">3</span>)\n\n<span class="text-slate-500"># 5 Random ints between 1-10</span>\nrand_i = np.random.<span class="syntax-func">randint</span>(<span class="syntax-num">1</span>, <span class="syntax-num">10</span>, <span class="syntax-num">5</span>)\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Floats:"</span>, rand_f)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Ints:  "</span>, rand_i)`,
+    output: `Floats: [0.34 0.78 0.12]\nInts:   [4 7 2 9 1]`
+  })
+}, {
+  title: "Combining Arrays",
+  subtitle: "Stacking Data",
+  text: "Concatenate for simple joining; vstack for vertical stacking.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `a = np.<span class="syntax-func">array</span>([<span class="syntax-num">1</span>, <span class="syntax-num">2</span>])\nb = np.<span class="syntax-func">array</span>([<span class="syntax-num">3</span>, <span class="syntax-num">4</span>])\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Concat:"</span>, np.<span class="syntax-func">concatenate</span>((a, b)))\n<span class="syntax-func">print</span>(<span class="syntax-str">"\\nVStack:\\n"</span>, np.<span class="syntax-func">vstack</span>((a, b)))`,
+    output: `Concat: [1 2 3 4]\n\nVStack:\n [[1 2]\n  [3 4]]`
+  })
+}, {
+  title: "Matrix Operations",
+  subtitle: "The Engine of AI",
+  text: "Dot product is the fundamental operation behind neural networks.",
+  viz: /*#__PURE__*/React.createElement(NotebookCell, {
+    input: `A = np.<span class="syntax-func">array</span>([[<span class="syntax-num">1</span>, <span class="syntax-num">2</span>], [<span class="syntax-num">3</span>, <span class="syntax-num">4</span>]])\nB = np.<span class="syntax-func">array</span>([[<span class="syntax-num">5</span>, <span class="syntax-num">6</span>], [<span class="syntax-num">7</span>, <span class="syntax-num">8</span>]])\n\nresult = np.<span class="syntax-func">dot</span>(A, B)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Matrix Multiplication:\\n"</span>, result)`,
+    output: `Matrix Multiplication:\n [[19 22]\n  [43 50]]`
+  })
+}];
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const content = slides[currentSlide];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col relative bg-slate-950 text-white"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-1 bg-slate-900"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-blue-600 transition-all duration-300",
+    style: {
+      width: `${(currentSlide + 1) / slides.length * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-6 md:p-12 flex items-center justify-center overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col justify-center space-y-6 animate-fade-in"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-blue-400 mb-2 tracking-widest uppercase"
+  }, "Numpy Guide ", currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl md:text-5xl font-black text-white mb-2"
+  }, content.title), /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl md:text-2xl text-slate-400 font-light border-b border-slate-800 pb-4"
+  }, content.subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "text-lg text-slate-300 leading-relaxed font-light"
+  }, content.text)), /*#__PURE__*/React.createElement("div", {
+    className: "h-[500px] w-full"
+  }, content.viz))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 z-50"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+    className: "hover:text-white px-3 py-1"
+  }, "PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center text-slate-300"
+  }, currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+    className: "hover:text-white px-3 py-1"
+  }, "NEXT")));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-        // --- COMPONENTS ---
-
-        const NotebookCell = ({ input, output, comments }) => (
-            <div className="flex flex-col h-full gap-4 fade-in">
-                {/* Input Cell */}
-                <div className="flex flex-col bg-slate-900 rounded-lg border border-slate-700 overflow-hidden shadow-lg">
-                    <div className="bg-slate-800/50 px-4 py-1 text-[10px] text-slate-500 font-mono border-b border-slate-700 flex justify-between">
-                        <span>INPUT [ ]</span>
-                        <span>Python 3.10</span>
-                    </div>
-                    <div className="p-4 font-code text-sm md:text-base leading-relaxed relative">
-                        {/* Line Numbers */}
-                        <div className="absolute left-2 top-4 text-slate-600 select-none text-right w-6 opacity-50 text-xs">
-                            {input.split('\n').map((_, i) => <div key={i}>{i+1}</div>)}
-                        </div>
-                        <div className="pl-10 whitespace-pre-wrap">
-                            {input.split('\n').map((line, i) => (
-                                <div key={i} dangerouslySetInnerHTML={{__html: line}}></div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Explanatory Comments (If any) */}
-                {comments && (
-                    <div className="bg-blue-900/20 border-l-4 border-blue-500 p-3 text-sm text-blue-200">
-                        {comments}
-                    </div>
-                )}
-
-                {/* Output Cell */}
-                <div className="flex-1 flex flex-col min-h-0">
-                    <div className="text-[10px] text-slate-500 font-mono mb-1 ml-1">OUTPUT</div>
-                    <div className="flex-1 bg-black rounded-lg border border-slate-800 p-4 font-code text-sm text-slate-300 overflow-auto whitespace-pre custom-scroll shadow-inner">
-                        {output}
-                    </div>
-                </div>
-            </div>
-        );
-
-        // --- SLIDE DATA ---
-
-        const slides = [
-            {
-                title: "Introduction to Numpy",
-                subtitle: "Importing the Library",
-                text: "Before we can use Numpy, we need to import it. The standard convention is to import it as `np`.",
-                viz: <NotebookCell 
-                    input={`<span class="syntax-kwd">import</span> numpy <span class="syntax-kwd">as</span> np\n\n<span class="syntax-func">print</span>(np.__version__)`}
-                    output={`1.26.0`}
-                    comments="Note: 'np' is an alias. It saves us from typing 'numpy' every time."
-                />
-            },
-            {
-                title: "Creating Arrays",
-                subtitle: "From Lists",
-                text: "The most basic way to create an array is to pass a Python list to `np.array()`.",
-                viz: <NotebookCell 
-                    input={`<span class="text-slate-500"># Create a list</span>\nmy_list = [<span class="syntax-num">1</span>, <span class="syntax-num">2</span>, <span class="syntax-num">3</span>]\n\n<span class="text-slate-500"># Convert to Numpy Array</span>\narr = np.<span class="syntax-func">array</span>(my_list)\n\n<span class="syntax-func">print</span>(arr)\n<span class="syntax-func">print</span>(<span class="syntax-func">type</span>(arr))`}
-                    output={`[1 2 3]\n<class 'numpy.ndarray'>`}
-                />
-            },
-            {
-                title: "Creating Arrays",
-                subtitle: "Quick Creation",
-                text: "Numpy has functions to create arrays filled with placeholders (like 0 or 1) instantly. Useful for initializing data.",
-                viz: <NotebookCell 
-                    input={`<span class="text-slate-500"># 2x2 Array of Zeros</span>\nzeros = np.<span class="syntax-func">zeros</span>((<span class="syntax-num">2</span>, <span class="syntax-num">2</span>))\n\n<span class="text-slate-500"># 2x3 Array of Ones</span>\nones = np.<span class="syntax-func">ones</span>((<span class="syntax-num">2</span>, <span class="syntax-num">3</span>))\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Zeros:\\n"</span>, zeros)\n<span class="syntax-func">print</span>(<span class="syntax-str">"\\nOnes:\\n"</span>, ones)`}
-                    output={`Zeros:\n [[0. 0.]\n  [0. 0.]]\n\nOnes:\n [[1. 1. 1.]\n  [1. 1. 1.]]`}
-                />
-            },
-            {
-                title: "Basic Operations",
-                subtitle: "Math is Easy",
-                text: "Math operations are 'element-wise'. If you add 5 to an array, 5 is added to *every* item in that array automatically.",
-                viz: <NotebookCell 
-                    input={`arr = np.<span class="syntax-func">array</span>([<span class="syntax-num">10</span>, <span class="syntax-num">20</span>, <span class="syntax-num">30</span>])\n\n<span class="text-slate-500"># Add 5 to everything</span>\nadd_result = arr + <span class="syntax-num">5</span>\n\n<span class="text-slate-500"># Multiply everything by 2</span>\nmul_result = arr * <span class="syntax-num">2</span>\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Original:"</span>, arr)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Plus 5:  "</span>, add_result)\n<span class="syntax-func">print</span>(<span class="syntax-str">"Times 2: "</span>, mul_result)`}
-                    output={`Original: [10 20 30]\nPlus 5:   [15 25 35]\nTimes 2:  [20 40 60]`}
-                />
-            },
-            {
-                title: "Operations on Data Types",
-                subtitle: "Stats & Aggregation",
-                text: "You can run statistical operations on the entire array instantly.",
-                viz: <NotebookCell 
-                    input={`data = np.<span class="syntax-func">array</span>([<span class="syntax-num">5</span>, <span class="syntax-num">10</span>, <span class="syntax-num">15</span>, <span class="syntax-num">20</span>])\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"Sum: "</span>, data.<span class="syntax-func">sum</span>())\n<span class="syntax-func">print</span>(<span class="syntax-str">"Max: "</span>, data.<span class="syntax-func">max</span>())\n<span class="syntax-func">print</span>(<span class="syntax-str">"Mean:"</span>, data.<span class="syntax-func">mean</span>())`}
-                    output={`Sum:  50\nMax:  20\nMean: 12.5`}
-                />
-            },
-            {
-                title: "Shape Manipulation",
-                subtitle: "Reshaping",
-                text: "You can change the dimensions of an array using `.reshape()`, as long as the total number of elements remains the same.",
-                viz: <NotebookCell 
-                    input={`<span class="text-slate-500"># Create 1D array of 6 numbers</span>\narr = np.<span class="syntax-func">arange</span>(<span class="syntax-num">6</span>)\n\n<span class="text-slate-500"># Reshape to 2 rows, 3 cols</span>\nreshaped = arr.<span class="syntax-func">reshape</span>(<span class="syntax-num">2</span>, <span class="syntax-num">3</span>)\n\n<span class="syntax-func">print</span>(<span class="syntax-str">"1D:"</span>, arr)\n<span class="syntax-func">print</span>(<span class="syntax-str">"\\n2D Reshaped:\\n"</span>, reshaped)`}
-                    output={`1D: [0 1 2 3 4 5]\n\n2D Reshaped:\n[[0 1 2]\n [3 4 5]]`}
-                />
-            }
-        ];
-
-        // --- MAIN APP ---
-
-        const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
-            const content = slides[currentSlide];
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative bg-slate-950 text-white">
-                    {/* Progress */}
-                    <div className="w-full h-1 bg-slate-900">
-                        <div className="h-full bg-blue-600 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    <div className="flex-1 p-6 md:p-12 flex items-center justify-center overflow-hidden">
-                        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center h-full">
-                            
-                            {/* Text Side */}
-                            <div className="flex flex-col justify-center space-y-6 animate-fade-in">
-                                <div>
-                                    <div className="text-xs font-mono text-blue-400 mb-2 tracking-widest uppercase">Numpy Tutorial {currentSlide + 1}</div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-white mb-2">{content.title}</h1>
-                                    <h2 className="text-xl md:text-2xl text-slate-400 font-light border-b border-slate-800 pb-4">{content.subtitle}</h2>
-                                </div>
-                                <div className="text-lg text-slate-300 leading-relaxed font-light">
-                                    {content.text}
-                                </div>
-                            </div>
-
-                            {/* Terminal Side */}
-                            <div className="h-[500px] w-full">
-                                {content.viz}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Nav */}
-                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 z-50">
-                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white px-3 py-1">PREV</button>
-                        <span className="self-center text-slate-300">{currentSlide + 1} / {slides.length}</span>
-                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white px-3 py-1">NEXT</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-</body>
-</html>
+</body></html>

@@ -1,17 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Careers: The Interactive Guide</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
-        rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
 
     <style>
         body {
@@ -71,392 +66,365 @@
 
     <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <script>const {
+  useState,
+  useEffect
+} = React;
 
-        // --- VISUALIZATION COMPONENTS ---
+// --- VISUALIZATION COMPONENTS ---
 
-        // 1. ROLE EXPLORER ENGINE
-        const RoleExplorer = () => {
-            const [selectedRole, setSelectedRole] = useState('ml_eng');
+// 1. ROLE EXPLORER ENGINE
+const RoleExplorer = () => {
+  const [selectedRole, setSelectedRole] = useState('ml_eng');
+  const roles = {
+    ml_eng: {
+      title: "Machine Learning Engineer",
+      icon: "🛠️",
+      salary: "$130k - $220k",
+      focus: "Productionizing Models",
+      desc: "You don't just build models; you make them work at scale. You bridge the gap between Data Science and DevOps.",
+      stack: ["Python", "PyTorch/TensorFlow", "Docker/K8s", "FastAPI"],
+      dayToDay: "Optimizing inference latency, building training pipelines, scaling models to millions of users."
+    },
+    data_scientist: {
+      title: "Data Scientist",
+      icon: "🔬",
+      salary: "$120k - $190k",
+      focus: "Insights & Algorithms",
+      desc: "The detective. You analyze complex data to find patterns and build predictive prototypes.",
+      stack: ["SQL", "Pandas", "Scikit-Learn", "Jupyter"],
+      dayToDay: "Cleaning data, testing hypotheses, visualizing trends, presenting insights to stakeholders."
+    },
+    ai_eng: {
+      title: "AI Engineer (New!)",
+      icon: "🤖",
+      salary: "$140k - $250k",
+      focus: "LLMs & Agents",
+      desc: "The newest and hottest role. You don't train models from scratch; you chain LLMs together to build apps.",
+      stack: ["LangChain", "OpenAI API", "Vector DBs (Pinecone)", "RAG"],
+      dayToDay: "Prompt engineering, building RAG pipelines, creating autonomous agents."
+    },
+    researcher: {
+      title: "Research Scientist",
+      icon: "🧪",
+      salary: "$150k - $300k+",
+      focus: "Novel Architectures",
+      desc: "The academic. You push the boundaries of what is mathematically possible. Usually requires a PhD.",
+      stack: ["Advanced Math", "JAX/PyTorch", "LaTeX", "ArXiv"],
+      dayToDay: "Reading papers, deriving math, training massive models on clusters."
+    },
+    pm: {
+      title: "AI Product Manager",
+      icon: "📊",
+      salary: "$130k - $210k",
+      focus: "Strategy & User Value",
+      desc: "The visionary. You figure out *what* to build and *why*, ensuring AI actually solves user problems.",
+      stack: ["User Research", "Agile", "Tech Literacy", "Metrics"],
+      dayToDay: "Defining roadmaps, talking to users, coordinating between engineers and business."
+    }
+  };
+  const current = roles[selectedRole];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full gap-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 overflow-x-auto pb-2"
+  }, Object.entries(roles).map(([key, data]) => /*#__PURE__*/React.createElement("button", {
+    key: key,
+    onClick: () => setSelectedRole(key),
+    className: `flex items-center gap-2 px-4 py-3 rounded-lg border transition-all min-w-[160px]
+                                ${selectedRole === key ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20' : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xl"
+  }, data.icon), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-start"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-xs font-bold leading-tight"
+  }, data.title))))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel rounded-xl p-6 flex flex-col gap-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-start"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-white"
+  }, current.title), /*#__PURE__*/React.createElement("span", {
+    className: "px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-mono border border-green-500/30"
+  }, current.salary)), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 leading-relaxed"
+  }, current.desc), /*#__PURE__*/React.createElement("div", {
+    className: "mt-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-indigo-400 mb-2 uppercase"
+  }, "Tech Stack"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-wrap gap-2"
+  }, current.stack.map(s => /*#__PURE__*/React.createElement("span", {
+    key: s,
+    className: "px-3 py-1 bg-slate-800 rounded border border-slate-600 text-sm text-slate-200"
+  }, s))))), /*#__PURE__*/React.createElement("div", {
+    className: "glass-panel rounded-xl p-6 flex flex-col justify-center gap-6 relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"
+  }), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-pink-400 mb-1 uppercase"
+  }, "Primary Focus"), /*#__PURE__*/React.createElement("div", {
+    className: "text-xl font-bold text-white"
+  }, current.focus)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-blue-400 mb-1 uppercase"
+  }, "A Day in the Life"), /*#__PURE__*/React.createElement("div", {
+    className: "text-sm text-slate-300 italic"
+  }, "\"", current.dayToDay, "\"")))));
+};
 
-            const roles = {
-                ml_eng: {
-                    title: "Machine Learning Engineer",
-                    icon: "🛠️",
-                    salary: "$130k - $220k",
-                    focus: "Productionizing Models",
-                    desc: "You don't just build models; you make them work at scale. You bridge the gap between Data Science and DevOps.",
-                    stack: ["Python", "PyTorch/TensorFlow", "Docker/K8s", "FastAPI"],
-                    dayToDay: "Optimizing inference latency, building training pipelines, scaling models to millions of users."
-                },
-                data_scientist: {
-                    title: "Data Scientist",
-                    icon: "🔬",
-                    salary: "$120k - $190k",
-                    focus: "Insights & Algorithms",
-                    desc: "The detective. You analyze complex data to find patterns and build predictive prototypes.",
-                    stack: ["SQL", "Pandas", "Scikit-Learn", "Jupyter"],
-                    dayToDay: "Cleaning data, testing hypotheses, visualizing trends, presenting insights to stakeholders."
-                },
-                ai_eng: {
-                    title: "AI Engineer (New!)",
-                    icon: "🤖",
-                    salary: "$140k - $250k",
-                    focus: "LLMs & Agents",
-                    desc: "The newest and hottest role. You don't train models from scratch; you chain LLMs together to build apps.",
-                    stack: ["LangChain", "OpenAI API", "Vector DBs (Pinecone)", "RAG"],
-                    dayToDay: "Prompt engineering, building RAG pipelines, creating autonomous agents."
-                },
-                researcher: {
-                    title: "Research Scientist",
-                    icon: "🧪",
-                    salary: "$150k - $300k+",
-                    focus: "Novel Architectures",
-                    desc: "The academic. You push the boundaries of what is mathematically possible. Usually requires a PhD.",
-                    stack: ["Advanced Math", "JAX/PyTorch", "LaTeX", "ArXiv"],
-                    dayToDay: "Reading papers, deriving math, training massive models on clusters."
-                },
-                pm: {
-                    title: "AI Product Manager",
-                    icon: "📊",
-                    salary: "$130k - $210k",
-                    focus: "Strategy & User Value",
-                    desc: "The visionary. You figure out *what* to build and *why*, ensuring AI actually solves user problems.",
-                    stack: ["User Research", "Agile", "Tech Literacy", "Metrics"],
-                    dayToDay: "Defining roadmaps, talking to users, coordinating between engineers and business."
-                }
-            };
+// 2. INTERACTIVE ROADMAP
+const RoadmapViz = () => {
+  const [activeStage, setActiveStage] = useState(1);
+  const stages = [{
+    id: 1,
+    title: "Foundation",
+    items: ["Python Mastery", "Linear Algebra", "Calculus", "Probability"]
+  }, {
+    id: 2,
+    title: "Core ML",
+    items: ["Scikit-Learn", "Data Cleaning", "Model Eval", "SQL"]
+  }, {
+    id: 3,
+    title: "Deep Learning",
+    items: ["Neural Nets", "PyTorch/TensorFlow", "CNNs (Vision)", "RNNs (Text)"]
+  }, {
+    id: 4,
+    title: "Modern AI",
+    items: ["Transformers", "LLMs", "RAG Systems", "Prompt Eng"]
+  }, {
+    id: 5,
+    title: "Deployment",
+    items: ["Docker", "FastAPI", "Cloud (AWS/GCP)", "Monitoring"]
+  }];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8 px-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full max-w-4xl h-2 bg-slate-800 rounded-full mt-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500",
+    style: {
+      width: `${(activeStage - 1) * 25}%`
+    }
+  }), stages.map(stage => /*#__PURE__*/React.createElement("div", {
+    key: stage.id,
+    onClick: () => setActiveStage(stage.id),
+    className: `absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-4 cursor-pointer transition-all duration-300 flex items-center justify-center
+                                ${activeStage >= stage.id ? 'bg-slate-900 border-purple-500 shadow-[0_0_15px_#a855f7]' : 'bg-slate-900 border-slate-600 hover:border-slate-400'}`,
+    style: {
+      left: `${(stage.id - 1) * 25}%`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `text-xs font-bold ${activeStage >= stage.id ? 'text-white' : 'text-slate-500'}`
+  }, stage.id), /*#__PURE__*/React.createElement("div", {
+    className: `absolute top-10 whitespace-nowrap text-xs font-bold transition-colors ${activeStage === stage.id ? 'text-purple-400' : 'text-slate-500'}`
+  }, stage.title)))), /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl p-8 mt-8 shadow-2xl relative overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 right-0 p-4 opacity-10 text-9xl"
+  }, activeStage === 1 ? '📐' : activeStage === 2 ? '🤖' : activeStage === 3 ? '🧠' : activeStage === 4 ? '✨' : '🚀'), /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-white mb-6 flex items-center gap-3"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-purple-400"
+  }, "Step ", activeStage, ":"), " ", stages[activeStage - 1].title), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-4"
+  }, stages[activeStage - 1].items.map((item, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "flex items-center gap-3 p-3 bg-slate-800 rounded-lg border border-slate-700 hover:border-purple-500/50 transition-colors"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 bg-green-400 rounded-full"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-200 text-sm"
+  }, item)))), /*#__PURE__*/React.createElement("div", {
+    className: "mt-6 pt-6 border-t border-slate-800 text-xs text-slate-400 italic"
+  }, "\"Do not skip the basics. The best AI engineers are those who understand the math behind the magic.\"")));
+};
 
-            const current = roles[selectedRole];
+// 3. HYPE VS REALITY SLIDER
+const RealityViz = () => {
+  const [value, setValue] = useState(50);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full items-center justify-center gap-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full max-w-3xl glass-panel p-8 rounded-xl relative"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-center text-xl font-bold text-white mb-8"
+  }, "What does an AI job look like?"), /*#__PURE__*/React.createElement("input", {
+    type: "range",
+    min: "0",
+    max: "100",
+    value: value,
+    onChange: e => setValue(e.target.value),
+    className: "w-full h-4 bg-slate-800 rounded-lg appearance-none cursor-pointer mb-8"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between text-xs font-mono text-slate-500 mb-2"
+  }, /*#__PURE__*/React.createElement("span", null, "THE HYPE (Movies)"), /*#__PURE__*/React.createElement("span", null, "THE REALITY (Work)")), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-8 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `transition-opacity duration-300 text-center ${value > 50 ? 'opacity-30 blur-sm' : 'opacity-100'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-6xl mb-4"
+  }, "🦾"), /*#__PURE__*/React.createElement("h4", {
+    className: "text-pink-400 font-bold mb-2"
+  }, "Building Skynet"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-300"
+  }, "\"I am coding a sentient robot that will take over the world.\""), /*#__PURE__*/React.createElement("ul", {
+    className: "text-left text-xs text-slate-400 mt-4 space-y-2 list-disc pl-5"
+  }, /*#__PURE__*/React.createElement("li", null, "Talking to robots"), /*#__PURE__*/React.createElement("li", null, "Hacking mainframes"), /*#__PURE__*/React.createElement("li", null, "Zero bugs, pure magic"))), /*#__PURE__*/React.createElement("div", {
+    className: `transition-opacity duration-300 text-center ${value < 50 ? 'opacity-30 blur-sm' : 'opacity-100'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-6xl mb-4"
+  }, "🧹"), /*#__PURE__*/React.createElement("h4", {
+    className: "text-blue-400 font-bold mb-2"
+  }, "Cleaning Data"), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-slate-300"
+  }, "\"I spent 6 hours fixing a CSV file because the dates were formatted wrong.\""), /*#__PURE__*/React.createElement("ul", {
+    className: "text-left text-xs text-slate-400 mt-4 space-y-2 list-disc pl-5"
+  }, /*#__PURE__*/React.createElement("li", null, "80% Data Cleaning / SQL"), /*#__PURE__*/React.createElement("li", null, "10% Debugging Python envs"), /*#__PURE__*/React.createElement("li", null, "10% Actually training models"))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-1/2 left-0 w-1 h-full bg-white transition-all duration-75 pointer-events-none opacity-0",
+    style: {
+      left: `${value}%`
+    }
+  }))), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-500 text-sm animate-pulse"
+  }, value < 30 ? "Too much sci-fi..." : value > 70 ? "Too realistic (and painful)..." : "Slide to see the truth"));
+};
 
-            return (
-                <div className="flex flex-col h-full gap-6">
-                    {/* Role Selector */}
-                    <div className="flex gap-2 overflow-x-auto pb-2">
-                        {Object.entries(roles).map(([key, data]) => (
-                            <button
-                                key={key}
-                                onClick={() => setSelectedRole(key)}
-                                className={`flex items-center gap-2 px-4 py-3 rounded-lg border transition-all min-w-[160px]
-                                ${selectedRole === key
-                                        ? 'bg-indigo-600 border-indigo-400 text-white shadow-lg shadow-indigo-500/20'
-                                        : 'bg-slate-900 border-slate-700 text-slate-400 hover:bg-slate-800'}`}
-                            >
-                                <span className="text-xl">{data.icon}</span>
-                                <div className="flex flex-col items-start">
-                                    <span className="text-xs font-bold leading-tight">{data.title}</span>
-                                </div>
-                            </button>
-                        ))}
-                    </div>
+// --- MAIN APP ---
 
-                    {/* Details Panel */}
-                    <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
-                        <div className="glass-panel rounded-xl p-6 flex flex-col gap-4">
-                            <div className="flex justify-between items-start">
-                                <h3 className="text-2xl font-bold text-white">{current.title}</h3>
-                                <span className="px-3 py-1 rounded-full bg-green-900/30 text-green-400 text-xs font-mono border border-green-500/30">
-                                    {current.salary}
-                                </span>
-                            </div>
-                            <p className="text-slate-300 leading-relaxed">{current.desc}</p>
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slides = [{
+    title: "The AI Career Landscape",
+    subtitle: "It's Not Just Chatbots",
+    text: "The field of AI has exploded. It's no longer just about 'Data Science'.\n\nWe now have specialized roles for:\n• Building Infrastructure (MLOps)\n• Chaining LLMs (AI Engineering)\n• Ethics & Safety (Governance)",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-center h-full"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-center space-y-6"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-8xl animate-bounce"
+    }, "🚀"), /*#__PURE__*/React.createElement("h2", {
+      className: "text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600"
+    }, "Your Future in AI"), /*#__PURE__*/React.createElement("p", {
+      className: "text-slate-400"
+    }, "Click NEXT to explore the roles.")))
+  }, {
+    title: "Role Explorer",
+    subtitle: "Find Your Niche",
+    text: "Click on the cards above to see details about different career paths.\n\nNotice how **Tech Stacks** differ. An ML Engineer lives in Docker/Kubernetes, while a Researcher lives in Math/ArXiv.",
+    viz: /*#__PURE__*/React.createElement(RoleExplorer, null)
+  }, {
+    title: "The Learning Roadmap",
+    subtitle: "Step-by-Step",
+    text: "You cannot skip steps. Modern AI (LLMs) is built on Deep Learning, which is built on Core ML, which is built on Math.\n\nInteract with the timeline to see what resources match each stage.",
+    viz: /*#__PURE__*/React.createElement(RoadmapViz, null)
+  }, {
+    title: "Expectation vs Reality",
+    subtitle: "What You Actually Do",
+    text: "Many beginners think AI is all about modeling. The truth is:\n\n**80% of the work is Data.**\n\nIf you hate cleaning data, fixing formats, and writing SQL queries, pure Data Science might be tough.",
+    viz: /*#__PURE__*/React.createElement(RealityViz, null)
+  }, {
+    title: "Skills that Stand Out",
+    subtitle: "Be Unreplacable",
+    text: "In an age where AI can write code, **Soft Skills** are your moat.\n\n1. **Domain Knowledge**: Understanding *Healthcare* is better than just knowing *PyTorch*.\n2. **Communication**: Can you explain a Transformer to a CEO?\n3. **Product Sense**: Building things people actually use.",
+    viz: /*#__PURE__*/React.createElement("div", {
+      className: "grid grid-cols-2 gap-4 p-8 h-full items-center"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded-xl border border-blue-500/30"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-4"
+    }, "🗣️"), /*#__PURE__*/React.createElement("h3", {
+      className: "font-bold text-white mb-2"
+    }, "Communication"), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400"
+    }, "Translating math into money.")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded-xl border border-purple-500/30"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-4"
+    }, "🏥"), /*#__PURE__*/React.createElement("h3", {
+      className: "font-bold text-white mb-2"
+    }, "Domain Expertise"), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400"
+    }, "Knowing the problem space.")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded-xl border border-pink-500/30"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-4"
+    }, "🎨"), /*#__PURE__*/React.createElement("h3", {
+      className: "font-bold text-white mb-2"
+    }, "Creativity"), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400"
+    }, "Asking the right questions.")), /*#__PURE__*/React.createElement("div", {
+      className: "bg-slate-800 p-6 rounded-xl border border-green-500/30"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "text-4xl mb-4"
+    }, "🤝"), /*#__PURE__*/React.createElement("h3", {
+      className: "font-bold text-white mb-2"
+    }, "Ethics"), /*#__PURE__*/React.createElement("p", {
+      className: "text-xs text-slate-400"
+    }, "Building responsible systems.")))
+  }];
+  useEffect(() => {
+    const handleKey = e => {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [slides.length]);
+  const CurrentContent = slides[currentSlide];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "w-screen h-screen flex flex-col relative bg-slate-950 text-white selection:bg-indigo-500/30"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full h-1 bg-slate-900"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-400 transition-all duration-300",
+    style: {
+      width: `${(currentSlide + 1) / slides.length * 100}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 p-4 md:p-8 flex items-center justify-center overflow-hidden"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full lg:h-[80vh]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col justify-center space-y-6 animate-fade-in h-min lg:h-auto"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "text-xs font-mono text-indigo-400 mb-2 tracking-widest"
+  }, "CAREER GUIDE MODULE ", String(currentSlide + 1).padStart(2, '0')), /*#__PURE__*/React.createElement("h1", {
+    className: "text-4xl md:text-5xl font-black text-white mb-2 tracking-tight"
+  }, CurrentContent.title), /*#__PURE__*/React.createElement("h2", {
+    className: "text-xl md:text-2xl text-slate-400 font-light border-b border-slate-800 pb-4"
+  }, CurrentContent.subtitle)), /*#__PURE__*/React.createElement("div", {
+    className: "text-base md:text-lg text-slate-300 leading-relaxed whitespace-pre-wrap font-light"
+  }, CurrentContent.text)), /*#__PURE__*/React.createElement("div", {
+    className: "h-[500px] lg:h-full max-h-[600px] glass-panel rounded-2xl shadow-2xl overflow-hidden p-1 relative animate-fade-in flex flex-col w-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute top-0 left-0 w-full h-8 bg-slate-900/80 border-b border-white/5 flex items-center px-4 gap-2 z-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 rounded-full bg-indigo-500/50"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-2 h-2 rounded-full bg-purple-500/50"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "ml-auto text-[10px] text-slate-500 font-mono opacity-50"
+  }, "career_path_v2.py")), /*#__PURE__*/React.createElement("div", {
+    className: "mt-8 flex-1 relative overflow-hidden p-2 md:p-4"
+  }, CurrentContent.viz)))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 backdrop-blur z-50 shadow-xl"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.max(0, s - 1)),
+    className: "hover:text-white hover:bg-white/10 px-3 py-1 rounded transition"
+  }, "PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center text-slate-300 w-16 text-center"
+  }, currentSlide + 1, " / ", slides.length), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCurrentSlide(s => Math.min(slides.length - 1, s + 1)),
+    className: "hover:text-white hover:bg-white/10 px-3 py-1 rounded transition"
+  }, "NEXT")));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-                            <div className="mt-4">
-                                <div className="text-xs font-mono text-indigo-400 mb-2 uppercase">Tech Stack</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {current.stack.map(s => (
-                                        <span key={s} className="px-3 py-1 bg-slate-800 rounded border border-slate-600 text-sm text-slate-200">
-                                            {s}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
 
-                        <div className="glass-panel rounded-xl p-6 flex flex-col justify-center gap-6 relative overflow-hidden">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl"></div>
 
-                            <div>
-                                <div className="text-xs font-mono text-pink-400 mb-1 uppercase">Primary Focus</div>
-                                <div className="text-xl font-bold text-white">{current.focus}</div>
-                            </div>
-
-                            <div>
-                                <div className="text-xs font-mono text-blue-400 mb-1 uppercase">A Day in the Life</div>
-                                <div className="text-sm text-slate-300 italic">"{current.dayToDay}"</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 2. INTERACTIVE ROADMAP
-        const RoadmapViz = () => {
-            const [activeStage, setActiveStage] = useState(1);
-
-            const stages = [
-                { id: 1, title: "Foundation", items: ["Python Mastery", "Linear Algebra", "Calculus", "Probability"] },
-                { id: 2, title: "Core ML", items: ["Scikit-Learn", "Data Cleaning", "Model Eval", "SQL"] },
-                { id: 3, title: "Deep Learning", items: ["Neural Nets", "PyTorch/TensorFlow", "CNNs (Vision)", "RNNs (Text)"] },
-                { id: 4, title: "Modern AI", items: ["Transformers", "LLMs", "RAG Systems", "Prompt Eng"] },
-                { id: 5, title: "Deployment", items: ["Docker", "FastAPI", "Cloud (AWS/GCP)", "Monitoring"] }
-            ];
-
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8 px-4">
-                    {/* Progress Line */}
-                    <div className="relative w-full max-w-4xl h-2 bg-slate-800 rounded-full mt-8">
-                        <div
-                            className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all duration-500"
-                            style={{ width: `${(activeStage - 1) * 25}%` }}
-                        ></div>
-
-                        {/* Nodes */}
-                        {stages.map((stage) => (
-                            <div
-                                key={stage.id}
-                                onClick={() => setActiveStage(stage.id)}
-                                className={`absolute top-1/2 -translate-y-1/2 w-8 h-8 rounded-full border-4 cursor-pointer transition-all duration-300 flex items-center justify-center
-                                ${activeStage >= stage.id
-                                        ? 'bg-slate-900 border-purple-500 shadow-[0_0_15px_#a855f7]'
-                                        : 'bg-slate-900 border-slate-600 hover:border-slate-400'}`}
-                                style={{ left: `${(stage.id - 1) * 25}%` }}
-                            >
-                                <span className={`text-xs font-bold ${activeStage >= stage.id ? 'text-white' : 'text-slate-500'}`}>{stage.id}</span>
-
-                                {/* Label */}
-                                <div className={`absolute top-10 whitespace-nowrap text-xs font-bold transition-colors ${activeStage === stage.id ? 'text-purple-400' : 'text-slate-500'}`}>
-                                    {stage.title}
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Content Box */}
-                    <div className="w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-xl p-8 mt-8 shadow-2xl relative overflow-hidden">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 text-9xl">
-                            {activeStage === 1 ? '📐' : activeStage === 2 ? '🤖' : activeStage === 3 ? '🧠' : activeStage === 4 ? '✨' : '🚀'}
-                        </div>
-
-                        <h3 className="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                            <span className="text-purple-400">Step {activeStage}:</span> {stages[activeStage - 1].title}
-                        </h3>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            {stages[activeStage - 1].items.map((item, i) => (
-                                <div key={i} className="flex items-center gap-3 p-3 bg-slate-800 rounded-lg border border-slate-700 hover:border-purple-500/50 transition-colors">
-                                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                                    <span className="text-slate-200 text-sm">{item}</span>
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="mt-6 pt-6 border-t border-slate-800 text-xs text-slate-400 italic">
-                            "Do not skip the basics. The best AI engineers are those who understand the math behind the magic."
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        // 3. HYPE VS REALITY SLIDER
-        const RealityViz = () => {
-            const [value, setValue] = useState(50);
-
-            return (
-                <div className="flex flex-col h-full items-center justify-center gap-8">
-                    <div className="w-full max-w-3xl glass-panel p-8 rounded-xl relative">
-                        <h3 className="text-center text-xl font-bold text-white mb-8">What does an AI job look like?</h3>
-
-                        <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={value}
-                            onChange={(e) => setValue(e.target.value)}
-                            className="w-full h-4 bg-slate-800 rounded-lg appearance-none cursor-pointer mb-8"
-                        />
-
-                        <div className="flex justify-between text-xs font-mono text-slate-500 mb-2">
-                            <span>THE HYPE (Movies)</span>
-                            <span>THE REALITY (Work)</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-8 relative">
-                            {/* Hype Side */}
-                            <div className={`transition-opacity duration-300 text-center ${value > 50 ? 'opacity-30 blur-sm' : 'opacity-100'}`}>
-                                <div className="text-6xl mb-4">🦾</div>
-                                <h4 className="text-pink-400 font-bold mb-2">Building Skynet</h4>
-                                <p className="text-sm text-slate-300">"I am coding a sentient robot that will take over the world."</p>
-                                <ul className="text-left text-xs text-slate-400 mt-4 space-y-2 list-disc pl-5">
-                                    <li>Talking to robots</li>
-                                    <li>Hacking mainframes</li>
-                                    <li>Zero bugs, pure magic</li>
-                                </ul>
-                            </div>
-
-                            {/* Reality Side */}
-                            <div className={`transition-opacity duration-300 text-center ${value < 50 ? 'opacity-30 blur-sm' : 'opacity-100'}`}>
-                                <div className="text-6xl mb-4">🧹</div>
-                                <h4 className="text-blue-400 font-bold mb-2">Cleaning Data</h4>
-                                <p className="text-sm text-slate-300">"I spent 6 hours fixing a CSV file because the dates were formatted wrong."</p>
-                                <ul className="text-left text-xs text-slate-400 mt-4 space-y-2 list-disc pl-5">
-                                    <li>80% Data Cleaning / SQL</li>
-                                    <li>10% Debugging Python envs</li>
-                                    <li>10% Actually training models</li>
-                                </ul>
-                            </div>
-
-                            {/* Slider Indicator */}
-                            <div
-                                className="absolute top-1/2 left-0 w-1 h-full bg-white transition-all duration-75 pointer-events-none opacity-0"
-                                style={{ left: `${value}%` }}
-                            ></div>
-                        </div>
-                    </div>
-
-                    <p className="text-slate-500 text-sm animate-pulse">
-                        {value < 30 ? "Too much sci-fi..." : value > 70 ? "Too realistic (and painful)..." : "Slide to see the truth"}
-                    </p>
-                </div>
-            );
-        };
-
-        // --- MAIN APP ---
-
-        const App = () => {
-            const [currentSlide, setCurrentSlide] = useState(0);
-
-            const slides = [
-                {
-                    title: "The AI Career Landscape",
-                    subtitle: "It's Not Just Chatbots",
-                    text: "The field of AI has exploded. It's no longer just about 'Data Science'.\n\nWe now have specialized roles for:\n• Building Infrastructure (MLOps)\n• Chaining LLMs (AI Engineering)\n• Ethics & Safety (Governance)",
-                    viz: <div className="flex items-center justify-center h-full">
-                        <div className="text-center space-y-6">
-                            <div className="text-8xl animate-bounce">🚀</div>
-                            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-600">
-                                Your Future in AI
-                            </h2>
-                            <p className="text-slate-400">Click NEXT to explore the roles.</p>
-                        </div>
-                    </div>
-                },
-                {
-                    title: "Role Explorer",
-                    subtitle: "Find Your Niche",
-                    text: "Click on the cards above to see details about different career paths.\n\nNotice how **Tech Stacks** differ. An ML Engineer lives in Docker/Kubernetes, while a Researcher lives in Math/ArXiv.",
-                    viz: <RoleExplorer />
-                },
-                {
-                    title: "The Learning Roadmap",
-                    subtitle: "Step-by-Step",
-                    text: "You cannot skip steps. Modern AI (LLMs) is built on Deep Learning, which is built on Core ML, which is built on Math.\n\nInteract with the timeline to see what resources match each stage.",
-                    viz: <RoadmapViz />
-                },
-                {
-                    title: "Expectation vs Reality",
-                    subtitle: "What You Actually Do",
-                    text: "Many beginners think AI is all about modeling. The truth is:\n\n**80% of the work is Data.**\n\nIf you hate cleaning data, fixing formats, and writing SQL queries, pure Data Science might be tough.",
-                    viz: <RealityViz />
-                },
-                {
-                    title: "Skills that Stand Out",
-                    subtitle: "Be Unreplacable",
-                    text: "In an age where AI can write code, **Soft Skills** are your moat.\n\n1. **Domain Knowledge**: Understanding *Healthcare* is better than just knowing *PyTorch*.\n2. **Communication**: Can you explain a Transformer to a CEO?\n3. **Product Sense**: Building things people actually use.",
-                    viz: <div className="grid grid-cols-2 gap-4 p-8 h-full items-center">
-                        <div className="bg-slate-800 p-6 rounded-xl border border-blue-500/30">
-                            <div className="text-4xl mb-4">🗣️</div>
-                            <h3 className="font-bold text-white mb-2">Communication</h3>
-                            <p className="text-xs text-slate-400">Translating math into money.</p>
-                        </div>
-                        <div className="bg-slate-800 p-6 rounded-xl border border-purple-500/30">
-                            <div className="text-4xl mb-4">🏥</div>
-                            <h3 className="font-bold text-white mb-2">Domain Expertise</h3>
-                            <p className="text-xs text-slate-400">Knowing the problem space.</p>
-                        </div>
-                        <div className="bg-slate-800 p-6 rounded-xl border border-pink-500/30">
-                            <div className="text-4xl mb-4">🎨</div>
-                            <h3 className="font-bold text-white mb-2">Creativity</h3>
-                            <p className="text-xs text-slate-400">Asking the right questions.</p>
-                        </div>
-                        <div className="bg-slate-800 p-6 rounded-xl border border-green-500/30">
-                            <div className="text-4xl mb-4">🤝</div>
-                            <h3 className="font-bold text-white mb-2">Ethics</h3>
-                            <p className="text-xs text-slate-400">Building responsible systems.</p>
-                        </div>
-                    </div>
-                }
-            ];
-
-            useEffect(() => {
-                const handleKey = (e) => {
-                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') setCurrentSlide(curr => Math.min(curr + 1, slides.length - 1));
-                    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') setCurrentSlide(curr => Math.max(curr - 1, 0));
-                };
-                window.addEventListener('keydown', handleKey);
-                return () => window.removeEventListener('keydown', handleKey);
-            }, [slides.length]);
-
-            const CurrentContent = slides[currentSlide];
-
-            return (
-                <div className="w-screen h-screen flex flex-col relative bg-slate-950 text-white selection:bg-indigo-500/30">
-                    {/* Progress Bar */}
-                    <div className="w-full h-1 bg-slate-900">
-                        <div className="h-full bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-400 transition-all duration-300" style={{ width: `${((currentSlide + 1) / slides.length) * 100}%` }}></div>
-                    </div>
-
-                    <div className="flex-1 p-4 md:p-8 flex items-center justify-center overflow-hidden">
-                        <div className="max-w-7xl w-full grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center h-full lg:h-[80vh]">
-
-                            {/* Left: Text Content */}
-                            <div className="flex flex-col justify-center space-y-6 animate-fade-in h-min lg:h-auto">
-                                <div>
-                                    <div className="text-xs font-mono text-indigo-400 mb-2 tracking-widest">CAREER GUIDE MODULE {String(currentSlide + 1).padStart(2, '0')}</div>
-                                    <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">
-                                        {CurrentContent.title}
-                                    </h1>
-                                    <h2 className="text-xl md:text-2xl text-slate-400 font-light border-b border-slate-800 pb-4">
-                                        {CurrentContent.subtitle}
-                                    </h2>
-                                </div>
-                                <div className="text-base md:text-lg text-slate-300 leading-relaxed whitespace-pre-wrap font-light">
-                                    {CurrentContent.text}
-                                </div>
-                            </div>
-
-                            {/* Right: Visualization Panel */}
-                            <div className="h-[500px] lg:h-full max-h-[600px] glass-panel rounded-2xl shadow-2xl overflow-hidden p-1 relative animate-fade-in flex flex-col w-full">
-                                <div className="absolute top-0 left-0 w-full h-8 bg-slate-900/80 border-b border-white/5 flex items-center px-4 gap-2 z-10">
-                                    <div className="w-2 h-2 rounded-full bg-indigo-500/50"></div>
-                                    <div className="w-2 h-2 rounded-full bg-purple-500/50"></div>
-                                    <span className="ml-auto text-[10px] text-slate-500 font-mono opacity-50">career_path_v2.py</span>
-                                </div>
-                                <div className="mt-8 flex-1 relative overflow-hidden p-2 md:p-4">
-                                    {CurrentContent.viz}
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    {/* Footer Controls */}
-                    <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono bg-slate-900/90 p-3 rounded-xl border border-slate-800 backdrop-blur z-50 shadow-xl">
-                        <button onClick={() => setCurrentSlide(s => Math.max(0, s - 1))} className="hover:text-white hover:bg-white/10 px-3 py-1 rounded transition">PREV</button>
-                        <span className="self-center text-slate-300 w-16 text-center">{currentSlide + 1} / {slides.length}</span>
-                        <button onClick={() => setCurrentSlide(s => Math.min(slides.length - 1, s + 1))} className="hover:text-white hover:bg-white/10 px-3 py-1 rounded transition">NEXT</button>
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
-    </script>
-
-</body>
-
-</html>
+</body></html>

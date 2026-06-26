@@ -1,17 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
+<!DOCTYPE html><html lang="en"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Analytics Wrap-Up - Jayan Gupta (Enhanced)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
@@ -103,617 +101,783 @@
 <body>
 <div id="root"></div>
 
-<script type="text/babel">
-    const { useState, useEffect, useCallback, useRef } = React;
+<script>const {
+  useState,
+  useEffect,
+  useCallback,
+  useRef
+} = React;
 
-    // --- Helper Components ---
+// --- Helper Components ---
 
-    const TypingText = ({ text, delay = 0, duration = 1.5, steps = 30, color = 'text-white', onComplete }) => {
-        const [start, setStart] = useState(false);
+const TypingText = ({
+  text,
+  delay = 0,
+  duration = 1.5,
+  steps = 30,
+  color = 'text-white',
+  onComplete
+}) => {
+  const [start, setStart] = useState(false);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setStart(true);
+      if (onComplete) {
+        setTimeout(onComplete, duration * 1000);
+      }
+    }, delay * 1000);
+    return () => clearTimeout(timer);
+  }, [delay, duration, onComplete]);
+  if (!start) return /*#__PURE__*/React.createElement("span", {
+    className: "opacity-0"
+  }, text);
+  return /*#__PURE__*/React.createElement("span", {
+    className: `typing-line ${color}`,
+    style: {
+      animationDuration: `${duration}s`,
+      animationTimingFunction: `steps(${steps}, end)`,
+      borderRightColor: '#38bdf8' // Cursor color
+    }
+  }, text);
+};
 
-        useEffect(() => {
-            const timer = setTimeout(() => {
-                setStart(true);
-                if (onComplete) {
-                    setTimeout(onComplete, duration * 1000);
-                }
-            }, delay * 1000);
-            return () => clearTimeout(timer);
-        }, [delay, duration, onComplete]);
+// --- Visualization Components ---
 
-        if (!start) return <span className="opacity-0">{text}</span>;
+const SQLViz = ({
+  isActive
+}) => {
+  const [showOutput, setShowOutput] = useState(false);
+  useEffect(() => {
+    if (isActive) {
+      const timeout = setTimeout(() => setShowOutput(true), 6000);
+      return () => clearTimeout(timeout);
+    } else {
+      setShowOutput(false);
+    }
+  }, [isActive]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#1e1e1e] rounded-lg shadow-2xl w-full h-full overflow-hidden font-mono text-sm border border-slate-700 flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-[#2d2d2d] p-3 flex gap-2 border-b border-black"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-red-500"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-yellow-500"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "w-3 h-3 rounded-full bg-green-500"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "ml-auto text-slate-500 text-xs"
+  }, "postgres — Sales Query")), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 flex-grow flex flex-col text-slate-300 relative"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 text-slate-500"
+  }, "Connected to database 'ecom_2025'..."), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-blue-400 mr-2 shrink-0"
+  }, "❯"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col"
+  }, isActive && /*#__PURE__*/React.createElement("div", {
+    className: "leading-tight"
+  }, /*#__PURE__*/React.createElement(TypingText, {
+    text: "SELECT ",
+    delay: 0.5,
+    color: "text-purple-400",
+    duration: 0.8
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "ml-4 leading-tight"
+  }, isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "product_category, ",
+    delay: 1.3,
+    duration: 1.5,
+    steps: 25
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "ml-4 leading-tight"
+  }, isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "SUM(total_price) AS revenue",
+    delay: 2.8,
+    duration: 2.0,
+    steps: 35
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start mt-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-transparent mr-2 shrink-0"
+  }, "❯"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col"
+  }, isActive && /*#__PURE__*/React.createElement("div", {
+    className: "leading-tight"
+  }, /*#__PURE__*/React.createElement(TypingText, {
+    text: "FROM ",
+    delay: 4.8,
+    color: "text-purple-400",
+    duration: 0.5
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "ml-4 leading-tight"
+  }, isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "transactions",
+    delay: 5.3,
+    duration: 1.0
+  })))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start mt-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-transparent mr-2 shrink-0"
+  }, "❯"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col"
+  }, isActive && /*#__PURE__*/React.createElement("div", {
+    className: "leading-tight"
+  }, /*#__PURE__*/React.createElement(TypingText, {
+    text: "GROUP BY ",
+    delay: 6.3,
+    color: "text-purple-400",
+    duration: 1.0
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "ml-4 leading-tight"
+  }, isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "product_category;",
+    delay: 7.3,
+    duration: 1.0
+  })))), showOutput && /*#__PURE__*/React.createElement("div", {
+    className: "mt-auto code-output bg-black/30 p-4 rounded border border-slate-700 animate-[fadeIn_0.5s_ease-out]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex text-cyan-400 font-bold border-b border-slate-700 mb-2 pb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2"
+  }, "product_category"), /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2 text-right"
+  }, "revenue")), /*#__PURE__*/React.createElement("div", {
+    className: "flex mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2"
+  }, "Electronics"), /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2 text-right text-green-400"
+  }, "1,450,200")), /*#__PURE__*/React.createElement("div", {
+    className: "flex mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2"
+  }, "Apparel"), /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2 text-right text-green-400"
+  }, "890,500")), /*#__PURE__*/React.createElement("div", {
+    className: "flex mb-1"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2"
+  }, "Home Goods"), /*#__PURE__*/React.createElement("span", {
+    className: "w-1/2 text-right text-green-400"
+  }, "550,000")))));
+};
+const PythonViz = ({
+  isActive
+}) => {
+  const [stage, setStage] = useState(0);
+  // 0: Start, 1: Typed Import, 2: Show DF, 3: Typed Plot, 4: Show Chart
 
-        return (
-            <span 
-                className={`typing-line ${color}`} 
-                style={{ 
-                    animationDuration: `${duration}s`, 
-                    animationTimingFunction: `steps(${steps}, end)`,
-                    borderRightColor: '#38bdf8' // Cursor color
-                }}
-            >
-                {text}
-            </span>
-        );
+  useEffect(() => {
+    if (!isActive) {
+      setStage(0);
+      return;
+    }
+
+    // Timeline
+    const t1 = setTimeout(() => setStage(1), 2000); // After imports
+    const t2 = setTimeout(() => setStage(2), 2500); // Show DF
+    const t3 = setTimeout(() => setStage(3), 4500); // After plot code
+    const t4 = setTimeout(() => setStage(4), 5000); // Show Plot
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
+  }, [isActive]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white w-full h-full rounded-lg shadow-2xl overflow-hidden text-sm flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-100 p-2 border-b flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-orange-500 font-bold"
+  }, "Jupyter"), /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-500 text-xs"
+  }, "eda_report.ipynb")), /*#__PURE__*/React.createElement("div", {
+    className: "flex-grow overflow-y-auto p-2 space-y-4"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2 mb-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 font-mono w-12 text-right text-xs pt-1"
+  }, "In [1]:"), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-50 border border-slate-200 rounded p-2 w-full font-mono text-slate-800 text-xs"
+  }, isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "import pandas as pd",
+    delay: 0.2,
+    duration: 1.0,
+    steps: 20,
+    color: "text-slate-800"
+  }), /*#__PURE__*/React.createElement("br", null), isActive && /*#__PURE__*/React.createElement(TypingText, {
+    text: "df = pd.read_csv('sales.csv')",
+    delay: 1.2,
+    duration: 1.5,
+    steps: 30,
+    color: "text-slate-800"
+  }))), stage >= 2 && /*#__PURE__*/React.createElement("div", {
+    className: "ml-14 overflow-x-auto animate-[fadeIn_0.5s_ease-out]"
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "w-full text-xs text-left text-slate-500 border border-slate-200"
+  }, /*#__PURE__*/React.createElement("thead", {
+    className: "bg-slate-50"
+  }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    className: "px-2 py-1"
+  }, "Region"), /*#__PURE__*/React.createElement("th", {
+    className: "px-2 py-1"
+  }, "Profit"), /*#__PURE__*/React.createElement("th", {
+    className: "px-2 py-1"
+  }, "Sales"))), /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", {
+    className: "border-b"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "East"), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "4000"), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "12000")), /*#__PURE__*/React.createElement("tr", {
+    className: "border-b"
+  }, /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "West"), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "8000"), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1"
+  }, "15000")), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1 text-slate-400 italic"
+  }, "..."), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1 text-slate-400 italic"
+  }, "..."), /*#__PURE__*/React.createElement("td", {
+    className: "px-2 py-1 text-slate-400 italic"
+  }, "...")))))), stage >= 2 && /*#__PURE__*/React.createElement("div", {
+    className: "animate-[fadeIn_0.5s_ease-out]"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 font-mono w-12 text-right text-xs pt-1"
+  }, "In [2]:"), /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-50 border border-slate-200 rounded p-2 w-full font-mono text-slate-800 text-xs"
+  }, stage >= 2 && /*#__PURE__*/React.createElement(TypingText, {
+    text: "df['Profit'].plot(kind='bar', color='#3b82f6')",
+    delay: 2.5,
+    duration: 2.0,
+    steps: 40,
+    color: "text-blue-600"
+  })))), stage >= 4 && /*#__PURE__*/React.createElement("div", {
+    className: "ml-14 h-40 border border-slate-100 rounded bg-white relative flex items-end justify-around px-4 pb-6 animate-[fadeIn_0.5s_ease-out]"
+  }, [40, 80, 60, 90, 75, 50].map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "w-8 bg-blue-500 rounded-t shadow hover:bg-blue-600 transition-colors",
+    style: {
+      height: `${h}%`,
+      animation: `growHeight 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${i * 0.1}s`,
+      '--h': `${h}%`
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 left-2 right-2 h-px bg-slate-300"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-1 left-0 right-0 flex justify-around text-[10px] text-slate-400 font-mono"
+  }, /*#__PURE__*/React.createElement("span", null, "E"), /*#__PURE__*/React.createElement("span", null, "W"), /*#__PURE__*/React.createElement("span", null, "N"), /*#__PURE__*/React.createElement("span", null, "S"), /*#__PURE__*/React.createElement("span", null, "NE"), /*#__PURE__*/React.createElement("span", null, "SE")))));
+};
+const ExcelViz = ({
+  isActive
+}) => {
+  // Stages: 0:Idle, 1:Typing Formula, 2:Highlight Lookup(Blue), 3:Highlight Table(Red), 4:Show Result(Green)
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    if (!isActive) {
+      setStage(0);
+      return;
+    }
+    const t1 = setTimeout(() => setStage(1), 500); // Start typing
+    const t2 = setTimeout(() => setStage(2), 2500); // Lookup Value Highlight
+    const t3 = setTimeout(() => setStage(3), 3500); // Table Array Highlight
+    const t4 = setTimeout(() => setStage(4), 4500); // Result Pop
 
-    // --- Visualization Components ---
-
-    const SQLViz = ({ isActive }) => {
-        const [showOutput, setShowOutput] = useState(false);
-
-        useEffect(() => {
-            if (isActive) {
-                const timeout = setTimeout(() => setShowOutput(true), 6000); 
-                return () => clearTimeout(timeout);
-            } else {
-                setShowOutput(false);
-            }
-        }, [isActive]);
-
-        return (
-            <div className="bg-[#1e1e1e] rounded-lg shadow-2xl w-full h-full overflow-hidden font-mono text-sm border border-slate-700 flex flex-col">
-                <div className="bg-[#2d2d2d] p-3 flex gap-2 border-b border-black">
-                    <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                    <span className="ml-auto text-slate-500 text-xs">postgres — Sales Query</span>
-                </div>
-                <div className="p-6 flex-grow flex flex-col text-slate-300 relative">
-                    <div className="mb-4 text-slate-500">Connected to database 'ecom_2025'...</div>
-                    
-                    {/* Line 1 */}
-                    <div className="flex items-start">
-                        <span className="text-blue-400 mr-2 shrink-0">❯</span>
-                        <div className="flex flex-col">
-                            {isActive && <div className="leading-tight"><TypingText text="SELECT " delay={0.5} color="text-purple-400" duration={0.8}/></div>}
-                            <div className="ml-4 leading-tight">
-                                {isActive && <TypingText text="product_category, " delay={1.3} duration={1.5} steps={25}/>}
-                            </div>
-                            <div className="ml-4 leading-tight">
-                                {isActive && <TypingText text="SUM(total_price) AS revenue" delay={2.8} duration={2.0} steps={35}/>}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Line 2 */}
-                    <div className="flex items-start mt-2">
-                        <span className="text-transparent mr-2 shrink-0">❯</span>
-                        <div className="flex flex-col">
-                            {isActive && <div className="leading-tight"><TypingText text="FROM " delay={4.8} color="text-purple-400" duration={0.5}/></div>}
-                            <div className="ml-4 leading-tight">
-                                {isActive && <TypingText text="transactions" delay={5.3} duration={1.0}/>}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Line 3 */}
-                    <div className="flex items-start mt-2">
-                        <span className="text-transparent mr-2 shrink-0">❯</span>
-                        <div className="flex flex-col">
-                            {isActive && <div className="leading-tight"><TypingText text="GROUP BY " delay={6.3} color="text-purple-400" duration={1.0}/></div>}
-                            <div className="ml-4 leading-tight">
-                                {isActive && <TypingText text="product_category;" delay={7.3} duration={1.0}/>}
-                            </div>
-                        </div>
-                    </div>
-
-                    {showOutput && (
-                        <div className="mt-auto code-output bg-black/30 p-4 rounded border border-slate-700 animate-[fadeIn_0.5s_ease-out]">
-                            <div className="flex text-cyan-400 font-bold border-b border-slate-700 mb-2 pb-1">
-                                <span className="w-1/2">product_category</span>
-                                <span className="w-1/2 text-right">revenue</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="w-1/2">Electronics</span>
-                                <span className="w-1/2 text-right text-green-400">1,450,200</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="w-1/2">Apparel</span>
-                                <span className="w-1/2 text-right text-green-400">890,500</span>
-                            </div>
-                            <div className="flex mb-1">
-                                <span className="w-1/2">Home Goods</span>
-                                <span className="w-1/2 text-right text-green-400">550,000</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
     };
+  }, [isActive]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden text-xs text-slate-800 font-sans border border-slate-200 flex flex-col h-80"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-100 border-b border-slate-300 p-2 flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white border border-slate-300 px-2 py-1 rounded w-10 text-center font-mono text-xs text-slate-500"
+  }, "E2"), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 bg-white border border-slate-300 px-2 py-1 rounded font-mono text-xs flex items-center h-8"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "text-slate-400 mr-1"
+  }, "="), stage >= 1 && /*#__PURE__*/React.createElement(TypingText, {
+    text: "VLOOKUP(C2, 'Products'!A:E, 5, FALSE)",
+    delay: 0.5,
+    duration: 1.8,
+    steps: 40,
+    color: "text-slate-800"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-6 flex-grow bg-white"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b"
+  }, "A"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b"
+  }, "B"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b"
+  }, "C"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b"
+  }, "D"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-b"
+  }, "E"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b pt-2"
+  }, "1"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b font-bold bg-slate-50"
+  }, "ID"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b font-bold bg-slate-50"
+  }, "Item"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b font-bold bg-slate-50"
+  }, "Region"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b font-bold bg-slate-50"
+  }, "Qty"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-b font-bold bg-slate-50"
+  }, "Price"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b pt-2"
+  }, "2"), /*#__PURE__*/React.createElement("div", {
+    className: `excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`
+  }, "102", stage === 3 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 border-2 border-red-500 border-dashed animate-pulse z-10 pointer-events-none"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: `excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`
+  }, "Keyboard"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b relative"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "relative z-10"
+  }, "West"), stage === 2 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 border-2 border-blue-500 z-20 pointer-events-none animate-pulse"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: `excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`
+  }, "120"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-b font-bold text-green-700 relative bg-slate-50/50"
+  }, stage >= 4 && /*#__PURE__*/React.createElement("span", {
+    className: "animate-[fadeIn_0.3s_ease-out]"
+  }, "$150.50"), stage === 4 && /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-0 border-2 border-green-500 z-20 pointer-events-none animate-pulse"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "excel-grid-header border-r border-b pt-2"
+  }, "3"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b"
+  }, "103"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b"
+  }, "Mouse"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b"
+  }, "North"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-r border-b"
+  }, "10"), /*#__PURE__*/React.createElement("div", {
+    className: "excel-cell border-b"
+  }, "$45.00")));
+};
+const PowerBIViz = ({
+  isActive
+}) => /*#__PURE__*/React.createElement("div", {
+  className: `bg-slate-100 rounded-xl shadow-2xl w-full max-w-lg h-80 p-4 grid grid-cols-3 grid-rows-2 gap-4 transition-all duration-700 transform ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`
+}, /*#__PURE__*/React.createElement("div", {
+  className: "bg-white p-3 rounded-lg shadow-md flex flex-col items-center justify-center col-span-1 border border-slate-200"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "text-xs text-slate-400 uppercase font-bold tracking-wider"
+}, "Revenue"), /*#__PURE__*/React.createElement("div", {
+  className: "text-2xl font-bold text-orange-600"
+}, "$4.2M"), /*#__PURE__*/React.createElement("div", {
+  className: "text-xs text-green-500 mt-1 bg-green-50 px-2 py-0.5 rounded-full"
+}, /*#__PURE__*/React.createElement("i", {
+  className: "fa-solid fa-arrow-up"
+}), " 12%")), /*#__PURE__*/React.createElement("div", {
+  className: "bg-white p-3 rounded-lg shadow-md flex flex-col items-center justify-center col-span-1 border border-slate-200"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "text-xs text-slate-400 uppercase font-bold tracking-wider"
+}, "AOV"), /*#__PURE__*/React.createElement("div", {
+  className: "text-2xl font-bold text-purple-600"
+}, "$155"), /*#__PURE__*/React.createElement("div", {
+  className: "text-xs text-red-500 mt-1 bg-red-50 px-2 py-0.5 rounded-full"
+}, /*#__PURE__*/React.createElement("i", {
+  className: "fa-solid fa-arrow-down"
+}), " 3%")), /*#__PURE__*/React.createElement("div", {
+  className: "bg-white p-3 rounded-lg shadow-md flex items-center justify-center relative row-span-2 border border-slate-200"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "absolute top-2 right-2 text-[10px] text-slate-400 font-bold uppercase"
+}, "Channel Mix"), /*#__PURE__*/React.createElement("svg", {
+  viewBox: "0 0 36 36",
+  className: "w-24 h-24 animate-[spin_1.5s_ease-out]"
+}, /*#__PURE__*/React.createElement("path", {
+  className: "text-slate-100",
+  d: "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "4"
+}), /*#__PURE__*/React.createElement("path", {
+  className: "text-blue-500",
+  strokeDasharray: "50, 100",
+  d: "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "4"
+}), /*#__PURE__*/React.createElement("path", {
+  className: "text-orange-500",
+  strokeDasharray: "30, 100",
+  strokeDashoffset: "-50",
+  d: "M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: "4"
+}), /*#__PURE__*/React.createElement("text", {
+  x: "18",
+  y: "18",
+  textAnchor: "middle",
+  dominantBaseline: "central",
+  className: "text-[8px] font-bold text-slate-600"
+}, "50%"))), /*#__PURE__*/React.createElement("div", {
+  className: "bg-white p-4 rounded-lg shadow-md col-span-2 flex items-end justify-between px-4 gap-2 relative border border-slate-200"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "text-[10px] text-slate-400 font-bold uppercase absolute top-2 left-2"
+}, "Monthly Trend"), [30, 50, 40, 80, 60, 45].map((h, i) => /*#__PURE__*/React.createElement("div", {
+  key: i,
+  className: "w-full bg-slate-200 rounded-t overflow-hidden relative",
+  style: {
+    height: `${h}%`
+  }
+}, /*#__PURE__*/React.createElement("div", {
+  className: "absolute bottom-0 left-0 w-full bg-orange-500 transition-all duration-1000",
+  style: {
+    height: isActive ? '100%' : '0%',
+    transitionDelay: `${i * 100}ms`
+  }
+})))));
+const ResumeViz = ({
+  isActive
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "w-full h-full flex items-center justify-center relative"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "bg-white w-[340px] h-[460px] shadow-2xl relative rounded overflow-hidden border border-slate-200"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "p-6 space-y-4 opacity-80"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "h-6 bg-slate-800 w-2/3 rounded"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "h-px bg-slate-300 w-full"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "space-y-2 pt-2"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "h-2 bg-slate-200 w-full rounded"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "h-2 bg-slate-200 w-5/6 rounded"
+})), /*#__PURE__*/React.createElement("div", {
+  className: "space-y-2 pt-4"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "h-4 bg-blue-100 w-1/3 rounded mb-2"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "h-2 bg-slate-200 w-full rounded"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "h-2 bg-slate-200 w-full rounded"
+}), /*#__PURE__*/React.createElement("div", {
+  className: "h-2 bg-slate-200 w-4/5 rounded"
+}))), isActive && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("i", {
+  className: "fa-solid fa-check text-4xl text-green-500 absolute top-12 right-8 stamp-anim",
+  style: {
+    animationDelay: '0.8s'
+  }
+}), /*#__PURE__*/React.createElement("i", {
+  className: "fa-solid fa-check text-4xl text-green-500 absolute top-48 right-12 stamp-anim",
+  style: {
+    animationDelay: '1.2s'
+  }
+}), /*#__PURE__*/React.createElement("i", {
+  className: "fa-solid fa-check text-4xl text-green-500 absolute bottom-24 right-10 stamp-anim",
+  style: {
+    animationDelay: '1.6s'
+  }
+}), /*#__PURE__*/React.createElement("div", {
+  className: "absolute top-0 left-0 w-full h-2 bg-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.8)]",
+  style: {
+    animation: 'scan 2.5s linear infinite'
+  }
+}))));
 
-    const PythonViz = ({ isActive }) => {
-        const [stage, setStage] = useState(0); 
-        // 0: Start, 1: Typed Import, 2: Show DF, 3: Typed Plot, 4: Show Chart
+// --- Slide Definitions ---
+const slides = [{
+  title: "Data Analytics Course Completion",
+  subTitle: "From Raw Data to Strategic Decisions",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "inline-block px-4 py-1.5 mb-6 text-sm font-mono text-cyan-400 bg-cyan-950/50 border border-cyan-800 rounded-full animate-bounce"
+  }, "COURSE COMPLETE_"), /*#__PURE__*/React.createElement("h1", {
+    className: "text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 mb-6 tracking-tight"
+  }, "Data Analytics"), /*#__PURE__*/React.createElement("h2", {
+    className: "text-3xl text-slate-300 font-light mb-12"
+  }, "You have successfully completed the full stack analyst program."), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center gap-6 text-slate-400 font-mono text-lg"
+  }, /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-table text-green-500 mr-2"
+  }), "Excel Modeling"), /*#__PURE__*/React.createElement("span", null, "•"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-database text-blue-500 mr-2"
+  }), "SQL Engineering"), /*#__PURE__*/React.createElement("span", null, "•"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa-brands fa-python text-yellow-500 mr-2"
+  }), "Python Automation"), /*#__PURE__*/React.createElement("span", null, "•"), /*#__PURE__*/React.createElement("span", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-chart-simple text-orange-500 mr-2"
+  }), "Power BI / Tableau"))),
+  viz: /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center h-full text-slate-600 text-6xl opacity-20 font-black tracking-tighter"
+  }, "WRAP UP")
+}, {
+  title: "Excel Mastery: Modeling and Formulas",
+  subTitle: "The universal language of business processes.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-green-400 mb-2"
+  }, "Advanced Formulas & Logic"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "You learned to effectively use lookup functions like ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "VLOOKUP"), " and ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "HLOOKUP"), " for data retrieval, alongside logical functions like ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "IF"), ", ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "IFS"), ", and conditional aggregation with ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "SUMIFS"), " and ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "COUNTIFS"), ". This allows for powerful conditional reporting.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-green-400 mb-2"
+  }, "Data Cleaning & Validation"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Techniques covered include text functions (", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "TRIM"), ", ", /*#__PURE__*/React.createElement("code", {
+    className: "text-yellow-400"
+  }, "CLEAN"), ") to fix input errors, using Data Validation to control user input, and creating structured tables for easy formula referencing.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-green-400 mb-2"
+  }, "Data Visualization & Dashboards"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Created professional, interactive reports using Pivot Tables, Slicers, and Conditional Formatting to highlight key trends and outliers for executive consumption."))),
+  viz: /*#__PURE__*/React.createElement(ExcelViz, null)
+}, {
+  title: "SQL Deep Dive: The Data Backbone",
+  subTitle: "Mastering relational databases and efficient querying.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-blue-400 mb-2"
+  }, "Complex Joins & Subqueries"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "You mastered combining data from multiple tables using various ", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "JOIN"), " types (INNER, LEFT, FULL). Used subqueries to break down complex queries into manageable steps and achieve filtered results.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-blue-400 mb-2"
+  }, "Aggregation & Grouping"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Used aggregate functions (", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "SUM"), ", ", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "AVG"), ", ", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "COUNT"), ") with the ", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "GROUP BY"), " clause to summarize data. Implemented ", /*#__PURE__*/React.createElement("code", {
+    className: "text-cyan-300"
+  }, "HAVING"), " to filter aggregated results (e.g., finding all product categories with revenue over $1M).")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-blue-400 mb-1"
+  }, "Query Performance Fundamentals"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 text-sm font-mono bg-slate-900/50 p-2 rounded border border-slate-800 inline-block"
+  }, "Remember the SQL Execution Order: FROM → WHERE → GROUP BY → SELECT. Understanding this is key to optimizing expensive queries."))),
+  viz: /*#__PURE__*/React.createElement(SQLViz, null)
+}, {
+  title: "Python for Data: Automation & Analysis",
+  subTitle: "Scaling analysis beyond static spreadsheet limits.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-yellow-400 mb-2"
+  }, "Pandas: Data Manipulation"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Mastered the Pandas ", /*#__PURE__*/React.createElement("code", {
+    className: "text-blue-300"
+  }, "DataFrame"), " for efficient data loading, cleaning, and transformation. Key techniques include handling missing values, filtering rows based on complex conditions, and aggregating data.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-yellow-400 mb-2"
+  }, "Data Cleaning and Preparation"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Focused on practical preparation steps: converting data types, handling duplicates (", /*#__PURE__*/React.createElement("code", {
+    className: "text-blue-300"
+  }, "drop_duplicates"), "), and applying lambda functions for custom feature creation.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-yellow-400 mb-2"
+  }, "Visualization and Reporting"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Used libraries like Matplotlib and Pandas' built-in plotting functions for quick Exploratory Data Analysis (EDA). This visual approach quickly identifies patterns, outliers, and data quality issues."))),
+  viz: /*#__PURE__*/React.createElement(PythonViz, null)
+}, {
+  title: "Business Intelligence & Reporting",
+  subTitle: "Telling the data story with interactive dashboards.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-orange-400 mb-2"
+  }, "Building the Data Model"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "The foundation of BI is a well-structured data model. We focused on creating relationships between tables (Fact and Dimension) to ensure all visualizations and filters interact correctly.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-orange-400 mb-2"
+  }, "Key Performance Indicators (KPIs)"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Learned to identify and calculate meaningful KPIs (e.g., Margin, Conversion Rate, Customer Lifetime Value) that directly address business goals, forming the centerpiece of any dashboard.")), /*#__PURE__*/React.createElement("div", {
+    className: "group"
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "text-xl font-bold text-orange-400 mb-2"
+  }, "Visualization Best Practices"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-300 text-sm pl-4 border-l-2 border-slate-700"
+  }, "Focused on visual clarity: choosing the right chart type for the data (bar charts for comparison, line charts for trends), minimizing clutter, and using color effectively to guide the viewer's eye."))),
+  viz: /*#__PURE__*/React.createElement(PowerBIViz, null)
+}, {
+  title: "Career Optimization & Next Steps",
+  subTitle: "Translating skills into opportunities.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "space-y-8"
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    className: "text-2xl font-bold text-purple-400 mb-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    className: "fa-solid fa-file-contract mr-2"
+  }), " Resume Strategy"), /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-400 mb-2"
+  }, /*#__PURE__*/React.createElement("strong", null, "The XYZ Formula:"), " \"Accomplished [X] as measured by [Y], by doing [Z]\". This ensures every bullet point focuses on **impact and results**, not just tasks."), /*#__PURE__*/React.createElement("ul", {
+    className: "text-sm text-slate-500 list-disc pl-5"
+  }, /*#__PURE__*/React.createElement("li", null, "ATS Optimization: Use clear, standard headers (e.g., 'Experience', 'Skills')."), /*#__PURE__*/React.createElement("li", null, "Quantifiable Impact: Always lead with numbers (e.g., \"Reduced manual reporting time by 40%\")."))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+    class: "text-2xl font-bold text-blue-400 mb-2"
+  }, /*#__PURE__*/React.createElement("i", {
+    class: "fa-brands fa-github mr-2"
+  }), " Portfolio Projects"), /*#__PURE__*/React.createElement("p", {
+    class: "text-slate-400"
+  }, "Your GitHub repository is your living resume. Every project needs a clear ", /*#__PURE__*/React.createElement("code", {
+    class: "bg-slate-800 text-green-300 px-1 rounded"
+  }, "README.md"), " that explains the **business question**, the **methodology**, and the **final insights/recommendations**—not just the code structure."))),
+  viz: /*#__PURE__*/React.createElement(ResumeViz, null)
+}, {
+  title: "Instructor's Final Message",
+  subTitle: "Keep asking the hard questions.",
+  text: /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col items-center justify-center h-full text-center"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-7xl font-bold text-white mb-6"
+  }, "Class Dismissed"), /*#__PURE__*/React.createElement("p", {
+    className: "text-2xl text-slate-400 max-w-2xl mx-auto mb-16 leading-relaxed"
+  }, "You now possess the toolkit to turn chaos into clarity. The journey is lifelong: **Always be curious, always iterate, and never stop learning.**"), /*#__PURE__*/React.createElement("div", {
+    className: "relative group"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute -inset-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "relative bg-slate-900 ring-1 ring-slate-900/5 rounded-lg leading-none flex items-top justify-start space-x-6 p-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-center w-full"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-slate-500 text-sm tracking-widest uppercase mb-4"
+  }, "Instructor"), /*#__PURE__*/React.createElement("h1", {
+    className: "text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 font-sans"
+  }, "Jayan Gupta"))))),
+  viz: /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-center h-full text-slate-600 text-6xl opacity-20 font-black tracking-tighter"
+  }, "THANK YOU")
+}];
+const App = () => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const slidesLength = slides.length;
+  const CurrentContent = slides[currentSlide];
+  const nextSlide = useCallback(() => setCurrentSlide(s => Math.min(slidesLength - 1, s + 1)), [slidesLength]);
+  const prevSlide = useCallback(() => setCurrentSlide(s => Math.max(0, s - 1)), []);
 
-        useEffect(() => {
-            if (!isActive) { setStage(0); return; }
-            
-            // Timeline
-            const t1 = setTimeout(() => setStage(1), 2000); // After imports
-            const t2 = setTimeout(() => setStage(2), 2500); // Show DF
-            const t3 = setTimeout(() => setStage(3), 4500); // After plot code
-            const t4 = setTimeout(() => setStage(4), 5000); // Show Plot
-
-            return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-        }, [isActive]);
-
-        return (
-            <div className="bg-white w-full h-full rounded-lg shadow-2xl overflow-hidden text-sm flex flex-col">
-                <div className="bg-slate-100 p-2 border-b flex items-center gap-2">
-                    <span className="text-orange-500 font-bold">Jupyter</span>
-                    <span className="text-slate-500 text-xs">eda_report.ipynb</span>
-                </div>
-                
-                <div className="flex-grow overflow-y-auto p-2 space-y-4">
-                    {/* Cell 1: Import & Load */}
-                    <div>
-                        <div className="flex gap-2 mb-2">
-                            <span className="text-slate-400 font-mono w-12 text-right text-xs pt-1">In [1]:</span>
-                            <div className="bg-slate-50 border border-slate-200 rounded p-2 w-full font-mono text-slate-800 text-xs">
-                                {isActive && <TypingText text="import pandas as pd" delay={0.2} duration={1.0} steps={20} color="text-slate-800" />}
-                                <br/>
-                                {isActive && <TypingText text="df = pd.read_csv('sales.csv')" delay={1.2} duration={1.5} steps={30} color="text-slate-800" />}
-                            </div>
-                        </div>
-                        {/* DF Output */}
-                        {stage >= 2 && (
-                            <div className="ml-14 overflow-x-auto animate-[fadeIn_0.5s_ease-out]">
-                                <table className="w-full text-xs text-left text-slate-500 border border-slate-200">
-                                    <thead className="bg-slate-50">
-                                        <tr><th className="px-2 py-1">Region</th><th className="px-2 py-1">Profit</th><th className="px-2 py-1">Sales</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr className="border-b"><td className="px-2 py-1">East</td><td className="px-2 py-1">4000</td><td className="px-2 py-1">12000</td></tr>
-                                        <tr className="border-b"><td className="px-2 py-1">West</td><td className="px-2 py-1">8000</td><td className="px-2 py-1">15000</td></tr>
-                                        <tr><td className="px-2 py-1 text-slate-400 italic">...</td><td className="px-2 py-1 text-slate-400 italic">...</td><td className="px-2 py-1 text-slate-400 italic">...</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Cell 2: Plot Code */}
-                    {stage >= 2 && (
-                        <div className="animate-[fadeIn_0.5s_ease-out]">
-                            <div className="flex gap-2">
-                                <span className="text-slate-400 font-mono w-12 text-right text-xs pt-1">In [2]:</span>
-                                <div className="bg-slate-50 border border-slate-200 rounded p-2 w-full font-mono text-slate-800 text-xs">
-                                    {stage >= 2 && <TypingText text="df['Profit'].plot(kind='bar', color='#3b82f6')" delay={2.5} duration={2.0} steps={40} color="text-blue-600" />}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Cell 2: Output (Bar Chart) */}
-                    {stage >= 4 && (
-                        <div className="ml-14 h-40 border border-slate-100 rounded bg-white relative flex items-end justify-around px-4 pb-6 animate-[fadeIn_0.5s_ease-out]">
-                            {[40, 80, 60, 90, 75, 50].map((h, i) => (
-                                <div 
-                                    key={i}
-                                    className="w-8 bg-blue-500 rounded-t shadow hover:bg-blue-600 transition-colors"
-                                    style={{ 
-                                        height: `${h}%`, 
-                                        animation: `growHeight 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${i * 0.1}s`,
-                                        '--h': `${h}%`
-                                    }}
-                                ></div>
-                            ))}
-                            {/* Axis */}
-                            <div className="absolute bottom-6 left-2 right-2 h-px bg-slate-300"></div>
-                            <div className="absolute bottom-1 left-0 right-0 flex justify-around text-[10px] text-slate-400 font-mono">
-                                <span>E</span><span>W</span><span>N</span><span>S</span><span>NE</span><span>SE</span>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
-        );
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = e => {
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();else if (e.key === 'ArrowLeft') prevSlide();
     };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [nextSlide, prevSlide]);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "slide-container relative bg-slate-950/80 border border-slate-800 rounded-3xl p-10 shadow-2xl backdrop-blur-sm",
+    style: {
+      width: 'var(--slide-width)',
+      height: 'var(--slide-height)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute w-[600px] h-[600px] bg-blue-600/10 rounded-full -top-40 -left-40 filter blur-[150px] z-0"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "absolute w-[500px] h-[500px] bg-purple-600/10 rounded-full bottom-0 right-0 filter blur-[150px] z-0"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "relative z-10 h-full flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "mb-8"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-4xl font-extrabold text-white animate-[fadeIn_0.5s_ease-out]"
+  }, CurrentContent.title), /*#__PURE__*/React.createElement("div", {
+    className: "text-xl text-slate-400 font-light animate-[fadeIn_0.5s_ease-out_0.2s_forwards] opacity-0"
+  }, CurrentContent.subTitle)), /*#__PURE__*/React.createElement("div", {
+    key: currentSlide,
+    className: "flex-grow flex animate-slide-enter"
+  }, currentSlide === 0 || currentSlide === slidesLength - 1 ? /*#__PURE__*/React.createElement("div", {
+    className: "w-full flex items-center justify-center"
+  }, CurrentContent.text) : /*#__PURE__*/React.createElement("div", {
+    className: "w-full grid grid-cols-2 gap-10"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-slate-900/60 p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "h-1 w-20 bg-blue-500 rounded mb-4"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4"
+  }, CurrentContent.text)), /*#__PURE__*/React.createElement("div", {
+    className: "h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden p-6 flex items-center justify-center"
+  }, React.cloneElement(CurrentContent.viz, {
+    isActive: true
+  }))))), /*#__PURE__*/React.createElement("div", {
+    className: "absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: prevSlide,
+    disabled: currentSlide === 0,
+    className: "hover:text-white px-2 rounded hover:bg-white/10 disabled:opacity-50 transition-colors"
+  }, "PREV"), /*#__PURE__*/React.createElement("span", {
+    className: "self-center text-slate-300"
+  }, currentSlide + 1, " / ", slidesLength), /*#__PURE__*/React.createElement("button", {
+    onClick: nextSlide,
+    disabled: currentSlide === slidesLength - 1,
+    className: "hover:text-white px-2 rounded hover:bg-white/10 disabled:opacity-50 transition-colors"
+  }, "NEXT")));
+};
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(/*#__PURE__*/React.createElement(App, null));</script>
 
-    const ExcelViz = ({ isActive }) => {
-        // Stages: 0:Idle, 1:Typing Formula, 2:Highlight Lookup(Blue), 3:Highlight Table(Red), 4:Show Result(Green)
-        const [stage, setStage] = useState(0);
-
-        useEffect(() => {
-            if(!isActive) { setStage(0); return; }
-            
-            const t1 = setTimeout(() => setStage(1), 500);  // Start typing
-            const t2 = setTimeout(() => setStage(2), 2500); // Lookup Value Highlight
-            const t3 = setTimeout(() => setStage(3), 3500); // Table Array Highlight
-            const t4 = setTimeout(() => setStage(4), 4500); // Result Pop
-
-            return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4); };
-        }, [isActive]);
-
-        return (
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden text-xs text-slate-800 font-sans border border-slate-200 flex flex-col h-80">
-                {/* Excel Ribbon / Formula Bar */}
-                <div className="bg-slate-100 border-b border-slate-300 p-2 flex items-center gap-2">
-                    <div className="bg-white border border-slate-300 px-2 py-1 rounded w-10 text-center font-mono text-xs text-slate-500">E2</div>
-                    <div className="flex-1 bg-white border border-slate-300 px-2 py-1 rounded font-mono text-xs flex items-center h-8">
-                        <span className="text-slate-400 mr-1">=</span>
-                        {stage >= 1 && <TypingText text="VLOOKUP(C2, 'Products'!A:E, 5, FALSE)" delay={0.5} duration={1.8} steps={40} color="text-slate-800"/>}
-                    </div>
-                </div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-6 flex-grow bg-white">
-                    {/* Header Row */}
-                    <div className="excel-grid-header border-r border-b"></div>
-                    <div className="excel-grid-header border-r border-b">A</div>
-                    <div className="excel-grid-header border-r border-b">B</div>
-                    <div className="excel-grid-header border-r border-b">C</div>
-                    <div className="excel-grid-header border-r border-b">D</div>
-                    <div className="excel-grid-header border-b">E</div>
-
-                    {/* Row 1 */}
-                    <div className="excel-grid-header border-r border-b pt-2">1</div>
-                    <div className="excel-cell border-r border-b font-bold bg-slate-50">ID</div>
-                    <div className="excel-cell border-r border-b font-bold bg-slate-50">Item</div>
-                    <div className="excel-cell border-r border-b font-bold bg-slate-50">Region</div>
-                    <div className="excel-cell border-r border-b font-bold bg-slate-50">Qty</div>
-                    <div className="excel-cell border-b font-bold bg-slate-50">Price</div>
-
-                    {/* Row 2 (Active Row) */}
-                    <div className="excel-grid-header border-r border-b pt-2">2</div>
-                    <div className={`excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`}>
-                        102
-                        {/* Table Array Box (Red) */}
-                        {stage === 3 && <div className="absolute inset-0 border-2 border-red-500 border-dashed animate-pulse z-10 pointer-events-none"></div>}
-                    </div>
-                    <div className={`excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`}>Keyboard</div>
-                    <div className="excel-cell border-r border-b relative">
-                        <span className="relative z-10">West</span>
-                        {/* Lookup Value Box (Blue) */}
-                        {stage === 2 && <div className="absolute inset-0 border-2 border-blue-500 z-20 pointer-events-none animate-pulse"></div>}
-                    </div>
-                    <div className={`excel-cell border-r border-b transition-colors duration-300 ${stage === 3 ? 'bg-red-50' : ''}`}>120</div>
-                    <div className="excel-cell border-b font-bold text-green-700 relative bg-slate-50/50">
-                         {stage >= 4 && (
-                            <span className="animate-[fadeIn_0.3s_ease-out]">$150.50</span>
-                         )}
-                         {/* Result Box (Green) */}
-                         {stage === 4 && <div className="absolute inset-0 border-2 border-green-500 z-20 pointer-events-none animate-pulse"></div>}
-                    </div>
-
-                    {/* Row 3 */}
-                    <div className="excel-grid-header border-r border-b pt-2">3</div>
-                    <div className="excel-cell border-r border-b">103</div>
-                    <div className="excel-cell border-r border-b">Mouse</div>
-                    <div className="excel-cell border-r border-b">North</div>
-                    <div className="excel-cell border-r border-b">10</div>
-                    <div className="excel-cell border-b">$45.00</div>
-                </div>
-            </div>
-        );
-    };
-
-    const PowerBIViz = ({ isActive }) => (
-        <div className={`bg-slate-100 rounded-xl shadow-2xl w-full max-w-lg h-80 p-4 grid grid-cols-3 grid-rows-2 gap-4 transition-all duration-700 transform ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-            {/* KPI 1 */}
-            <div className="bg-white p-3 rounded-lg shadow-md flex flex-col items-center justify-center col-span-1 border border-slate-200">
-                <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Revenue</div>
-                <div className="text-2xl font-bold text-orange-600">$4.2M</div>
-                <div className="text-xs text-green-500 mt-1 bg-green-50 px-2 py-0.5 rounded-full"><i className="fa-solid fa-arrow-up"></i> 12%</div>
-            </div>
-            {/* KPI 2 */}
-            <div className="bg-white p-3 rounded-lg shadow-md flex flex-col items-center justify-center col-span-1 border border-slate-200">
-                <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">AOV</div>
-                <div className="text-2xl font-bold text-purple-600">$155</div>
-                <div className="text-xs text-red-500 mt-1 bg-red-50 px-2 py-0.5 rounded-full"><i className="fa-solid fa-arrow-down"></i> 3%</div>
-            </div>
-            {/* Donut Chart */}
-            <div className="bg-white p-3 rounded-lg shadow-md flex items-center justify-center relative row-span-2 border border-slate-200">
-                <div className="absolute top-2 right-2 text-[10px] text-slate-400 font-bold uppercase">Channel Mix</div>
-                <svg viewBox="0 0 36 36" className="w-24 h-24 animate-[spin_1.5s_ease-out]">
-                    <path className="text-slate-100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                    <path className="text-blue-500" strokeDasharray="50, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                    <path className="text-orange-500" strokeDasharray="30, 100" strokeDashoffset="-50" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" strokeWidth="4" />
-                    <text x="18" y="18" textAnchor="middle" dominantBaseline="central" className="text-[8px] font-bold text-slate-600">50%</text>
-                </svg>
-            </div>
-            {/* Bar Chart */}
-            <div className="bg-white p-4 rounded-lg shadow-md col-span-2 flex items-end justify-between px-4 gap-2 relative border border-slate-200">
-                <div className="text-[10px] text-slate-400 font-bold uppercase absolute top-2 left-2">Monthly Trend</div>
-                {[30, 50, 40, 80, 60, 45].map((h, i) => (
-                     <div key={i} className="w-full bg-slate-200 rounded-t overflow-hidden relative" style={{ height: `${h}%` }}>
-                         <div className="absolute bottom-0 left-0 w-full bg-orange-500 transition-all duration-1000" 
-                              style={{ height: isActive ? '100%' : '0%', transitionDelay: `${i*100}ms` }}></div>
-                     </div>
-                ))}
-            </div>
-        </div>
-    );
-
-    const ResumeViz = ({ isActive }) => (
-        <div className="w-full h-full flex items-center justify-center relative">
-            <div className="bg-white w-[340px] h-[460px] shadow-2xl relative rounded overflow-hidden border border-slate-200">
-                {/* Skeleton Text */}
-                <div className="p-6 space-y-4 opacity-80">
-                    <div className="h-6 bg-slate-800 w-2/3 rounded"></div>
-                    <div className="h-px bg-slate-300 w-full"></div>
-                    <div className="space-y-2 pt-2">
-                         <div className="h-2 bg-slate-200 w-full rounded"></div>
-                         <div className="h-2 bg-slate-200 w-5/6 rounded"></div>
-                    </div>
-                    <div className="space-y-2 pt-4">
-                        <div className="h-4 bg-blue-100 w-1/3 rounded mb-2"></div>
-                        <div className="h-2 bg-slate-200 w-full rounded"></div>
-                        <div className="h-2 bg-slate-200 w-full rounded"></div>
-                        <div className="h-2 bg-slate-200 w-4/5 rounded"></div>
-                    </div>
-                </div>
-
-                {isActive && (
-                    <>
-                        {/* Green Checks */}
-                        <i className="fa-solid fa-check text-4xl text-green-500 absolute top-12 right-8 stamp-anim" style={{ animationDelay: '0.8s' }}></i>
-                        <i className="fa-solid fa-check text-4xl text-green-500 absolute top-48 right-12 stamp-anim" style={{ animationDelay: '1.2s' }}></i>
-                        <i className="fa-solid fa-check text-4xl text-green-500 absolute bottom-24 right-10 stamp-anim" style={{ animationDelay: '1.6s' }}></i>
-
-                        {/* Scan Line */}
-                        <div className="absolute top-0 left-0 w-full h-2 bg-purple-500/50 shadow-[0_0_20px_rgba(168,85,247,0.8)]" style={{ animation: 'scan 2.5s linear infinite' }}></div>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-
-    // --- Slide Definitions ---
-    const slides = [
-        {
-            title: "Data Analytics Course Completion",
-            subTitle: "From Raw Data to Strategic Decisions",
-            text: (
-                <div className="flex flex-col items-center justify-center h-full">
-                    <div className="inline-block px-4 py-1.5 mb-6 text-sm font-mono text-cyan-400 bg-cyan-950/50 border border-cyan-800 rounded-full animate-bounce">
-                        COURSE COMPLETE_
-                    </div>
-                    <h1 className="text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500 mb-6 tracking-tight">
-                        Data Analytics
-                    </h1>
-                    <h2 className="text-3xl text-slate-300 font-light mb-12">
-                        You have successfully completed the full stack analyst program.
-                    </h2>
-                    <div className="flex items-center justify-center gap-6 text-slate-400 font-mono text-lg">
-                        <span><i className="fa-solid fa-table text-green-500 mr-2"></i>Excel Modeling</span>
-                        <span>•</span>
-                        <span><i className="fa-solid fa-database text-blue-500 mr-2"></i>SQL Engineering</span>
-                        <span>•</span>
-                        <span><i className="fa-brands fa-python text-yellow-500 mr-2"></i>Python Automation</span>
-                        <span>•</span>
-                        <span><i className="fa-solid fa-chart-simple text-orange-500 mr-2"></i>Power BI / Tableau</span>
-                    </div>
-                </div>
-            ),
-            viz: <div className="flex items-center justify-center h-full text-slate-600 text-6xl opacity-20 font-black tracking-tighter">WRAP UP</div>
-        },
-        {
-            title: "Excel Mastery: Modeling and Formulas",
-            subTitle: "The universal language of business processes.",
-            text: (
-                <div className="space-y-6">
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-green-400 mb-2">Advanced Formulas & Logic</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            You learned to effectively use lookup functions like <code className="text-yellow-400">VLOOKUP</code> and <code className="text-yellow-400">HLOOKUP</code> for data retrieval, alongside logical functions like <code className="text-yellow-400">IF</code>, <code className="text-yellow-400">IFS</code>, and conditional aggregation with <code className="text-yellow-400">SUMIFS</code> and <code className="text-yellow-400">COUNTIFS</code>. This allows for powerful conditional reporting.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-green-400 mb-2">Data Cleaning & Validation</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Techniques covered include text functions (<code className="text-yellow-400">TRIM</code>, <code className="text-yellow-400">CLEAN</code>) to fix input errors, using Data Validation to control user input, and creating structured tables for easy formula referencing.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-green-400 mb-2">Data Visualization & Dashboards</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Created professional, interactive reports using Pivot Tables, Slicers, and Conditional Formatting to highlight key trends and outliers for executive consumption.
-                        </p>
-                    </div>
-                </div>
-            ),
-            viz: <ExcelViz />
-        },
-        {
-            title: "SQL Deep Dive: The Data Backbone",
-            subTitle: "Mastering relational databases and efficient querying.",
-            text: (
-                <div className="space-y-6">
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-blue-400 mb-2">Complex Joins & Subqueries</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            You mastered combining data from multiple tables using various <code className="text-cyan-300">JOIN</code> types (INNER, LEFT, FULL). Used subqueries to break down complex queries into manageable steps and achieve filtered results.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-blue-400 mb-2">Aggregation & Grouping</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Used aggregate functions (<code className="text-cyan-300">SUM</code>, <code className="text-cyan-300">AVG</code>, <code className="text-cyan-300">COUNT</code>) with the <code className="text-cyan-300">GROUP BY</code> clause to summarize data. Implemented <code className="text-cyan-300">HAVING</code> to filter aggregated results (e.g., finding all product categories with revenue over $1M).
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-blue-400 mb-1">Query Performance Fundamentals</h3>
-                        <p className="text-slate-400 text-sm font-mono bg-slate-900/50 p-2 rounded border border-slate-800 inline-block">
-                            Remember the SQL Execution Order: FROM &rarr; WHERE &rarr; GROUP BY &rarr; SELECT. Understanding this is key to optimizing expensive queries.
-                        </p>
-                    </div>
-                </div>
-            ),
-            viz: <SQLViz />
-        },
-        {
-            title: "Python for Data: Automation & Analysis",
-            subTitle: "Scaling analysis beyond static spreadsheet limits.",
-            text: (
-                <div className="space-y-6">
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-yellow-400 mb-2">Pandas: Data Manipulation</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Mastered the Pandas <code className="text-blue-300">DataFrame</code> for efficient data loading, cleaning, and transformation. Key techniques include handling missing values, filtering rows based on complex conditions, and aggregating data.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-yellow-400 mb-2">Data Cleaning and Preparation</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Focused on practical preparation steps: converting data types, handling duplicates (<code className="text-blue-300">drop_duplicates</code>), and applying lambda functions for custom feature creation.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-yellow-400 mb-2">Visualization and Reporting</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Used libraries like Matplotlib and Pandas' built-in plotting functions for quick Exploratory Data Analysis (EDA). This visual approach quickly identifies patterns, outliers, and data quality issues.
-                        </p>
-                    </div>
-                </div>
-            ),
-            viz: <PythonViz />
-        },
-        {
-            title: "Business Intelligence & Reporting",
-            subTitle: "Telling the data story with interactive dashboards.",
-            text: (
-                <div className="space-y-6">
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-orange-400 mb-2">Building the Data Model</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            The foundation of BI is a well-structured data model. We focused on creating relationships between tables (Fact and Dimension) to ensure all visualizations and filters interact correctly.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-orange-400 mb-2">Key Performance Indicators (KPIs)</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Learned to identify and calculate meaningful KPIs (e.g., Margin, Conversion Rate, Customer Lifetime Value) that directly address business goals, forming the centerpiece of any dashboard.
-                        </p>
-                    </div>
-                    <div className="group">
-                        <h3 className="text-xl font-bold text-orange-400 mb-2">Visualization Best Practices</h3>
-                        <p className="text-slate-300 text-sm pl-4 border-l-2 border-slate-700">
-                            Focused on visual clarity: choosing the right chart type for the data (bar charts for comparison, line charts for trends), minimizing clutter, and using color effectively to guide the viewer's eye.
-                        </p>
-                    </div>
-                </div>
-            ),
-            viz: <PowerBIViz />
-        },
-        {
-            title: "Career Optimization & Next Steps",
-            subTitle: "Translating skills into opportunities.",
-            text: (
-                <div className="space-y-8">
-                    <div>
-                        <h3 className="text-2xl font-bold text-purple-400 mb-2"><i className="fa-solid fa-file-contract mr-2"></i> Resume Strategy</h3>
-                        <p className="text-slate-400 mb-2"><strong>The XYZ Formula:</strong> "Accomplished [X] as measured by [Y], by doing [Z]". This ensures every bullet point focuses on **impact and results**, not just tasks.</p>
-                        <ul className="text-sm text-slate-500 list-disc pl-5">
-                            <li>ATS Optimization: Use clear, standard headers (e.g., 'Experience', 'Skills').</li>
-                            <li>Quantifiable Impact: Always lead with numbers (e.g., "Reduced manual reporting time by 40%").</li>
-                        </ul>
-                    </div>
-
-                    <div>
-                        <h3 class="text-2xl font-bold text-blue-400 mb-2"><i class="fa-brands fa-github mr-2"></i> Portfolio Projects</h3>
-                        <p class="text-slate-400">Your GitHub repository is your living resume. Every project needs a clear <code class="bg-slate-800 text-green-300 px-1 rounded">README.md</code> that explains the **business question**, the **methodology**, and the **final insights/recommendations**—not just the code structure.</p>
-                    </div>
-                </div>
-            ),
-            viz: <ResumeViz />
-        },
-        {
-            title: "Instructor's Final Message",
-            subTitle: "Keep asking the hard questions.",
-            text: (
-                <div className="flex flex-col items-center justify-center h-full text-center">
-                    <h2 className="text-7xl font-bold text-white mb-6">Class Dismissed</h2>
-                    <p className="text-2xl text-slate-400 max-w-2xl mx-auto mb-16 leading-relaxed">
-                        You now possess the toolkit to turn chaos into clarity.
-                        The journey is lifelong: **Always be curious, always iterate, and never stop learning.**
-                    </p>
-                    <div className="relative group">
-                        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
-                        <div className="relative bg-slate-900 ring-1 ring-slate-900/5 rounded-lg leading-none flex items-top justify-start space-x-6 p-10">
-                            <div className="text-center w-full">
-                                <p className="text-slate-500 text-sm tracking-widest uppercase mb-4">Instructor</p>
-                                <h1 className="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-white to-slate-400 font-sans">
-                                    Jayan Gupta
-                                </h1>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ),
-            viz: <div className="flex items-center justify-center h-full text-slate-600 text-6xl opacity-20 font-black tracking-tighter">THANK YOU</div>
-        }
-    ];
-
-    const App = () => {
-        const [currentSlide, setCurrentSlide] = useState(0);
-        const slidesLength = slides.length;
-        const CurrentContent = slides[currentSlide];
-
-        const nextSlide = useCallback(() => setCurrentSlide(s => Math.min(slidesLength - 1, s + 1)), [slidesLength]);
-        const prevSlide = useCallback(() => setCurrentSlide(s => Math.max(0, s - 1)), []);
-
-        // Keyboard Navigation
-        useEffect(() => {
-            const handleKeyDown = (e) => {
-                if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
-                else if (e.key === 'ArrowLeft') prevSlide();
-            };
-            window.addEventListener('keydown', handleKeyDown);
-            return () => window.removeEventListener('keydown', handleKeyDown);
-        }, [nextSlide, prevSlide]);
-
-        return (
-            <div 
-                className="slide-container relative bg-slate-950/80 border border-slate-800 rounded-3xl p-10 shadow-2xl backdrop-blur-sm"
-                style={{ width: 'var(--slide-width)', height: 'var(--slide-height)' }}
-            >
-                {/* Background Blobs */}
-                <div className="absolute w-[600px] h-[600px] bg-blue-600/10 rounded-full -top-40 -left-40 filter blur-[150px] z-0"></div>
-                <div className="absolute w-[500px] h-[500px] bg-purple-600/10 rounded-full bottom-0 right-0 filter blur-[150px] z-0"></div>
-
-                <div className="relative z-10 h-full flex flex-col">
-                    <div className="mb-8">
-                        <div className="text-4xl font-extrabold text-white animate-[fadeIn_0.5s_ease-out]">{CurrentContent.title}</div>
-                        <div className="text-xl text-slate-400 font-light animate-[fadeIn_0.5s_ease-out_0.2s_forwards] opacity-0">{CurrentContent.subTitle}</div>
-                    </div>
-
-                    {/* Content Area with Transition Key */}
-                    <div key={currentSlide} className="flex-grow flex animate-slide-enter">
-                        {currentSlide === 0 || currentSlide === slidesLength - 1 ? (
-                            <div className="w-full flex items-center justify-center">
-                                {CurrentContent.text}
-                            </div>
-                        ) : (
-                            <div className="w-full grid grid-cols-2 gap-10">
-                                <div className="bg-slate-900/60 p-6 rounded-3xl border border-slate-800 shadow-xl flex flex-col">
-                                    <div className="h-1 w-20 bg-blue-500 rounded mb-4"></div>
-                                    <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[60vh] pr-4 custom-scroll pb-4">
-                                        {CurrentContent.text}
-                                    </div>
-                                </div>
-                                <div className="h-full bg-slate-800/40 rounded-3xl border border-slate-700/50 backdrop-blur-md shadow-2xl overflow-hidden p-6 flex items-center justify-center">
-                                    {/* Visualization */}
-                                    {React.cloneElement(CurrentContent.viz, { isActive: true })}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                <div className="absolute bottom-6 right-6 flex gap-4 text-slate-500 text-sm font-mono z-50 bg-slate-900/80 p-2 rounded-lg border border-slate-800 backdrop-blur">
-                    <button onClick={prevSlide} disabled={currentSlide === 0} className="hover:text-white px-2 rounded hover:bg-white/10 disabled:opacity-50 transition-colors">PREV</button>
-                    <span className="self-center text-slate-300">{currentSlide + 1} / {slidesLength}</span>
-                    <button onClick={nextSlide} disabled={currentSlide === slidesLength - 1} className="hover:text-white px-2 rounded hover:bg-white/10 disabled:opacity-50 transition-colors">NEXT</button>
-                </div>
-            </div>
-        );
-    };
-
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-</script>
-</body>
-</html>
+</body></html>

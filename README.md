@@ -143,7 +143,7 @@ Every entry combines theoretical rigor with practical implementations and intera
 ---
 
 ## 🚀 Getting Started
-1. **Clone the repo:** `git clone https://github.com/JayanGupta/Data_Analytics_Notes.git`
+1. **Clone the repo:** `git clone https://github.com/JayanGupta/Notes.git`
 2. **Data Analytics track:** Start from `data analytics notes/Day 01`
 3. **Data Science track:** Start from `data science notes/notes/Day 01`
 4. **Explore Datasets:** Practice CSVs and Excel files are in `datasets/`

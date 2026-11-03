@@ -17,9 +17,12 @@
 
 ---
 
-**Live Demo & Resources**
-- 📊 [Data Verse Demo](https://data-verse-jayan.vercel.app/)
-- 🛠️ [AlgoArchitect Playground](https://algoarchitect.onrender.com/)
+### 🌐 Live Platforms & Interactive Tools
+
+| Platform | Description |
+| :--- | :--- |
+| 📊 **[DataVerse](https://data-verse-jayan.vercel.app/)** | Interactive web platform featuring curated learning modules, live notebooks, and sandboxes across Data Science, ML, and GenAI. |
+| 🛠️ **[AlgoArchitect](https://algoarchitect.onrender.com/)** | Interactive AI data analysis and algorithm playground for exploring data workflows, visualizations, and problem-solving in real time. |
 
 </div>
 

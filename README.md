@@ -14,6 +14,13 @@
   [![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)](https://jupyter.org)
 
   *A structured repository for mastering the Data Analytics and Data Science lifecycle — from exploration to machine learning.*
+
+---
+
+**Live Demo & Resources**
+- 📊 [Data Verse Demo](https://data-verse-jayan.vercel.app/)
+- 🛠️ [AlgoArchitect Playground](https://algoarchitect.onrender.com/)
+
 </div>
 
 ---

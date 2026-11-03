@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+const originalWarn = console.warn;
+console.warn = function(...args) {
+  if (typeof args[0] === 'string' && (args[0].includes('cdn.tailwindcss.com') || args[0].includes('in-browser Babel transformer'))) return;
+  originalWarn.apply(console, args);
+};
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering K-Means Clustering | Elite Data Science Series</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #16213e;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #a78bfa;
+            --code-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(56,189,248,0.08), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(167,139,250,0.07), transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16,185,129,0.06), transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+            padding-top: 5.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { color: var(--accent-primary); margin-bottom: 1rem; font-weight: 800; }
+        h3 { font-size: 1.2rem; }
+        p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 1.05rem; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 1rem 1.4rem; }
+        li { margin-bottom: 0.4rem; }
+        strong { color: var(--text-main); }
+
+        /* ---------- Progress bar ---------- */
+        #progressBar {
+            position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-purple), var(--accent-success));
+            z-index: 1000; transition: width 0.1s ease-out;
+            box-shadow: 0 0 10px rgba(56,189,248,0.6);
+        }
+
+        /* ---------- Sticky nav ---------- */
+        #navBar {
+            position: fixed; top: 4px; left: 0; right: 0; z-index: 999;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0.7rem 1rem;
+            display: flex; gap: 0.4rem; overflow-x: auto;
+            white-space: nowrap;
+        }
+        #navBar::-webkit-scrollbar { height: 4px; }
+        #navBar::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 4px; }
+        #navBar a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.78rem;
+            font-weight: 600; padding: 0.4rem 0.75rem; border-radius: 999px;
+            border: 1px solid transparent; transition: all 0.25s ease; flex-shrink: 0;
+        }
+        #navBar a:hover { color: var(--text-main); border-color: rgba(56,189,248,0.4); }
+        #navBar a.active { color: var(--bg-main); background: var(--accent-primary); }
+
+        /* ---------- Slide reveal animation ---------- */
+        .slide {
+            padding: 3rem;
+            margin-bottom: 4rem;
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0;
+            transform: translateY(40px) scale(0.98);
+            scroll-margin-top: 5.5rem;
+        }
+        .slide.in-view {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeInUp {
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .slide:hover { transform: scale(1.005); }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+        @media (max-width: 800px) { .grid, .grid3 { grid-template-columns: 1fr; } }
+
+        .canvas-container {
+            background: #000; border-radius: 12px; padding: 1rem;
+            border: 1px solid var(--accent-primary);
+        }
+
+        code, pre { font-family: 'Fira Code', monospace; background: var(--code-bg); padding: 0.2rem 0.5rem; border-radius: 4px; color: #e2e8f0; }
+        pre {
+            padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0;
+            border-left: 4px solid var(--accent-primary); font-size: 0.88rem;
+            position: relative;
+        }
+        pre .c-import { color: #f472b6; }
+        pre .c-comment { color: #64748b; font-style: italic; }
+        pre .c-str { color: #a3e635; }
+        pre .c-fn { color: #38bdf8; }
+
+        .code-label {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(56,189,248,0.12); color: var(--accent-primary);
+            padding: 0.3rem 0.9rem; border-radius: 999px 999px 0 0;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; margin-top: 1.5rem;
+        }
+        .code-label + pre { margin-top: 0; border-radius: 0 8px 8px 8px; }
+
+        .explain-list {
+            background: rgba(0,0,0,0.25); border-radius: 8px; padding: 1.2rem 1.2rem 1.2rem 1rem;
+            margin: -0.5rem 0 1.5rem 0; border-left: 4px solid var(--accent-success);
+        }
+        .explain-list li { color: var(--text-secondary); font-size: 0.92rem; }
+        .explain-list code { font-size: 0.82rem; }
+
+        .btn {
+            background: var(--accent-primary); color: var(--bg-main); border: none;
+            padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; margin-right: 10px; margin-bottom: 10px;
+            font-family: inherit; font-size: 0.9rem;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0) scale(0.97); }
+        .btn-secondary { background: transparent; border: 2px solid var(--accent-primary); color: var(--accent-primary); }
+        .btn-success { background: var(--accent-success); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .badge {
+            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+            font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem;
+            background: rgba(56, 189, 248, 0.1); color: var(--accent-primary);
+            letter-spacing: 1px;
+        }
+
+        .math-block {
+            background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px;
+            text-align: center; margin: 1rem 0; border: 1px solid rgba(56,189,248,0.15);
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 1rem; border-bottom: 1px solid var(--bg-main); font-size: 0.92rem; }
+        th { color: var(--accent-primary); }
+        td { color: var(--text-secondary); }
+
+        .highlight-box {
+            border-left: 4px solid var(--accent-warning); background: rgba(245, 158, 11, 0.05);
+            padding: 1.5rem; margin: 1rem 0; border-radius: 0 8px 8px 0;
+        }
+        .box-danger { border-left-color: var(--accent-danger); background: rgba(239,68,68,0.05); }
+        .box-success { border-left-color: var(--accent-success); background: rgba(16,185,129,0.05); }
+        .box-purple { border-left-color: var(--accent-purple); background: rgba(167,139,250,0.05); }
+
+        #kmeansSim { width: 100%; height: 400px; background: #0f172a; border-radius: 8px; display: block; }
+
+        .step-indicator { display: flex; justify-content: center; gap: 0.6rem; margin: 1rem 0; }
+        .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--bg-main); border: 1px solid var(--text-secondary); transition: all 0.3s; }
+        .step-dot.active { background: var(--accent-primary); box-shadow: 0 0 10px var(--accent-primary); transform: scale(1.3); border-color: var(--accent-primary); }
+
+        .app-card {
+            background: rgba(0,0,0,0.25); border-radius: 12px; padding: 1.4rem;
+            border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+        .app-card:hover { transform: translateY(-6px); border-color: var(--accent-primary); }
+        .app-card .icon { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+        .app-card h4 { color: var(--text-main); margin-bottom: 0.4rem; font-size: 1rem; }
+        .app-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+        .checklist { list-style: none; margin-left: 0; }
+        .checklist li { padding-left: 1.8rem; position: relative; }
+        .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--accent-success); font-weight: 800; }
+        .xlist li { padding-left: 1.8rem; position: relative; list-style: none; }
+        .xlist li::before { content: '✕'; position: absolute; left: 0; color: var(--accent-danger); font-weight: 800; }
+
+        .flow-svg text { font-family: 'Inter', sans-serif; fill: var(--text-main); }
+        .flow-arrow { stroke-dasharray: 6 4; animation: dashMove 1.2s linear infinite; }
+        @keyframes dashMove { to { stroke-dashoffset: -20; } }
+        .flow-pulse { animation: pulseGlow 2.4s ease-in-out infinite; }
+        @keyframes pulseGlow {
+            0%, 100% { filter: drop-shadow(0 0 2px currentColor); }
+            50% { filter: drop-shadow(0 0 9px currentColor); }
+        }
+
+        .metric-svg-wrap { display: flex; flex-direction: column; align-items: center; }
+        .metric-svg-wrap span { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        footer { text-align: center; padding: 4rem 0 2rem; color: var(--text-secondary); }
+
+        ::selection { background: var(--accent-primary); color: var(--bg-main); }
+    </style>
+</head>
+<body>
+
+    <div id="progressBar"></div>
+    <nav id="navBar">
+        <a href="#intro">1. Intro</a>
+        <a href="#understanding">2. Understanding</a>
+        <a href="#math">3. Math</a>
+        <a href="#algorithm">4. Algorithm</a>
+        <a href="#choosingk">5. Choosing K</a>
+        <a href="#advlim">6. Adv/Limits</a>
+        <a href="#distance">7. Distances</a>
+        <a href="#python">8. Python</a>
+        <a href="#interpretation">9. Interpretation</a>
+        <a href="#practical">10. Tips</a>
+        <a href="#production">11. Production</a>
+        <a href="#summary">12. Summary</a>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 4rem;">
+        <div class="badge">Machine Learning Mastery Series</div>
+        <h1 style="font-size: 3.3rem; letter-spacing: -1px;">K-Means Clustering</h1>
+        <p style="font-size: 1.3rem;">Uncovering hidden structures in unlabeled data — theory, math, code, and production practice.</p>
+    </header>
+
+    <!-- ============ 1. INTRODUCTION ============ -->
+    <section class="slide" id="intro">
+        <div class="badge">Section 1</div>
+        <h2>Introduction</h2>
+
+        <h3>What is Clustering?</h3>
+        <p><strong>Clustering</strong> is the task of grouping a set of data points such that points in the same group (a <em>cluster</em>) are more similar to each other than to points in other groups. It is one of the core techniques of <strong>unsupervised learning</strong> — the model discovers structure without being told the "right answer" in advance.</p>
+
+        <h3>Supervised vs. Unsupervised Learning</h3>
+        <div class="grid">
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Supervised (Classification) — labels are known</h4>
+                <canvas id="supervisedCanvas"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Unsupervised (Clustering) — labels are discovered</h4>
+                <canvas id="unsupervisedCanvas"></canvas>
+            </div>
+        </div>
+        <table>
+            <thead><tr><th>Aspect</th><th>Supervised Learning</th><th>Unsupervised Learning</th></tr></thead>
+            <tbody>
+                <tr><td>Labels</td><td>Required (y is known)</td><td>Not required</td></tr>
+                <tr><td>Goal</td><td>Predict an output</td><td>Discover structure / groups</td></tr>
+                <tr><td>Evaluation</td><td>Accuracy, F1, RMSE...</td><td>Silhouette, WCSS, domain judgment</td></tr>
+                <tr><td>Example algorithms</td><td>Logistic Regression, Random Forest</td><td>K-Means, DBSCAN, PCA</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Real-World Applications of Clustering</h3>
+        <div class="grid3">
+            <div class="app-card reveal"><span class="icon">🛍️</span><h4>Customer Segmentation</h4><p>Grouping shoppers by income and spending behavior to target marketing campaigns.</p></div>
+            <div class="app-card reveal"><span class="icon">🧬</span><h4>Genomics</h4><p>Grouping genes with similar expression patterns to infer biological function.</p></div>
+            <div class="app-card reveal"><span class="icon">🖼️</span><h4>Image Compression</h4><p>Reducing colors in an image by clustering pixel colors into K representative shades.</p></div>
+            <div class="app-card reveal"><span class="icon">📰</span><h4>Document/Topic Grouping</h4><p>Organizing articles or search results into thematic clusters.</p></div>
+            <div class="app-card reveal"><span class="icon">🚨</span><h4>Anomaly Detection</h4><p>Points that don't fit well into any cluster may indicate fraud or faults.</p></div>
+            <div class="app-card reveal"><span class="icon">🗺️</span><h4>Geospatial Analysis</h4><p>Finding hotspots — e.g., optimal placement of delivery hubs or retail stores.</p></div>
+        </div>
+    </section>
+
+    <!-- ============ 2. UNDERSTANDING K-MEANS ============ -->
+    <section class="slide" id="understanding">
+        <div class="badge">Section 2</div>
+        <h2>Understanding K-Means</h2>
+        <div class="grid">
+            <div>
+                <h3>What is K-Means?</h3>
+                <p>K-Means is a <strong>centroid-based</strong> partitioning algorithm that divides data into $K$ distinct, non-overlapping clusters, where $K$ is chosen in advance. Developed by Stuart Lloyd (1957) at Bell Labs for pulse-code modulation, its near-linear complexity makes it a workhorse for large datasets.</p>
+                <h3>Intuition — The Pizza Hub Analogy</h3>
+                <div class="highlight-box">
+                    Imagine opening 3 pizza shops in a city to minimize the average distance customers travel. You place them randomly, deliver to whoever is closest to each shop, then relocate every shop to the center of the customers it currently serves. Repeat — the shops "settle" into the natural centers of demand.
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; background: #000; border-radius: 12px;">
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem;" id="pizzaEmoji">🍕</div>
+                    <p>Optimizing centroid location = optimizing service</p>
+                </div>
+            </div>
+        </div>
+
+        <h3>How Clusters Are Formed</h3>
+        <p>Every point is assigned to the cluster whose centroid it is closest to (by Euclidean distance), which carves the space into <strong>Voronoi cells</strong>. Centroids are then recomputed as the mean of the points assigned to them. This assign → update loop repeats until centroids stop moving meaningfully.</p>
+
+        <h3>Assumptions of K-Means</h3>
+        <ul class="checklist">
+            <li>Clusters are roughly <strong>spherical / convex</strong> and similarly sized.</li>
+            <li>Clusters have <strong>similar density</strong> and variance.</li>
+            <li>Features are on <strong>comparable numeric scales</strong> (distance-based).</li>
+            <li>The number of clusters $K$ is known or can be estimated.</li>
+            <li>Clusters are roughly equally sized (extreme imbalance can distort results).</li>
+        </ul>
+    </section>
+
+    <!-- ============ 3. MATHEMATICAL FOUNDATION ============ -->
+    <section class="slide" id="math">
+        <div class="badge">Section 3</div>
+        <h2>Mathematical Foundation</h2>
+
+        <h3>Euclidean Distance</h3>
+        <p>The straight-line distance between a data point $x_i$ and a centroid $\mu_j$ in $d$ dimensions:</p>
+        <div class="math-block">$$d(x_i, \mu_j) = \sqrt{\sum_{m=1}^{d}(x_{im} - \mu_{jm})^2}$$</div>
+
+        <h3>Centroid Calculation</h3>
+        <p>A centroid is simply the arithmetic mean of every point currently assigned to that cluster $C_j$:</p>
+        <div class="math-block">$$\mu_j = \frac{1}{|C_j|}\sum_{x_i \in C_j} x_i$$</div>
+
+        <h3>Objective Function — WCSS / Inertia</h3>
+        <p>K-Means minimizes the <strong>Within-Cluster Sum of Squares</strong> (also called inertia): the total squared distance between each point and its assigned centroid.</p>
+        <div class="math-block">$$J = \sum_{j=1}^{K}\sum_{x_i \in C_j} \lVert x_i - \mu_j \rVert^2$$</div>
+
+        <h3>Optimization Process</h3>
+        <p>Minimizing $J$ jointly over cluster assignments and centroid positions is NP-hard, so K-Means uses <strong>Lloyd's algorithm</strong>: an iterative coordinate-descent-style heuristic that alternates two easy sub-problems —</p>
+        <ol>
+            <li><strong>Fix centroids, optimize assignments:</strong> assign each point to its nearest centroid (this can only decrease or keep $J$ the same).</li>
+            <li><strong>Fix assignments, optimize centroids:</strong> the mean is the point that minimizes summed squared distance to a fixed set of points, so recomputing centroids as means can only decrease or keep $J$ the same.</li>
+        </ol>
+
+        <h3>Why K-Means Converges</h3>
+        <div class="highlight-box box-success">
+            Each of the two steps above is guaranteed to <strong>never increase</strong> $J$. Since $J \geq 0$ and there are only finitely many ways to partition $n$ points into $K$ groups, this monotonically non-increasing sequence must eventually stop changing — the algorithm always converges, though only to a <strong>local</strong> optimum, not necessarily the global one.
+        </div>
+    </section>
+
+    <!-- ============ 4. K-MEANS ALGORITHM ============ -->
+    <section class="slide" id="algorithm">
+        <div class="badge">Section 4</div>
+        <h2>The K-Means Algorithm</h2>
+
+        <h3>Step-by-Step</h3>
+        <ol>
+            <li><strong>Choose $K$</strong> — the number of clusters.</li>
+            <li><strong>Initialize</strong> $K$ centroids (randomly, or via K-Means++).</li>
+            <li><strong>Assignment step:</strong> assign every point to its nearest centroid.</li>
+            <li><strong>Update step:</strong> recompute each centroid as the mean of its assigned points.</li>
+            <li><strong>Repeat</strong> steps 3–4 until centroids stop moving (or a max-iteration limit is hit).</li>
+        </ol>
+
+        <h3>Visual Explanation — Live Iteration</h3>
+        <p>Watch <strong>assignment</strong> (points snap to the nearest colored centroid) and <strong>update</strong> (centroids glide to the mean of their cluster) happen live.</p>
+        <div class="canvas-container">
+            <canvas id="kmeansSim"></canvas>
+        </div>
+        <div class="step-indicator">
+            <div class="step-dot" id="dotAssign"></div>
+            <div class="step-dot" id="dotUpdate"></div>
+        </div>
+        <div style="margin-top: 0.5rem; text-align: center;">
+            <button class="btn" onclick="initKmeans()">🔄 Reset Data</button>
+            <button class="btn btn-secondary" onclick="stepKmeans()">⏭ Next Step</button>
+            <button class="btn btn-success" id="autoBtn" onclick="toggleAutoRun()">▶ Auto Run</button>
+            <p id="simStatus" style="margin-top: 1rem; font-weight: 600; color: var(--accent-primary);">Click "Next Step" or "Auto Run" to begin.</p>
+        </div>
+
+        <h3>Flowchart of the Algorithm</h3>
+        <div class="canvas-container" style="background:#000;">
+            <svg viewBox="0 0 760 300" class="flow-svg" style="width:100%; height:auto;">
+                <defs>
+                    <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
+                    </marker>
+                </defs>
+                <rect x="20" y="20" width="140" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                <text x="90" y="50" text-anchor="middle" font-size="13">Start / Choose K</text>
+
+                <rect x="200" y="20" width="160" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                <text x="280" y="50" text-anchor="middle" font-size="13">Init K centroids</text>
+
+                <rect x="400" y="20" width="180" height="50" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-width="2" class="flow-pulse" style="color:#a78bfa;"/>
+                <text x="490" y="45" text-anchor="middle" font-size="13">Assign points to</text>
+                <text x="490" y="60" text-anchor="middle" font-size="13">nearest centroid</text>
+
+                <rect x="400" y="120" width="180" height="50" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="2" class="flow-pulse" style="color:#10b981;"/>
+                <text x="490" y="150" text-anchor="middle" font-size="13">Update centroids (mean)</text>
+
+                <polygon points="490,190 590,230 490,270 390,230" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+                <text x="490" y="234" text-anchor="middle" font-size="12">Converged?</text>
+
+                <rect x="620" y="205" width="120" height="50" rx="10" fill="#0f172a" stroke="#ef4444" stroke-width="2"/>
+                <text x="680" y="235" text-anchor="middle" font-size="13">Stop / Output</text>
+
+                <path d="M160,45 H200" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" class="flow-arrow"/>
+                <path d="M360,45 H400" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" class="flow-arrow"/>
+                <path d="M490,70 V120" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" class="flow-arrow"/>
+                <path d="M490,170 V190" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" class="flow-arrow"/>
+                <path d="M590,230 H620" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)" class="flow-arrow"/>
+                <path d="M390,230 C300,230 320,90 400,50" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#arrow)" class="flow-arrow"/>
+                <text x="330" y="150" font-size="11" fill="#f59e0b">no</text>
+                <text x="600" y="220" font-size="11" fill="#10b981">yes</text>
+            </svg>
+        </div>
+
+        <h3>Time and Space Complexity</h3>
+        <table>
+            <thead><tr><th>Aspect</th><th>Complexity</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td>Time</td><td>$O(n \cdot K \cdot d \cdot i)$</td><td>$n$=points, $K$=clusters, $d$=dimensions, $i$=iterations</td></tr>
+                <tr><td>Space</td><td>$O(n \cdot d + K \cdot d)$</td><td>storing points plus centroids</td></tr>
+                <tr><td>Practical note</td><td>Roughly linear in $n$</td><td>Scales far better than hierarchical clustering's $O(n^2 \log n)$</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============ 5. CHOOSING NUMBER OF CLUSTERS ============ -->
+    <section class="slide" id="choosingk">
+        <div class="badge">Section 5</div>
+        <h2>Choosing the Number of Clusters</h2>
+
+        <div class="grid">
+            <div class="canvas-container">
+                <h4 style="color: var(--text-secondary);">Elbow Method — WCSS vs K</h4>
+                <canvas id="elbowChart"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h4 style="color: var(--text-secondary);">Silhouette Score vs K</h4>
+                <canvas id="silhouetteChart"></canvas>
+            </div>
+        </div>
+
+        <h3>Elbow Method</h3>
+        <p>Plot WCSS (inertia) against $K$. As $K$ increases, WCSS always decreases — but the rate of improvement drops sharply after the "true" number of clusters, forming a visible bend or "elbow." That bend is a reasonable choice for $K$.</p>
+
+        <h3>Silhouette Score</h3>
+        <p>For each point $i$, let $a(i)$ be the mean distance to points in its own cluster, and $b(i)$ the mean distance to points in the nearest other cluster:</p>
+        <div class="math-block">$$s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))}$$</div>
+        <p>Scores range from $-1$ to $1$; values near $1$ mean well-separated, tight clusters. Average $s(i)$ across all points and compare across candidate $K$ values — pick the $K$ that maximizes it.</p>
+
+        <table>
+            <thead><tr><th>Method</th><th>Advantages</th><th>Disadvantages</th></tr></thead>
+            <tbody>
+                <tr><td>Elbow Method</td><td>Fast, intuitive, cheap to compute</td><td>The "elbow" can be subjective or absent on noisy data</td></tr>
+                <tr><td>Silhouette Score</td><td>Quantitative, works even without an obvious elbow, evaluates separation <em>and</em> cohesion</td><td>Computationally heavier ($O(n^2)$), less intuitive to visualize</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box"><strong>Interview Tip:</strong> Use both together — the elbow narrows down a range, and the silhouette score picks the best candidate within it.</div>
+    </section>
+
+    <!-- ============ 6. ADVANTAGES & LIMITATIONS ============ -->
+    <section class="slide" id="advlim">
+        <div class="badge">Section 6</div>
+        <h2>Advantages and Limitations</h2>
+        <div class="grid">
+            <div>
+                <h3>Strengths</h3>
+                <ul class="checklist">
+                    <li>Simple to understand and implement</li>
+                    <li>Scales well — near-linear time complexity</li>
+                    <li>Guaranteed to converge</li>
+                    <li>Works well on large, roughly spherical, well-separated clusters</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Weaknesses</h3>
+                <ul class="xlist">
+                    <li>Must choose $K$ in advance</li>
+                    <li>Assumes spherical, similarly-sized clusters</li>
+                    <li>Sensitive to initial centroid placement</li>
+                    <li>Sensitive to outliers (uses the mean)</li>
+                    <li>Struggles with categorical or non-convex data</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Sensitivity to Initialization</h3>
+        <p>Because K-Means only finds a <strong>local</strong> optimum, a poor random start can trap it in a bad partition. <strong>K-Means++</strong> mitigates this by picking initial centroids that are probabilistically spread apart — new centroids are chosen with probability proportional to squared distance from the nearest existing centroid — and scikit-learn also reruns the whole algorithm several times (<code>n_init</code>) and keeps the best result.</p>
+
+        <h3>Effect of Outliers</h3>
+        <p>Since a centroid is a <em>mean</em>, a single extreme outlier can drag it far from the true cluster center and inflate WCSS. Options: remove/cap outliers, use robust scaling, or switch to <strong>K-Medoids</strong>, which uses actual data points (medoids) instead of means.</p>
+
+        <h3>When K-Means Should Not Be Used</h3>
+        <ul class="xlist">
+            <li>Non-convex cluster shapes (rings, moons, spirals) — use DBSCAN or Spectral Clustering</li>
+            <li>Clusters of very different sizes/densities — use GMM or DBSCAN</li>
+            <li>Purely categorical data — use K-Modes</li>
+            <li>Heavy outlier contamination — use K-Medoids or robust pre-processing</li>
+            <li>Unknown / hard-to-estimate number of clusters — use hierarchical clustering or DBSCAN</li>
+        </ul>
+    </section>
+
+    <!-- ============ 7. DISTANCE METRICS ============ -->
+    <section class="slide" id="distance">
+        <div class="badge">Section 7</div>
+        <h2>Distance Metrics</h2>
+        <p>Every clustering algorithm needs a notion of "closeness." K-Means uses Euclidean distance by design, but it's worth understanding the alternatives.</p>
+
+        <div class="grid3">
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <line x1="20" y1="20" x2="140" y2="140" stroke="#38bdf8" stroke-width="3"/>
+                    <circle cx="20" cy="20" r="5" fill="#f59e0b"/>
+                    <circle cx="140" cy="140" r="5" fill="#10b981"/>
+                </svg>
+                <span><strong>Euclidean</strong> — straight line</span>
+            </div>
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <path d="M20,20 H140 V140" stroke="#a78bfa" stroke-width="3" fill="none"/>
+                    <circle cx="20" cy="20" r="5" fill="#f59e0b"/>
+                    <circle cx="140" cy="140" r="5" fill="#10b981"/>
+                </svg>
+                <span><strong>Manhattan</strong> — grid path</span>
+            </div>
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <line x1="80" y1="140" x2="30" y2="30" stroke="#f59e0b" stroke-width="3"/>
+                    <line x1="80" y1="140" x2="130" y2="50" stroke="#10b981" stroke-width="3"/>
+                    <path d="M75,105 A40,40 0 0 1 105,95" stroke="#ef4444" stroke-width="2" fill="none"/>
+                </svg>
+                <span><strong>Cosine</strong> — angle between vectors</span>
+            </div>
+        </div>
+
+        <h3>Euclidean Distance</h3>
+        <div class="math-block">$$d_{euclid}(x,y) = \sqrt{\sum_{m=1}^{d}(x_m - y_m)^2}$$</div>
+        <p>Measures straight-line distance. This is the metric K-Means' centroid-mean update is mathematically built around.</p>
+
+        <h3>Manhattan Distance</h3>
+        <div class="math-block">$$d_{manhattan}(x,y) = \sum_{m=1}^{d}|x_m - y_m|$$</div>
+        <p>Sums absolute differences along each axis ("city block" distance). More robust to outliers than Euclidean, and pairs naturally with K-Medians rather than standard K-Means.</p>
+
+        <h3>Cosine Distance (Discussion Only)</h3>
+        <div class="math-block">$$d_{cosine}(x,y) = 1 - \frac{x \cdot y}{\lVert x \rVert \lVert y \rVert}$$</div>
+        <p>Measures the angle between two vectors, ignoring magnitude — popular for text/TF-IDF data where document length shouldn't matter. Standard K-Means is not designed for this metric because its centroid-update step assumes Euclidean geometry; <strong>Spherical K-Means</strong> is the cosine-based variant.</p>
+
+        <h3>Why Euclidean is Commonly Used</h3>
+        <div class="highlight-box box-purple">The K-Means objective function (WCSS) is derived directly from squared Euclidean distance, and the proof that centroid-as-mean minimizes that objective only holds for Euclidean geometry. Swapping in another metric without changing the update rule breaks the convergence guarantee.</div>
+    </section>
+
+    <!-- ============ 8. PYTHON IMPLEMENTATION ============ -->
+    <section class="slide" id="python">
+        <div class="badge">Section 8</div>
+        <h2>Python Implementation — Mall Customers Dataset</h2>
+        <p>Dataset: <em>Customer Segmentation Tutorial</em> (Kaggle) — columns: <code>CustomerID</code>, <code>Gender</code>, <code>Age</code>, <code>Annual Income (k$)</code>, <code>Spending Score (1-100)</code>.</p>
+
+        <div class="code-label">1 · Import Libraries</div>
+        <pre><span class="c-import">import</span> pandas <span class="c-import">as</span> pd
+<span class="c-import">import</span> numpy <span class="c-import">as</span> np
+<span class="c-import">import</span> matplotlib.pyplot <span class="c-import">as</span> plt
+<span class="c-import">from</span> sklearn.preprocessing <span class="c-import">import</span> StandardScaler
+<span class="c-import">from</span> sklearn.cluster <span class="c-import">import</span> KMeans
+<span class="c-import">from</span> sklearn.metrics <span class="c-import">import</span> silhouette_score</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>pandas</code> loads and manipulates the tabular dataset.</li>
+                <li><code>numpy</code> supports the numerical array operations used under the hood.</li>
+                <li><code>matplotlib.pyplot</code> renders the EDA plots and final cluster scatter plot.</li>
+                <li><code>StandardScaler</code> standardizes features so no single column dominates distance calculations.</li>
+                <li><code>KMeans</code> is scikit-learn's implementation of Lloyd's algorithm.</li>
+                <li><code>silhouette_score</code> quantitatively scores how well-separated the resulting clusters are.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">2 · Load Dataset</div>
+        <pre>df = pd.read_csv(<span class="c-str">"Mall_Customers.csv"</span>)
+df.head()</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>pd.read_csv(...)</code> reads the CSV file from disk into a DataFrame.</li>
+                <li><code>df.head()</code> previews the first 5 rows to sanity-check the columns loaded correctly.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">3 · Exploratory Data Analysis</div>
+        <pre>df.info()
+df.describe()
+df.isnull().sum()
+
+plt.figure(figsize=(10,4))
+plt.subplot(1,2,1)
+plt.hist(df[<span class="c-str">'Annual Income (k$)'</span>], bins=15, color=<span class="c-str">'#38bdf8'</span>)
+plt.title(<span class="c-str">'Annual Income Distribution'</span>)
+
+plt.subplot(1,2,2)
+plt.hist(df[<span class="c-str">'Spending Score (1-100)'</span>], bins=15, color=<span class="c-str">'#10b981'</span>)
+plt.title(<span class="c-str">'Spending Score Distribution'</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>df.info()</code> shows column dtypes and non-null counts — a quick data-quality check.</li>
+                <li><code>df.describe()</code> gives summary statistics (mean, std, min, max, quartiles) for numeric columns.</li>
+                <li><code>df.isnull().sum()</code> counts missing values per column; the Mall Customers dataset is typically clean.</li>
+                <li>The two histograms visualize the spread of income and spending score before clustering.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">4 · Select Numerical Features</div>
+        <pre>X = df[[<span class="c-str">'Annual Income (k$)'</span>, <span class="c-str">'Spending Score (1-100)'</span>]].values</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We select <code>Annual Income</code> and <code>Spending Score</code> — the two numeric features most relevant to a spending-behavior segmentation, and easy to visualize in 2D. (<code>Age</code> can be added as a third feature for a richer, 3D segmentation.)</li>
+                <li><code>.values</code> converts the DataFrame slice into a raw NumPy array, which is what scikit-learn expects.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">5 · Feature Scaling</div>
+        <pre>scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>StandardScaler()</code> creates a scaler that will transform each feature to zero mean and unit variance.</li>
+                <li><code>fit_transform</code> first learns the mean/std of each column from <code>X</code>, then applies the transform. This prevents Annual Income (range ~15-140) from dominating Spending Score (range 1-100) purely due to scale.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">6 · Elbow Method</div>
+        <pre>wcss = []
+<span class="c-import">for</span> k <span class="c-import">in</span> range(1, 11):
+    km = KMeans(n_clusters=k, init=<span class="c-str">'k-means++'</span>, n_init=10, random_state=42)
+    km.fit(X_scaled)
+    wcss.append(km.inertia_)
+
+plt.plot(range(1,11), wcss, marker=<span class="c-str">'o'</span>)
+plt.xlabel(<span class="c-str">'K'</span>); plt.ylabel(<span class="c-str">'WCSS'</span>); plt.title(<span class="c-str">'Elbow Method'</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We loop <code>k</code> from 1 to 10, fitting a fresh KMeans model each time.</li>
+                <li><code>init='k-means++'</code> uses smart initialization; <code>n_init=10</code> reruns with 10 different seeds and keeps the best.</li>
+                <li><code>km.inertia_</code> is scikit-learn's attribute holding the final WCSS for that fit — we collect it to plot the elbow curve.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">7 · Silhouette Score</div>
+        <pre>sil_scores = []
+<span class="c-import">for</span> k <span class="c-import">in</span> range(2, 11):
+    km = KMeans(n_clusters=k, init=<span class="c-str">'k-means++'</span>, n_init=10, random_state=42)
+    labels = km.fit_predict(X_scaled)
+    sil_scores.append(silhouette_score(X_scaled, labels))
+
+plt.plot(range(2,11), sil_scores, marker=<span class="c-str">'o'</span>, color=<span class="c-str">'#f59e0b'</span>)
+plt.xlabel(<span class="c-str">'K'</span>); plt.ylabel(<span class="c-str">'Silhouette Score'</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Silhouette needs at least 2 clusters, so the loop starts at <code>k=2</code>.</li>
+                <li><code>fit_predict</code> fits the model and directly returns the cluster label for every row.</li>
+                <li><code>silhouette_score(X_scaled, labels)</code> computes the mean silhouette coefficient across all points for that <code>k</code>.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">8 · Train Final KMeans Model</div>
+        <pre>kmeans = KMeans(n_clusters=5, init=<span class="c-str">'k-means++'</span>, n_init=10, random_state=42)
+kmeans.fit(X_scaled)</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Based on the elbow bend and peak silhouette score, we pick <code>K=5</code> for the Mall Customers dataset.</li>
+                <li><code>random_state=42</code> fixes the random seed so results are reproducible run to run.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">9 · Predict Cluster Labels</div>
+        <pre>y_kmeans = kmeans.predict(X_scaled)</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>predict</code> assigns each scaled data point to its nearest of the 5 learned centroids, returning an integer label (0-4) per row.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">10 · Add Cluster Column</div>
+        <pre>df[<span class="c-str">'Cluster'</span>] = y_kmeans
+df.head()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We attach the predicted labels back onto the original (unscaled) DataFrame so each customer row now carries its segment ID for reporting and business use.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">11 · Visualize Clusters + Plot Centroids</div>
+        <pre>plt.figure(figsize=(8,6))
+colors = [<span class="c-str">'#ff6384'</span>,<span class="c-str">'#36a2eb'</span>,<span class="c-str">'#4bc0c0'</span>,<span class="c-str">'#ff9f40'</span>,<span class="c-str">'#9966ff'</span>]
+
+<span class="c-import">for</span> i <span class="c-import">in</span> range(5):
+    plt.scatter(X[y_kmeans==i, 0], X[y_kmeans==i, 1],
+                s=50, c=colors[i], label=<span class="c-str">f'Cluster {i}'</span>)
+
+<span class="c-comment"># Centroids are in scaled space — inverse-transform to original units</span>
+centroids_original = scaler.inverse_transform(kmeans.cluster_centers_)
+plt.scatter(centroids_original[:,0], centroids_original[:,1],
+            s=250, c=<span class="c-str">'yellow'</span>, marker=<span class="c-str">'*'</span>,
+            edgecolor=<span class="c-str">'black'</span>, label=<span class="c-str">'Centroids'</span>)
+
+plt.xlabel(<span class="c-str">'Annual Income (k$)'</span>)
+plt.ylabel(<span class="c-str">'Spending Score (1-100)'</span>)
+plt.title(<span class="c-str">'Customer Segments'</span>)
+plt.legend()
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We loop over each of the 5 cluster IDs and scatter only the rows belonging to that cluster, in the <strong>original</strong> (unscaled) income/spending units, so the axes stay human-readable.</li>
+                <li><code>kmeans.cluster_centers_</code> holds centroids in <em>scaled</em> space — we must call <code>scaler.inverse_transform</code> to bring them back to the original units before plotting them alongside the raw data.</li>
+                <li>Centroids are drawn as yellow stars, clearly marking the "center of gravity" of each segment.</li>
+            </ul>
+        </div>
+
+        <div class="canvas-container">
+            <h4 style="color: var(--text-secondary);">Resulting Clusters (K=5)</h4>
+            <canvas id="finalClusterChart"></canvas>
+        </div>
+    </section>
+
+    <!-- ============ 9. CLUSTER INTERPRETATION ============ -->
+    <section class="slide" id="interpretation">
+        <div class="badge">Section 9</div>
+        <h2>Cluster Interpretation (Business Value)</h2>
+        <p>Data science is only useful if it drives decisions. Here's how we label the Mall Customer segments:</p>
+        <table>
+            <thead><tr><th>Persona</th><th>Income</th><th>Spending</th><th>Strategy</th></tr></thead>
+            <tbody>
+                <tr><td style="color: #ff6384; font-weight: bold;">Target / Elite</td><td>High</td><td>High</td><td>Loyalty programs, premium offers</td></tr>
+                <tr><td style="color: #36a2eb; font-weight: bold;">Sensible</td><td>High</td><td>Low</td><td>Targeted discounts to unlock spend</td></tr>
+                <tr><td style="color: #4bc0c0; font-weight: bold;">Standard</td><td>Medium</td><td>Medium</td><td>General marketing campaigns</td></tr>
+                <tr><td style="color: #ff9f40; font-weight: bold;">Careless</td><td>Low</td><td>High</td><td>Impulse-buy alerts, buy-now-pay-later</td></tr>
+                <tr><td style="color: #9966ff; font-weight: bold;">Economical</td><td>Low</td><td>Low</td><td>Value propositions, budget bundles</td></tr>
+            </tbody>
+        </table>
+
+        <div class="grid">
+            <div class="highlight-box box-success">
+                <strong>High Income / High Spending:</strong> Your most valuable customers. Prioritize retention — VIP perks, early access, personalized service — since acquiring a similarly valuable new customer is far more expensive.
+            </div>
+            <div class="highlight-box box-danger">
+                <strong>Low Income / Low Spending:</strong> Price-sensitive, cautious shoppers. Aggressive discounting rarely improves margin here — focus on value messaging and low-cost engagement instead.
+            </div>
+        </div>
+
+        <h3>Turning Segments into Marketing Insight</h3>
+        <ul>
+            <li>Segment-specific email campaigns instead of one-size-fits-all blasts.</li>
+            <li>Inventory and promotion planning aligned to each segment's share of the customer base.</li>
+            <li>Churn-risk flags — customers drifting from "Target" toward "Sensible" may need re-engagement.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 10. PRACTICAL TIPS ============ -->
+    <section class="slide" id="practical">
+        <div class="badge">Section 10</div>
+        <h2>Practical Tips</h2>
+        <div class="grid">
+            <div>
+                <h3>Importance of Feature Scaling</h3>
+                <p>K-Means is purely distance-based — an unscaled feature with a larger numeric range will dominate the distance calculation and silently determine the clustering, regardless of its real-world importance. Always scale (Standard or MinMax) before fitting.</p>
+                <h3>Effect of <code>random_state</code></h3>
+                <p>K-Means' result depends on its random starting centroids. Fixing <code>random_state</code> makes results reproducible across runs — critical for debugging and for comparing model versions fairly.</p>
+            </div>
+            <div>
+                <h3>The <code>n_init</code> Parameter</h3>
+                <p>Controls how many times K-Means restarts with different centroid seeds, keeping the run with lowest inertia. Higher <code>n_init</code> reduces the risk of a bad local optimum at the cost of compute time.</p>
+                <h3>Initialization Methods</h3>
+                <p><code>init='random'</code> picks $K$ random points as centroids (fast, less reliable). <code>init='k-means++'</code> (the default and recommended choice) spreads initial centroids apart probabilistically, converging faster and more reliably.</p>
+            </div>
+        </div>
+
+        <h3>Common Mistakes</h3>
+        <ul class="xlist">
+            <li>Forgetting to scale features before fitting.</li>
+            <li>Choosing $K$ arbitrarily without the elbow/silhouette check.</li>
+            <li>Interpreting cluster centers in scaled space instead of inverse-transforming back to original units.</li>
+            <li>Applying K-Means to categorical variables directly (encode/avoid, or use K-Modes/K-Prototypes).</li>
+            <li>Ignoring outliers that distort centroid positions.</li>
+            <li>Assuming convergence to a global optimum — always compare against multiple <code>n_init</code> runs.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 11. PRODUCTION CONSIDERATIONS ============ -->
+    <section class="slide" id="production">
+        <div class="badge">Section 11</div>
+        <h2>Production Considerations</h2>
+
+        <h3>Saving Trained Models</h3>
+        <pre><span class="c-import">import</span> joblib
+joblib.dump(kmeans, <span class="c-str">'kmeans_model.pkl'</span>)
+joblib.dump(scaler, <span class="c-str">'scaler.pkl'</span>)</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Persist <em>both</em> the fitted <code>KMeans</code> model and the <code>StandardScaler</code> — new data must go through the identical scaling before being assigned to a cluster.</li>
+            </ul>
+        </div>
+
+        <h3>Predicting Clusters for New Customers</h3>
+        <pre>scaler = joblib.load(<span class="c-str">'scaler.pkl'</span>)
+kmeans = joblib.load(<span class="c-str">'kmeans_model.pkl'</span>)
+
+new_customer = [[<span class="c-comment">/* income */</span> 75, <span class="c-comment">/* spending */</span> 82]]
+new_scaled = scaler.transform(new_customer)
+segment = kmeans.predict(new_scaled)</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Load the saved artifacts, apply the <em>already-fitted</em> scaler's <code>transform</code> (not <code>fit_transform</code>) to avoid data leakage, then call <code>predict</code> to assign the new point to an existing cluster.</li>
+            </ul>
+        </div>
+
+        <h3>Retraining Strategies</h3>
+        <ul>
+            <li><strong>Scheduled retraining:</strong> e.g., monthly/quarterly, as new customer data accumulates.</li>
+            <li><strong>Trigger-based retraining:</strong> retrain when monitoring detects significant cluster drift (below).</li>
+            <li><strong>Shadow evaluation:</strong> validate a newly retrained model against the current one before switching over.</li>
+        </ul>
+
+        <h3>Monitoring Cluster Drift</h3>
+        <p>Over time, customer behavior shifts — the segments learned last year may no longer describe this year's population well. Practical monitoring signals:</p>
+        <ul>
+            <li>Track the distribution of cluster sizes over time — a sudden imbalance signals drift.</li>
+            <li>Track average distance-to-assigned-centroid (inertia per point) — rising values suggest the model no longer fits incoming data well.</li>
+            <li>Recompute silhouette score periodically on fresh data batches.</li>
+            <li>Use statistical drift metrics (e.g., Population Stability Index) on the input features themselves.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 12. SUMMARY ============ -->
+    <section class="slide" id="summary">
+        <div class="badge">Section 12</div>
+        <h2>Summary</h2>
+        <div class="grid">
+            <div>
+                <h3>Key Takeaways</h3>
+                <ul class="checklist">
+                    <li><strong>Objective:</strong> minimize WCSS / inertia.</li>
+                    <li><strong>Scaling:</strong> mandatory before fitting.</li>
+                    <li><strong>Initialization:</strong> use K-Means++ with several <code>n_init</code> restarts.</li>
+                    <li><strong>Choosing K:</strong> combine the Elbow Method with Silhouette Score.</li>
+                    <li><strong>Convergence:</strong> guaranteed, but only to a local optimum.</li>
+                </ul>
+                <h3>Best Practices</h3>
+                <ul class="checklist">
+                    <li>Always inverse-transform centroids before presenting results to stakeholders.</li>
+                    <li>Fix <code>random_state</code> for reproducibility.</li>
+                    <li>Monitor clusters in production — behavior drifts.</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 1.5rem; border-radius: 12px;">
+                <h3 style="font-size: 1rem;">Final Quiz</h3>
+                <p style="font-size: 0.9rem;">Does K-Means guarantee a global optimum?</p>
+                <p style="color: var(--accent-warning); font-weight: bold;">No. It can converge to local optima — which is exactly why we run it multiple times (<code>n_init</code>) and use smart initialization (K-Means++).</p>
+            </div>
+        </div>
+
+        <h3>When to Use K-Means</h3>
+        <p>Large datasets, roughly spherical and similarly-sized clusters, numeric features, a need for speed and interpretability, and a reasonable idea of how many groups you expect.</p>
+
+        <h3>When to Choose an Alternative</h3>
+        <table>
+            <thead><tr><th>Situation</th><th>Better Alternative</th></tr></thead>
+            <tbody>
+                <tr><td>Non-convex / irregular cluster shapes</td><td>DBSCAN, Spectral Clustering</td></tr>
+                <tr><td>Unknown number of clusters, need a dendrogram</td><td>Hierarchical (Agglomerative) Clustering</td></tr>
+                <tr><td>Clusters with different sizes/densities, soft assignment</td><td>Gaussian Mixture Models (GMM)</td></tr>
+                <tr><td>Heavy outliers</td><td>K-Medoids / DBSCAN</td></tr>
+                <tr><td>Purely categorical data</td><td>K-Modes / K-Prototypes</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Elite Frontend Designer &amp; UI/UX Developer. Mastering K-Means Clustering.</p>
+    </footer>
+
+    <script>
+        // ---------------- Scroll progress + nav spy ----------------
+        const progressBar = document.getElementById('progressBar');
+        function updateProgress() {
+            const h = document.documentElement;
+            const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+            progressBar.style.width = scrolled + '%';
+        }
+        window.addEventListener('scroll', updateProgress);
+        updateProgress();
+
+        const navLinks = Array.from(document.querySelectorAll('#navBar a'));
+        const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+        const navSpy = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const idx = sections.indexOf(entry.target);
+                if (idx === -1) return;
+                if (entry.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    navLinks[idx].classList.add('active');
+                }
+            });
+        }, { rootMargin: '-45% 0px -45% 0px' });
+        sections.forEach(s => s && navSpy.observe(s));
+
+        // ---------------- Reveal-on-scroll ----------------
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.slide, .reveal').forEach(el => revealObserver.observe(el));
+
+        // ---------------- Pizza emoji subtle float ----------------
+        const pizza = document.getElementById('pizzaEmoji');
+        if (pizza) {
+            let t = 0;
+            setInterval(() => {
+                t += 0.15;
+                pizza.style.transform = `translateY(${Math.sin(t) * 6}px) rotate(${Math.sin(t*0.5)*8}deg)`;
+            }, 60);
+        }
+
+        // ---------------- Intro Charts ----------------
+        const commonOptions = {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        };
+
+        const introPoints = Array.from({length: 50}, () => ({x: Math.random()*100, y: Math.random()*100}));
+
+        new Chart(document.getElementById('supervisedCanvas'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: introPoints.filter(p => p.x + p.y > 100), backgroundColor: '#ff6384' },
+                { data: introPoints.filter(p => p.x + p.y <= 100), backgroundColor: '#36a2eb' }
+            ]},
+            options: commonOptions
+        });
+
+        new Chart(document.getElementById('unsupervisedCanvas'), {
+            type: 'scatter',
+            data: { datasets: [{ data: introPoints, backgroundColor: '#94a3b8' }] },
+            options: commonOptions
+        });
+
+        // ---------------- Elbow Chart ----------------
+        new Chart(document.getElementById('elbowChart'), {
+            type: 'line',
+            data: {
+                labels: [1,2,3,4,5,6,7,8,9,10],
+                datasets: [{
+                    label: 'WCSS', data: [1000,600,350,200,120,100,90,85,80,77],
+                    borderColor: '#38bdf8', tension: 0.3, fill: false, pointBackgroundColor: '#38bdf8'
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { display: false }, grid: { color: '#334155' } },
+                    x: { grid: { color: '#334155' }, title: { display: true, text: 'K', color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // ---------------- Silhouette Chart ----------------
+        new Chart(document.getElementById('silhouetteChart'), {
+            type: 'bar',
+            data: {
+                labels: [2,3,4,5,6,7,8,9,10],
+                datasets: [{
+                    label: 'Silhouette Score',
+                    data: [0.42, 0.46, 0.49, 0.55, 0.50, 0.47, 0.44, 0.41, 0.39],
+                    backgroundColor: (ctx) => ctx.dataIndex === 3 ? '#10b981' : '#f59e0b'
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }, suggestedMin: 0, suggestedMax: 0.7 },
+                    x: { grid: { color: '#334155' }, title: { display: true, text: 'K', color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // ---------------- Final Cluster Chart ----------------
+        const clusterData = (cx, cy, color) => ({
+            label: 'Cluster',
+            data: Array.from({length: 15}, () => ({ x: cx + (Math.random()-0.5)*20, y: cy + (Math.random()-0.5)*20 })),
+            backgroundColor: color, pointRadius: 6
+        });
+
+        new Chart(document.getElementById('finalClusterChart'), {
+            type: 'scatter',
+            data: { datasets: [
+                clusterData(20,20,'#ff6384'), clusterData(80,80,'#36a2eb'),
+                clusterData(50,50,'#4bc0c0'), clusterData(20,80,'#ff9f40'),
+                clusterData(80,20,'#9966ff')
+            ]},
+            options: commonOptions
+        });
+
+        // ---------------- K-Means Simulator (animated) ----------------
+        const canvas = document.getElementById('kmeansSim');
+        const ctx = canvas.getContext('2d');
+        let pts = [], centroids = [], assignments = [];
+        let animFrom = [], animTo = [], animProgress = 1, animating = false;
+        const K = 3;
+        const colors = ['#ff6384', '#36a2eb', '#4bc0c0'];
+        let autoRunning = false, autoTimer = null, phase = 'assign';
+
+        function initKmeans() {
+            stopAuto();
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = 400;
+
+            pts = Array.from({length: 150}, () => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height }));
+            centroids = Array.from({length: K}, (v,i) => ({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, color: colors[i] }));
+            assignments = new Array(pts.length).fill(-1);
+            phase = 'assign';
+            updateDots();
+            document.getElementById('simStatus').innerText = 'Centroids initialized randomly. Click "Next Step" to assign points.';
+            draw();
+        }
+
+        function updateDots() {
+            document.getElementById('dotAssign').classList.toggle('active', phase === 'assign');
+            document.getElementById('dotUpdate').classList.toggle('active', phase === 'update');
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            pts.forEach((p, i) => {
+                ctx.fillStyle = assignments[i] === -1 ? '#475569' : centroids[assignments[i]].color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 4, 0, Math.PI*2);
+                ctx.fill();
+            });
+            centroids.forEach(c => {
+                ctx.shadowBlur = 15; ctx.shadowColor = c.color;
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.fillStyle = c.color;
+                ctx.strokeRect(c.x-8, c.y-8, 16, 16);
+                ctx.fillRect(c.x-8, c.y-8, 16, 16);
+                ctx.shadowBlur = 0;
+            });
+        }
+
+        function animateCentroids(targets, onDone) {
+            animFrom = centroids.map(c => ({x: c.x, y: c.y}));
+            animTo = targets;
+            animProgress = 0;
+            animating = true;
+            function step() {
+                animProgress += 0.06;
+                if (animProgress >= 1) {
+                    animProgress = 1;
+                    animating = false;
+                }
+                centroids.forEach((c, i) => {
+                    c.x = animFrom[i].x + (animTo[i].x - animFrom[i].x) * animProgress;
+                    c.y = animFrom[i].y + (animTo[i].y - animFrom[i].y) * animProgress;
+                });
+                draw();
+                if (animProgress < 1) requestAnimationFrame(step);
+                else if (onDone) onDone();
+            }
+            requestAnimationFrame(step);
+        }
+
+        function stepKmeans(cb) {
+            if (phase === 'assign') {
+                pts.forEach((p, i) => {
+                    let minDist = Infinity, bestC = -1;
+                    centroids.forEach((c, ci) => {
+                        const d = Math.hypot(p.x-c.x, p.y-c.y);
+                        if (d < minDist) { minDist = d; bestC = ci; }
+                    });
+                    assignments[i] = bestC;
+                });
+                draw();
+                document.getElementById('simStatus').innerText = 'Step: points assigned to their nearest centroid (Voronoi partition).';
+                phase = 'update';
+                updateDots();
+                if (cb) setTimeout(cb, 500); 
+            } else {
+                const targets = centroids.map((c, ci) => {
+                    const assignedPts = pts.filter((_, i) => assignments[i] === ci);
+                    if (assignedPts.length === 0) return {x: c.x, y: c.y};
+                    return {
+                        x: assignedPts.reduce((s,p) => s+p.x, 0) / assignedPts.length,
+                        y: assignedPts.reduce((s,p) => s+p.y, 0) / assignedPts.length
+                    };
+                });
+                document.getElementById('simStatus').innerText = 'Step: centroids gliding to the mean of their assigned points.';
+                animateCentroids(targets, () => {
+                    document.getElementById('simStatus').innerText = 'Centroids updated. Ready for next assignment.';
+                    if (cb) cb();
+                });
+                phase = 'assign';
+                updateDots();
+            }
+        }
+
+        function toggleAutoRun() {
+            if (autoRunning) { stopAuto(); return; }
+            autoRunning = true;
+            document.getElementById('autoBtn').innerText = '⏸ Pause';
+            runAutoLoop();
+        }
+        function runAutoLoop() {
+            if (!autoRunning) return;
+            stepKmeans(() => {
+                autoTimer = setTimeout(runAutoLoop, 700);
+            });
+        }
+        function stopAuto() {
+            autoRunning = false;
+            clearTimeout(autoTimer);
+            const btn = document.getElementById('autoBtn');
+            if (btn) btn.innerText = '▶ Auto Run';
+        }
+
+        window.addEventListener('resize', initKmeans);
+        initKmeans();
+    </script>
+</body>
+</html>

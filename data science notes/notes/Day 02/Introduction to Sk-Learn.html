@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Introduction to Scikit-Learn</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CORE STYLES */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: #020617; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* PRESENTATION DECK CONTAINER */
+        #deck { width: 1280px; height: 720px; background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+        
+        /* SLIDES */
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 60px; display: flex; flex-direction: column; opacity: 0; transform: translateX(50px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 1; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; z-index: 2; }
+        
+        /* NAVIGATION CONTROLS */
+        .controls { position: absolute; bottom: 40px; right: 60px; z-index: 100; display: flex; gap: 15px; }
+        .btn-nav { background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 12px 24px; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-nav:hover:not(:disabled) { background: #334155; border-color: #10b981; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* AUTHOR CREDIT */
+        .credit { position: absolute; bottom: 40px; left: 60px; z-index: 100; font-size: 14px; color: #475569; letter-spacing: 1px; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 56px; color: #f8fafc; margin-bottom: 10px; }
+        h1 span { color: #10b981; }
+        h2 { font-size: 36px; color: #10b981; margin-bottom: 24px; border-left: 5px solid #10b981; padding-left: 20px; }
+        p, li { font-size: 20px; line-height: 1.6; color: #94a3b8; margin-bottom: 16px; }
+        ul, ol { margin-left: 30px; margin-bottom: 20px; }
+        strong { color: #f8fafc; }
+        code { font-family: 'Fira Code', monospace; background: #1e293b; padding: 4px 8px; border-radius: 4px; color: #60a5fa; font-size: 18px; }
+        
+        /* LAYOUTS */
+        .split-layout { display: flex; gap: 40px; height: 100%; align-items: stretch; padding-bottom: 60px; }
+        .text-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .interactive-panel { flex: 1.2; background: #020617; border-radius: 16px; border: 1px solid #1e293b; padding: 20px; display: flex; flex-direction: column; justify-content: center; }
+        
+        .chart-container { flex-grow: 1; position: relative; width: 100%; height: 100%; min-height: 0; }
+        
+        /* PLAYGROUND CONTROLS */
+        .playground-controls { margin-top: 15px; background: #1e293b; padding: 15px; border-radius: 12px; display: flex; gap: 10px; justify-content: center; align-items: center; }
+        .btn-action { background: #10b981; color: #020617; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; font-family: 'Fira Code', monospace; }
+        .btn-action:hover { background: #34d399; transform: translateY(-2px); }
+        .btn-action.secondary { background: #3b82f6; color: #ffffff; }
+        .btn-action.secondary:hover { background: #60a5fa; }
+        .btn-action.outline { background: transparent; color: #10b981; border: 1px solid #10b981; }
+        .btn-action:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+        
+        .slider-group { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+        .slider-header span { color: #10b981; font-size: 16px; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: #334155; height: 6px; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #10b981; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* GRID FOR CHEAT SHEET */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; height: 100%; align-items: center; padding-bottom: 80px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; border-top: 4px solid #10b981; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; }
+        .card h3 { color: #f8fafc; font-size: 22px; margin-bottom: 12px; }
+        .card ul li { font-size: 16px; margin-bottom: 10px; }
+
+        /* INTERACTIVE TABLES / PIPELINES */
+        .workflow-box { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+        .wf-step { background: #1e293b; padding: 12px 20px; border-radius: 8px; border-left: 4px solid #475569; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
+        .wf-step.active { border-left-color: #10b981; background: #0f172a; }
+        .wf-step h4 { font-size: 18px; color: #f8fafc; }
+        .wf-step span { font-family: 'Fira Code', monospace; font-size: 14px; color: #60a5fa; }
+        
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 16px; text-align: left; }
+        .data-table th, .data-table td { padding: 12px; border: 1px solid #1e293b; transition: background 0.3s; }
+        .data-table th { background: #0f172a; color: #cbd5e1; }
+        .highlight-x { background: rgba(59, 130, 246, 0.15); color: #60a5fa !important; border: 1px solid #3b82f6 !important;}
+        .highlight-y { background: rgba(16, 185, 129, 0.15); color: #34d399 !important; border: 1px solid #10b981 !important;}
+    </style>
+</head>
+<body>
+
+    <div id="deck">
+        <div class="credit">Created by Jayan Gupta &amp; Gemini AI</div>
+
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <h1 style="font-size: 72px; margin-bottom: 20px;">Introduction to <span>Scikit-Learn</span></h1>
+            <p style="font-size: 26px; max-width: 800px; text-align: center; color: #cbd5e1;">The Industry Standard toolkit for Machine Learning in Python.</p>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>What is Scikit-Learn?</h2>
+                    <p>Scikit-Learn (or <code>sklearn</code>) is the most robust and accessible machine learning library in Python.</p>
+                    <p><strong>The Core Benefits:</strong></p>
+                    <ul>
+                        <li><strong>Built on Giants:</strong> Built upon NumPy, SciPy, and Matplotlib. It integrates perfectly with Pandas.</li>
+                        <li><strong>Incredible Documentation:</strong> Widely considered to have the best documentation of any open-source library.</li>
+                        <li><strong>Battery Included:</strong> Contains algorithms for Classification, Regression, Clustering, and Preprocessing.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel" style="background: #1e293b; justify-content: center; border:none; text-align: center;">
+                    <h3 style="font-size: 32px; color: #f8fafc; margin-bottom: 30px;">The Ultimate Consistency</h3>
+                    <p style="font-size: 22px;">The greatest strength of Scikit-Learn is its <strong>Uniform API</strong>. Whether you are building a simple linear line or a complex Random Forest, the code structure is exactly the same.</p>
+                    <div style="background: #0f172a; padding: 20px; border-radius: 8px; margin-top: 20px; text-align: left; border-left: 4px solid #10b981; font-family: 'Fira Code', monospace; color: #94a3b8; font-size: 18px;">
+                        <span style="color:#c678dd;">from</span> sklearn.linear_model <span style="color:#c678dd;">import</span> LinearRegression<br><br>
+                        model = LinearRegression()<br>
+                        model.fit(X_train, y_train)<br>
+                        predictions = model.predict(X_test)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The ML Workflow Lifecycle</h2>
+                    <p>Machine learning is not just fitting a model; it is an end-to-end multi-step cycle.</p>
+                    <p>Scikit-learn provides specialized utility classes and submodules built intentionally for every step of this engineering process.</p>
+                    <p><em>Click on each phase of the workflow pipeline to reveal the internal Scikit-Learn module assigned to it.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="workflow-box">
+                        <div class="wf-step active" onclick="showWorkflow(0, this)">
+                            <h4>1. Data Preprocessing</h4>
+                            <span id="wf-mod">sklearn.preprocessing</span>
+                        </div>
+                        <div class="wf-step" onclick="showWorkflow(1, this)">
+                            <h4>2. Dataset Splitting</h4>
+                            <span id="wf-mod">sklearn.model_selection</span>
+                        </div>
+                        <div class="wf-step" onclick="showWorkflow(2, this)">
+                            <h4>3. Model Training (Fitting)</h4>
+                            <span id="wf-mod">sklearn.base (Estimators)</span>
+                        </div>
+                        <div class="wf-step" onclick="showWorkflow(3, this)">
+                            <h4>4. Performance Evaluation</h4>
+                            <span id="wf-mod">sklearn.metrics</span>
+                        </div>
+                    </div>
+                    <div id="workflow-desc" style="margin-top: 25px; background: #0f172a; padding: 20px; border-radius: 10px; border: 1px solid #1e293b; min-height: 120px;">
+                        <strong style="color:#10b981;">Data Preprocessing:</strong> Cleans up messy raw arrays. Includes features like missing value imputers, encoders for string variables, and numeric range scalers.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Features vs. Target Variables</h2>
+                    <p>Before computing math, your tabular records must be split into structural dimensions:</p>
+                    <ul>
+                        <li><strong>Features (Matrix $X$):</strong> The independent input variables or measurements used to make predictions. (Shape: <code>[n_samples, n_features]</code>)</li>
+                        <li><strong>Target (Vector $y$):</strong> The dependent ground-truth label or real outcome you want the system to learn to forecast. (Shape: <code>[n_samples]</code>)</li>
+                    </ul>
+                    <p><em>Use the toggles to see how data is isolated into mathematical tensors before modeling.</em></p>
+                </div>
+                <div class="interactive-panel" style="justify-content: flex-start;">
+                    <h3 style="font-size: 20px; margin-bottom: 15px; color:#cbd5e1;">Sample Dataset: Real Estate</h3>
+                    <table class="data-table" id="data-matrix">
+                        <tr>
+                            <th>House ID</th>
+                            <th class="col-feat">Size (SqFt)</th>
+                            <th class="col-feat">Bedrooms</th>
+                            <th class="col-feat">Age (Years)</th>
+                            <th class="col-targ">Price (Target)</th>
+                        </tr>
+                        <tr><td>1</td><td class="col-feat">1,500</td><td class="col-feat">3</td><td class="col-feat">12</td><td class="col-targ">$250,000</td></tr>
+                        <tr><td>2</td><td class="col-feat">2,400</td><td class="col-feat">4</td><td class="col-feat">3</td><td class="col-targ">$420,000</td></tr>
+                        <tr><td>3</td><td class="col-feat">1,100</td><td class="col-feat">2</td><td class="col-feat">25</td><td class="col-targ">$185,000</td></tr>
+                        <tr><td>4</td><td class="col-feat">3,200</td><td class="col-feat">5</td><td class="col-feat">1</td><td class="col-targ">$610,000</td></tr>
+                    </table>
+                    <div class="playground-controls" style="margin-top: auto;">
+                        <button class="btn-action secondary" onclick="highlightData('X')">Isolate Features (X)</button>
+                        <button class="btn-action" onclick="highlightData('y')">Isolate Target (y)</button>
+                        <button class="btn-action outline" onclick="highlightData('reset')">Clear View</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Supervised vs. Unsupervised Learning</h2>
+                    <p>Machine learning tasks split cleanly into two fundamental paradigm environments:</p>
+                    <ul>
+                        <li><strong>Supervised Learning:</strong> The training data includes the target labels ($y$). The model learns mapping functions to separate explicit targets.</li>
+                        <li><strong>Unsupervised Learning:</strong> The training data has NO labels ($y$). The model must search for hidden structures and native geometric patterns on its own.</li>
+                    </ul>
+                    <p><em>Toggle between paradigms to visualize how models treat labeled clusters vs. discovering structure organically.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-paradigm"></canvas></div>
+                    <div class="playground-controls">
+                        <button class="btn-action secondary" onclick="drawParadigm('supervised')">Supervised (Labeled)</button>
+                        <button class="btn-action" onclick="drawParadigm('unsupervised')">Unsupervised (Unlabeled Clustering)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>The Estimator API</h2>
+                    <p>Every algorithm in Scikit-Learn follows the same uniform three-step process:</p>
+                    <ol>
+                        <li><strong>Initialize:</strong> Set up the model <code>model = Algorithm()</code></li>
+                        <li><strong>Fit:</strong> The model learns from the data using <code>.fit(X, y)</code></li>
+                        <li><strong>Predict:</strong> The model guesses new outcomes using <code>.predict(new_X)</code></li>
+                    </ol>
+                    <p><em>Execute the code in the playground to watch the API in action.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-api"></canvas></div>
+                    <div class="playground-controls">
+                        <button class="btn-action outline" id="btn-init" onclick="apiInit()">1. Initialize</button>
+                        <button class="btn-action secondary" id="btn-fit" onclick="apiFit()" disabled>2. model.fit()</button>
+                        <button class="btn-action" id="btn-predict" onclick="apiPredict()" disabled>3. model.predict()</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Preprocessing: Scaling</h2>
+                    <p>Machine Learning algorithms rely on mathematical distances. If one feature is measured in millions (e.g., Salary) and another in single digits (e.g., Age), the algorithm will be biased toward the larger numbers.</p>
+                    <p><strong>StandardScaler:</strong> Modifies the data so it has a Mean of 0 and a Standard Deviation of 1.</p>
+                    <p><em>Use the slider to apply the StandardScaler transformation and watch the data normalize.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-scale"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Apply StandardScaler()</label><span id="scale-val">Raw Data</span></div>
+                            <input type="range" id="scale-slider" min="0" max="100" value="0" oninput="updateScaling()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Model Evaluation: Train/Test Split</h2>
+                    <p>We never evaluate a model on the same data we used to train it. That would be like giving a student the answer key before a test.</p>
+                    <p><code>train_test_split()</code> randomly divides our data into a Training set (to learn) and a Testing set (to evaluate).</p>
+                    <p><em>Adjust the training size. Notice how a lack of training data (under 30%) causes the model to draw wildly inaccurate conclusions.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-split"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Training Data Size</label><span id="split-val">80% Train / 20% Test</span></div>
+                            <input type="range" id="split-slider" min="10" max="90" step="5" value="80" oninput="updateSplit()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Overfitting vs. Underfitting</h2>
+                    <p>Finding the right sweet spot in machine learning model complexity is a key optimization objective:</p>
+                    <ul>
+                        <li><strong>Underfitting:</strong> Model is too simple. High bias. Fails to learn patterns in training data.</li>
+                        <li><strong>Overfitting:</strong> Model is too complex. High variance. Memorizes noise, failing completely on new test values.</li>
+                    </ul>
+                    <p><em>Slide the model complexity bar to change model flexibility and look for the balanced ideal fit.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-variance"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Model Structural Complexity</label><span id="variance-val">Balanced Fit</span></div>
+                            <input type="range" id="variance-slider" min="1" max="3" step="1" value="2" oninput="updateVariance()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <h2>The Scikit-Learn Ecosystem</h2>
+            <div class="grid-3">
+                <div class="card" style="border-color: #3b82f6;">
+                    <h3>1. Estimators (Models)</h3>
+                    <p style="font-size: 15px; margin-bottom: 15px;">The algorithms that learn from data and make predictions.</p>
+                    <ul>
+                        <li><code>LinearRegression()</code></li>
+                        <li><code>RandomForestClassifier()</code></li>
+                        <li><code>KMeans()</code></li>
+                        <li><strong>Core Methods:</strong> <code>fit()</code>, <code>predict()</code></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: #10b981;">
+                    <h3>2. Transformers (Prep)</h3>
+                    <p style="font-size: 15px; margin-bottom: 15px;">Tools used to clean, scale, and manipulate raw data before modeling.</p>
+                    <ul>
+                        <li><code>StandardScaler()</code></li>
+                        <li><code>OneHotEncoder()</code></li>
+                        <li><code>SimpleImputer()</code></li>
+                        <li><strong>Core Methods:</strong> <code>fit()</code>, <code>transform()</code></li>
+                    </ul>
+                </div>
+                <div class="card" style="border-color: #f59e0b;">
+                    <h3>3. Meta-Tools</h3>
+                    <p style="font-size: 15px; margin-bottom: 15px;">Utilities for combining steps and fine-tuning your model's performance.</p>
+                    <ul>
+                        <li><code>Pipeline()</code> (Chains steps)</li>
+                        <li><code>GridSearchCV()</code> (Finds best settings)</li>
+                        <li><code>cross_val_score()</code> (Validation)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn-nav" id="prev-btn" onclick="nav(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // --- NAVIGATION LOGIC ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        
+        function nav(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === slides.length - 1;
+        }
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Outfit';
+
+        // --- PLAYGROUND: WORKFLOW TIMELINE ---
+        const workflowDescs = [
+            "<strong style='color:#10b981;'>Data Preprocessing:</strong> Cleans up messy raw arrays. Includes features like missing value imputers, encoders for string variables, and numeric range scalers.",
+            "<strong style='color:#10b981;'>Dataset Splitting:</strong> Isolates patterns from verification checks using tools like <code>train_test_split</code> or Cross-Validation strategies to prevent data leakage.",
+            "<strong style='color:#10b981;'>Model Training (Fitting):</strong> Injects structural training tensors directly into core algorithmic estimators to adjust internal optimization parameters.",
+            "<strong style='color:#10b981;'>Performance Evaluation:</strong> Compiles operational performance metrics (Accuracy, Mean Squared Error, R² score) over data holdout partitions."
+        ];
+        function showWorkflow(idx, element) {
+            document.querySelectorAll('.wf-step').forEach(el => el.classList.remove('active'));
+            element.classList.add('active');
+            document.getElementById('workflow-desc').innerHTML = workflowDescs[idx];
+        }
+
+        // --- PLAYGROUND: FEATURES VS TARGET ---
+        function highlightData(mode) {
+            const cellsFeat = document.querySelectorAll('.col-feat');
+            const cellsTarg = document.querySelectorAll('.col-targ');
+            
+            cellsFeat.forEach(c => c.classList.remove('highlight-x'));
+            cellsTarg.forEach(c => c.classList.remove('highlight-y'));
+            
+            if(mode === 'X') {
+                cellsFeat.forEach(c => c.classList.add('highlight-x'));
+            } else if(mode === 'y') {
+                cellsTarg.forEach(c => c.classList.add('highlight-y'));
+            }
+        }
+
+        // --- PLAYGROUND: SUPERVISED VS UNSUPERVISED ---
+        const ctxParadigm = document.getElementById('chart-paradigm').getContext('2d');
+        const c1Points = [{x: 2, y: 3}, {x: 3, y: 2}, {x: 2.5, y: 4}, {x: 1.5, y: 2.5}, {x: 3.5, y: 3.5}];
+        const c2Points = [{x: 7, y: 8}, {x: 8, y: 7}, {x: 8.5, y: 9}, {x: 6.5, y: 7.5}, {x: 7.5, y: 6.5}];
+        
+        let chartParadigm = new Chart(ctxParadigm, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Class A', data: c1Points, backgroundColor: '#3b82f6', pointRadius: 8 },
+                    { label: 'Class B', data: c2Points, backgroundColor: '#ef4444', pointRadius: 8 },
+                    { type: 'line', label: 'Decision Boundary', data: [{x:0, y:10}, {x:10, y:0}], borderColor: '#10b981', borderDash: [6,6], fill: false, pointRadius: 0 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 10}, y: {min: 0, max: 10} } }
+        });
+
+        function drawParadigm(type) {
+            if (type === 'supervised') {
+                chartParadigm.data.datasets = [
+                    { label: 'Class A', data: c1Points, backgroundColor: '#3b82f6', pointRadius: 8 },
+                    { label: 'Class B', data: c2Points, backgroundColor: '#ef4444', pointRadius: 8 },
+                    { type: 'line', label: 'Decision Boundary', data: [{x:0, y:10}, {x:10, y:0}], borderColor: '#10b981', borderDash: [6,6], fill: false, pointRadius: 0 }
+                ];
+            } else {
+                // Combine into unlabeled dots, then simulate structured clustering assignments
+                chartParadigm.data.datasets = [
+                    { label: 'Cluster 1 Found', data: c1Points, backgroundColor: '#8b5cf6', pointRadius: 8 },
+                    { label: 'Cluster 2 Found', data: c2Points, backgroundColor: '#f59e0b', pointRadius: 8 }
+                ];
+            }
+            chartParadigm.update();
+        }
+
+        // --- PLAYGROUND: THE API ---
+        const ctxApi = document.getElementById('chart-api').getContext('2d');
+        const apiData = [];
+        for(let i=1; i<=10; i++) apiData.push({x: i, y: i * 2 + 5 + (Math.random()*6-3)});
+        
+        let chartApi = new Chart(ctxApi, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Raw Data (X, y)', data: apiData, backgroundColor: '#475569', pointRadius: 6 }] },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 12}, y: {min: 0, max: 35} }, animation: { duration: 800 } }
+        });
+
+        function apiInit() {
+            chartApi.data.datasets = [{ label: 'Raw Data (X, y)', data: apiData, backgroundColor: '#3b82f6', pointRadius: 6 }];
+            chartApi.update();
+            document.getElementById('btn-init').disabled = true;
+            document.getElementById('btn-fit').disabled = false;
+        }
+
+        function apiFit() {
+            let n = apiData.length;
+            let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+            apiData.forEach(p => { sumX += p.x; sumY += p.y; sumXY += p.x*p.y; sumXX += p.x*p.x; });
+            window.apiSlope = (n*sumXY - sumX*sumY) / (n*sumXX - sumX*sumX);
+            window.apiIntercept = (sumY - window.apiSlope*sumX) / n;
+
+            chartApi.data.datasets.push({ type: 'line', label: 'Trained Model (Line)', data: [{x:0, y:window.apiIntercept}, {x:12, y:window.apiSlope*12 + window.apiIntercept}], borderColor: '#10b981', borderWidth: 4, fill: false, pointRadius: 0 });
+            chartApi.update();
+            document.getElementById('btn-fit').disabled = true;
+            document.getElementById('btn-predict').disabled = false;
+        }
+
+        function apiPredict() {
+            let newX = [10.5, 11, 11.5];
+            let predData = newX.map(x => ({x: x, y: window.apiSlope * x + window.apiIntercept}));
+            
+            chartApi.data.datasets.push({ type: 'scatter', label: 'Predictions (new_X)', data: predData, backgroundColor: '#f59e0b', pointRadius: 10, pointStyle: 'star' });
+            chartApi.update();
+            document.getElementById('btn-predict').disabled = true;
+            setTimeout(() => {
+                document.getElementById('btn-init').disabled = false;
+                chartApi.data.datasets = [{ label: 'Raw Data (X, y)', data: apiData, backgroundColor: '#475569', pointRadius: 6 }];
+                chartApi.update();
+            }, 3000);
+        }
+
+        // --- PLAYGROUND: SCALING ---
+        const ctxScale = document.getElementById('chart-scale').getContext('2d');
+        const rawScaleData = [];
+        for(let i=0; i<30; i++) {
+            rawScaleData.push({ x: 50000 + Math.random()*100000, y: 30 + Math.random()*20 });
+        }
+        
+        let chartScale = new Chart(ctxScale, {
+            type: 'scatter',
+            data: { datasets: [{ label: 'Data Points', data: JSON.parse(JSON.stringify(rawScaleData)), backgroundColor: '#8b5cf6', pointRadius: 6 }] },
+            options: { 
+                responsive: true, maintainAspectRatio: false, 
+                scales: { x: {title: {display:true, text:'X1 (e.g. Salary)'}}, y: {title: {display:true, text:'X2 (e.g. Age)'}} },
+                animation: { duration: 300 } 
+            }
+        });
+
+        function updateScaling() {
+            let val = document.getElementById('scale-slider').value / 100;
+            let label = document.getElementById('scale-val');
+            
+            if(val === 0) label.innerText = "Raw Data";
+            else if(val === 1) label.innerText = "Fully Scaled (Mean=0, Std=1)";
+            else label.innerText = "Transforming...";
+
+            let sumX = 0, sumY = 0;
+            rawScaleData.forEach(d => { sumX += d.x; sumY += d.y; });
+            let meanX = sumX / 30, meanY = sumY / 30;
+            let stdX = Math.sqrt(rawScaleData.reduce((acc, d) => acc + Math.pow(d.x - meanX, 2), 0) / 30);
+            let stdY = Math.sqrt(rawScaleData.reduce((acc, d) => acc + Math.pow(d.y - meanY, 2), 0) / 30);
+
+            let currentData = rawScaleData.map(d => {
+                let scaledX = (d.x - meanX) / stdX;
+                let scaledY = (d.y - meanY) / stdY;
+                return { x: d.x + (scaledX - d.x) * val, y: d.y + (scaledY - d.y) * val };
+            });
+
+            chartScale.data.datasets[0].data = currentData;
+            chartScale.options.scales.x.max = 160000 - (160000 - 3) * val;
+            chartScale.options.scales.x.min = 40000 - (40000 - -3) * val;
+            chartScale.options.scales.y.max = 60 - (60 - 3) * val;
+            chartScale.options.scales.y.min = 20 - (20 - -3) * val;
+            chartScale.update();
+        }
+
+        // --- PLAYGROUND: TRAIN/TEST SPLIT ---
+        const ctxSplit = document.getElementById('chart-split').getContext('2d');
+        const splitData = [];
+        for(let i=0; i<40; i++) {
+            let x = Math.random() * 20;
+            splitData.push({x: x, y: 0.5 * x * x - 2 * x + 10 + (Math.random()*15-7.5), id: i});
+        }
+
+        let chartSplit = new Chart(ctxSplit, {
+            type: 'scatter',
+            data: { 
+                datasets: [
+                    { label: 'Training Data', data: [], backgroundColor: '#10b981', pointRadius: 6 },
+                    { label: 'Testing Data', data: [], backgroundColor: '#ef4444', pointRadius: 6 },
+                    { type: 'line', label: 'Model Prediction', data: [], borderColor: '#3b82f6', borderWidth: 3, tension: 0.4, fill: false, pointRadius: 0 }
+                ] 
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 20}, y: {min: 0, max: 200} }, animation: { duration: 400 } }
+        });
+
+        function updateSplit() {
+            let trainPercent = document.getElementById('split-slider').value;
+            document.getElementById('split-val').innerText = `${trainPercent}% Train / ${100 - trainPercent}% Test`;
+            
+            let trainSize = Math.floor(40 * (trainPercent / 100));
+            let trainData = splitData.slice(0, trainSize);
+            let testData = splitData.slice(trainSize);
+
+            let skew = (100 - trainPercent) / 100; 
+            let skewDir = (trainData.length > 0 && trainData[0].y > (0.5*trainData[0].x*trainData[0].x - 2*trainData[0].x + 10)) ? 1 : -1;
+            
+            let modelCurve = [];
+            for(let i=0; i<=20; i++) {
+                let trueY = 0.5 * i * i - 2 * i + 10;
+                let badY = (trueY * (1 - skew)) + (10 * i * skewDir * skew) + 10; 
+                modelCurve.push({x: i, y: badY});
+            }
+
+            chartSplit.data.datasets[0].data = trainData;
+            chartSplit.data.datasets[1].data = testData;
+            chartSplit.data.datasets[2].data = modelCurve;
+            chartSplit.update();
+        }
+
+        // --- PLAYGROUND: OVERFITTING VS UNDERFITTING ---
+        const ctxVariance = document.getElementById('chart-variance').getContext('2d');
+        const varPoints = [{x: 1, y: 15}, {x: 3, y: 10}, {x: 5, y: 25}, {x: 7, y: 18}, {x: 9, y: 40}, {x: 11, y: 32}, {x: 13, y: 60}, {x: 15, y: 50}];
+        
+        let chartVariance = new Chart(ctxVariance, {
+            type: 'scatter',
+            data: {
+                datasets: [
+                    { label: 'Data Coordinates', data: varPoints, backgroundColor: '#f8fafc', pointRadius: 7 },
+                    { type: 'line', label: 'Model Function Fit', data: [], borderColor: '#3b82f6', borderWidth: 3, fill: false, pointRadius: 0, tension: 0.1 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { x: {min: 0, max: 16}, y: {min: 0, max: 70} } }
+        });
+
+        function updateVariance() {
+            let val = parseInt(document.getElementById('variance-slider').value);
+            let label = document.getElementById('variance-val');
+            let curve = [];
+
+            if(val === 1) {
+                label.innerText = "Underfitting (High Bias: Too Rigid)";
+                label.style.color = "#ef4444";
+                curve = [{x: 0, y: 10}, {x: 16, y: 55}];
+                chartVariance.data.datasets[1].tension = 0;
+            } else if(val === 2) {
+                label.innerText = "Balanced Fit (Ideal Generalization)";
+                label.style.color = "#10b981";
+                for(let i=0; i<=16; i++) {
+                    curve.push({x: i, y: 0.18 * i * i + 5});
+                }
+                chartVariance.data.datasets[1].tension = 0.3;
+            } else {
+                label.innerText = "Overfitting (High Variance: Memorized Noise)";
+                label.style.color = "#f59e0b";
+                // Artificially create wild spikes passing through target markers
+                curve = [
+                    {x:0, y:5}, {x:1, y:15}, {x:2, y:-5}, {x:3, y:10}, {x:4, y:45}, 
+                    {x:5, y:25}, {x:6, y:5}, {x:7, y:18}, {x:8, y:55}, {x:9, y:40}, 
+                    {x:10, y:15}, {x:11, y:32}, {x:12, y:75}, {x:13, y:60}, {x:14, y:20}, {x:15, y:50}, {x:16, y:80}
+                ];
+                chartVariance.data.datasets[1].tension = 0.45;
+            }
+            chartVariance.data.datasets[1].data = curve;
+            chartVariance.update();
+        }
+
+        // Initialize runtime modules
+        updateSplit();
+        updateVariance();
+    </script>
+</body>
+</html>

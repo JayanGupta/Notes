@@ -1,0 +1,1700 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Regression</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #040712;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #0a1124 0%, #02040a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Premium Cinematic Slide Transitions */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 5rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98) translateY(15px);
+            transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.5s;
+            pointer-events: none;
+            z-index: 1;
+            visibility: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+            z-index: 2;
+            visibility: visible;
+        }
+
+        /* Universal HUD Navigation Panel */
+        .controls {
+            position: absolute;
+            bottom: 2.5rem;
+            right: 5rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(10, 17, 32, 0.75);
+            padding: 12px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-indicator {
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 700;
+            margin-right: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f9fafb;
+            border: 1px solid #334155;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #00f2fe;
+            border-color: #00f2fe;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .suite-tag {
+            position: absolute;
+            bottom: 3.2rem;
+            left: 5rem;
+            z-index: 100;
+            font-size: 13px;
+            color: #475569;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Typography Mastery */
+        .header-tag {
+            font-size: 12px;
+            color: #00f2fe;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: 3.8rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-weight: 700;
+            tracking: -1px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #00f2fe 0%, #4f46e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            margin-bottom: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            background: rgba(0, 242, 254, 0.08);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 242, 254, 0.15);
+        }
+
+        p,
+        li {
+            font-size: 1.1rem;
+            line-height: 1.65;
+            color: #94a3b8;
+            margin-bottom: 14px;
+            font-weight: 400;
+        }
+
+        ul {
+            margin-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* High-End Enterprise Layout Matrix */
+        .split-layout {
+            display: flex;
+            gap: 3.5rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 2rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Advanced Glassmorphic Playground Architecture */
+        .interactive-panel {
+            flex: 1.3;
+            background: rgba(11, 19, 38, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: #030611;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .math-block {
+            background: rgba(2, 4, 10, 0.5);
+            padding: 16px 20px;
+            border-radius: 12px;
+            border-left: 4px solid #00f2fe;
+            margin: 12px 0;
+            color: #e2e8f0;
+            font-size: 1.15rem;
+        }
+
+        /* Professional Telemetry Telemetric HUD Instrumentation */
+        .telemetry-hud {
+            background: #02050e;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13.5px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 8px;
+            align-items: center;
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .val-cyan {
+            color: #00f2fe;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .val-rose {
+            color: #ff4a6b;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 74, 107, 0.2);
+        }
+
+        .val-emerald {
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .val-purple {
+            color: #a855f7;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Premium Input Elements styling */
+        .playground-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: rgba(2, 4, 10, 0.3);
+            padding: 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00f2fe;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #00f2fe 0%, #3b82f6 100%);
+            color: #020617;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14.5px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(0, 242, 254, 0.4);
+            color: #ffffff;
+        }
+
+        /* Dual Grid Canvas Setup */
+        .dual-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Corporate Workflow Pipeline Pipeline Component */
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            flex: 1;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pipeline-card {
+            background: rgba(11, 19, 38, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem 1.5rem;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pipeline-card:hover {
+            border-color: #00f2fe;
+            background: rgba(11, 19, 38, 0.8);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 242, 254, 0.1);
+        }
+
+        .pipeline-card.active-step {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+        }
+
+        .pipeline-card::after {
+            content: '→';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.6rem;
+            color: #334155;
+            font-weight: bold;
+        }
+
+        .pipeline-card:last-child::after {
+            display: none;
+        }
+
+        .pipeline-icon {
+            font-size: 2.5rem;
+            margin-bottom: 14px;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.2));
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="suite-tag">Enterprise Machine Learning Pipeline Architecture</div>
+
+        <div class="slide active" data-index="1">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 01 // Supervised Learning Foundations</div>
+                    <h1>What is <span>Regression?</span></h1>
+                    <p>In analytical engineering, <strong>Regression</strong> is the mathematical process of estimating
+                        and scaling functional mappings between independent feature domains and continuous target
+                        variables.</p>
+                    <p>Unlike discrete structural classifiers that separate categorical classes (e.g., identifying fraud
+                        variants), regression models map an <strong>infinite numerical continuum</strong>. Core
+                        industrial deployments include:</p>
+                    <ul>
+                        <li>Predicting asset valuations based on macroeconomic parameters.</li>
+                        <li>Estimating infrastructure energy demand vectors.</li>
+                        <li>Forecasting server execution workloads over operational metrics.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s1"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Target Domain Continuum:</span><span class="val-cyan">Continuous
+                                Scalar [$Y \in \mathbb{R}$]</span></div>
+                        <div class="hud-row"><span>Simulated Dataset Ingestion:</span><span id="lbl-s1-count">5 Records
+                                Bound</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s1_generateData()">Mutate Continuous Target
+                        Vector</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="2">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>02</span> Why Linear Formulations?</h2>
+                    <p>Modern machine learning scales to millions of parameters, yet the simple **Straight Line** remain
+                        the foundational baseline for enterprise architectures.</p>
+                    <ul>
+                        <li><strong>High Interpretability:</strong> Every feature coefficient explicitly reveals
+                            real-world impact. If $X$ shifts by one unit, $Y$ changes predictably by the exact weight
+                            factor.</li>
+                        <li><strong>Inference Velocity ($O(D)$):</strong> Executes predictions instantly in
+                            microseconds, requiring minimal memory footprints.</li>
+                        <li><strong>Low Variance Baseline:</strong> Resists the structural volatility that causes
+                            complex non-linear networks to overfit erratic local noise.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s2"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Modeling Engine:</span><span id="lbl-s2-engine"
+                                class="val-cyan">Standard Linear Estimator</span></div>
+                        <div class="hud-row"><span>Inference Processing Latency:</span><span id="lbl-s2-latency"
+                                class="val-emerald">0.02 ms (Ultra-Low)</span></div>
+                        <div class="hud-row"><span>Feature Explainability Score:</span><span id="lbl-s2-explain"
+                                class="val-emerald">100% Deterministic</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s2-toggle"
+                        onclick="playgroundActions.s2_toggleArchitecture()">Switch to Deep Neural Network
+                        Architecture</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="3">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>03</span> The "Best Fit" Objective</h2>
+                    <p>The objective of the training process is to find the unique structural vector plane that maps
+                        through the center of gravity of your data cloud.</p>
+                    <p>A candidate line is evaluated by measuring its cumulative distance error against all historical
+                        observation data points simultaneously.</p>
+                    <p><em>Interactive Task: Manually manipulate the optimization controls below to balance the
+                            prediction line. Discover the exact location where total aggregate model error
+                            collapses.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s3"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Global Deviation Matrix:</span><span id="lbl-s3-status"
+                                class="val-rose">Unoptimized Alignment</span></div>
+                        <div class="hud-row"><span>Aggregate Variance Remainder:</span><span id="lbl-s3-variance"
+                                class="val-cyan">Calculating...</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Slope Parameter ($w$)</label><span
+                                    id="val-s3-w">0.20</span></div>
+                            <input type="range" id="slide-s3-w" min="-50" max="250" value="20"
+                                oninput="playgroundActions.s3_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="4">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>04</span> The Mathematical Structural Equation</h2>
+                    <p>The translation of continuous inputs into a concrete target prediction is calculated through a
+                        single deterministic algebraic equation:</p>
+                    <div class="math-block">
+                        $$\hat{y} = w \cdot x + b$$
+                    </div>
+                    <ul>
+                        <li><strong>$\hat{y}$ (y-hat):</strong> The optimized scalar numeric output generated by the
+                            inference model.</li>
+                        <li><strong>$x$:</strong> The independent input feature matrix column.</li>
+                        <li><strong>$w$ (Weight/Slope):</strong> The directional scaling multiplier. Dictates the
+                            system's sensitivity to input transformations.</li>
+                        <li><strong>$b$ (Bias/Intercept):</strong> The structural base elevation vector when inputs are
+                            evaluated at absolute zero.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s4"></canvas></div>
+                    <div class="telemetry-hud" style="font-size: 15px; text-align: center;">
+                        <span style="color:#ffffff;">Active Functional Target:</span>
+                        <div id="lbl-s4-equation" style="font-weight:700; margin-top:4px;" class="val-cyan">\hat{y} =
+                            1.00 \cdot x + 0.00</div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <input type="range" id="slide-s4-w" min="-10" max="30" value="10" step="1"
+                                oninput="playgroundActions.s4_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="5">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>05</span> Slope & Intercept Mechanics</h2>
+                    <p>To navigate data space, the mathematical solver isolates individual adjustments across the
+                        operational coordinate frames:</p>
+                    <p>Altering **Weight ($w$)** rotates the transformation vector plane, controlling directional
+                        acceleration coefficients.</p>
+                    <p>Altering **Bias ($b$)** shifts the horizontal plane vertically, setting base operational
+                        thresholds independent of input variations.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s5"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Vector Weight / Slope ($w$)</label><span id="val-s5-w"
+                                    class="val-cyan">0.90</span></div>
+                            <input type="range" id="slide-s5-w" min="-20" max="30" value="9" step="1"
+                                oninput="playgroundActions.s5_update()">
+                        </div>
+                        <div class="control-group">
+                            <div class="control-label"><label>Structural Intercept / Bias ($b$)</label><span
+                                    id="val-s5-b" class="val-purple">1.30</span></div>
+                            <input type="range" id="slide-s5-b" min="-20" max="50" value="13" step="1"
+                                oninput="playgroundActions.s5_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="6">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>06</span> Anatomy of a Residual</h2>
+                    <p>A <strong>Residual</strong> is the precise mathematical difference between an empirical
+                        real-world target value and the prediction plane generated by our model.</p>
+                    <div class="math-block">
+                        $$\text{Residual}_i = y_i - \hat{y}_i$$
+                    </div>
+                    <p>Residual lines establish a localized vector framework. Points above the plane generate positive
+                        errors; entries plotting below output negative errors.</p>
+                    <p><em>Observe the live validation grid: Adjusting alignment fields updates individual localized
+                            error vectors instantly.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s6"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Shift Inference Vector Horizon</label></div>
+                            <input type="range" id="slide-s6-b" min="-10" max="40" value="30" step="1"
+                                oninput="playgroundActions.s6_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="7">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>07</span> Cost Functions: Formulating MSE</h2>
+                    <p>To quantify macro model error into a single differentiable scalar optimization target, we
+                        calculate the <strong>Mean Squared Error (MSE)</strong>:</p>
+                    <div class="math-block">
+                        $$J(w,b) = \text{MSE} = \frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2$$
+                    </div>
+                    <p>The right-hand panel visualizes the geometric squared error penalties. As residual deviation
+                        scales linearly, its corresponding cost footprint expands exponentially as an explicit surface
+                        area square.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="dual-chart-grid">
+                        <div class="chart-container"><canvas id="chart-s7-main"></canvas></div>
+                        <div class="chart-container"><canvas id="chart-s7-cost"></canvas></div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Computed Global MSE Cost:</span><span id="lbl-s7-mse"
+                                class="val-rose">0.000</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <input type="range" id="slide-s7-w" min="-5" max="25" value="2" step="1"
+                            oninput="playgroundActions.s7_update()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="8">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>08</span> Operational Scaling: Why Square Errors?</h2>
+                    <p>Choosing to square errors instead of computing raw absolute deviations shifts how models evaluate
+                        training updates:</p>
+                    <ul>
+                        <li><strong>Mathematical Differentiability:</strong> Squaring models a smooth quadratic
+                            optimization landscape with clean derivatives across every index. Absolute functions yield
+                            non-differentiable inflection points.</li>
+                        <li><strong>Aggressive Outlier Penalization:</strong> Squaring turns large deviations into
+                            massive model penalties. An error of 2 costs 4 points, but an error of 10 costs 100 points!
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s8"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Mean Absolute Error Metric (MAE):</span><span id="lbl-s8-mae"
+                                class="val-cyan">0.00</span></div>
+                        <div class="hud-row"><span>Mean Squared Error Penalty (MSE):</span><span id="lbl-s8-mse"
+                                class="val-rose">0.00</span></div>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="checkbox" id="chk-s8-outlier" style="width:20px; height:20px; cursor:pointer;"
+                            onchange="playgroundActions.s8_update()">
+                        <label for="chk-s8-outlier"
+                            style="font-size:14px; color:#cbd5e1; cursor:pointer; font-weight:600;">Inject Anomalous
+                            Outlier Record</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="9">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>09</span> The Gradient Descent Optimization Engine</h2>
+                    <p>Instead of guessing random parameter combinations, the system runs partial differential calculus
+                        down the loss surface to converge parameters automatically:</p>
+                    <div class="math-block">
+                        $$w := w - \alpha \frac{\partial J}{\partial w} \quad | \quad b := b - \alpha \frac{\partial
+                        J}{\partial b}$$
+                    </div>
+                    <p>The localized derivatives serve as an internal compass, indicating the directional step vector
+                        needed to minimize global cost.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s9"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Weight Parameter ($w$):</span><span id="lbl-s9-w"
+                                class="val-cyan">0.000</span></div>
+                        <div class="hud-row"><span>Intercept Bias ($b$):</span><span id="lbl-s9-b"
+                                class="val-purple">0.000</span></div>
+                        <div class="hud-row"><span>Loss Function Score ($MSE$):</span><span id="lbl-s9-mse"
+                                class="val-rose">Calculating...</span></div>
+                    </div>
+                    <div style="display:flex; gap:12px;">
+                        <button class="btn-action" style="flex:1;" onclick="playgroundActions.s9_step()">Execute Epoch
+                            Optimization Step</button>
+                        <button class="btn-action"
+                            style="flex:1; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                            id="btn-s9-run" onclick="playgroundActions.s9_toggleRun()">Auto-Convergence</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="10">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>10</span> The Tuning Parameter: Learning Rate ($\alpha$)</h2>
+                    <p>The hyperparameter **Learning Rate ($\alpha$)** scales the step size taken along the directional
+                        cost path during optimization.</p>
+                    <ul>
+                        <li><strong>Under-scaled Learning Rate ($\alpha = 0.01$):</strong> The optimization process
+                            updates parameters slowly in microscopic steps, wasting valuable compute time.</li>
+                        <li><strong>Over-scaled Learning Rate ($\alpha = 0.85$):</strong> Step sizes overshoot the
+                            target completely, causing parameters to bounce out of control.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s10"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Select Learning Velocity ($\alpha$ Configuration)</label>
+                            </div>
+                            <div style="display:flex; gap:8px;">
+                                <button class="btn-action" style="flex:1; font-size:12px; padding:8px;"
+                                    onclick="playgroundActions.s10_setRate(0.02)">0.02 (Under-scaled)</button>
+                                <button class="btn-action"
+                                    style="flex:1; font-size:12px; padding:8px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                                    onclick="playgroundActions.s10_setRate(0.25)">0.25 (Optimal Fit)</button>
+                                <button class="btn-action"
+                                    style="flex:1; font-size:12px; padding:8px; background:linear-gradient(135deg, #ff4a6b 0%, #b91c1c 100%);"
+                                    onclick="playgroundActions.s10_setRate(0.95)">0.95 (Explosive Variance)</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s10_runTrace()">Initialize Optimization Step
+                        Sequence</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="11">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>11</span> Convexity of the Loss Surface</h2>
+                    <p>Because Mean Squared Error is a purely quadratic function, its multi-dimensional optimization
+                        space forms a **Strictly Convex Hyper-Bowl**.</p>
+                    <p>Unlike deep neural network topologies that contain thousands of localized traps, linear
+                        optimization guarantees that any gradient descent vector path will converge reliably at the
+                        **Absolute Global Minimum**.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s11"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Loss Gradient Topology Status:</span><span
+                                class="val-emerald">Perfectly Convex (Zero Local Valleys)</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Manually Trace Parameter Point Space</label></div>
+                            <input type="range" id="slide-s11-w" min="-15" max="35" value="-15"
+                                oninput="playgroundActions.s11_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="12">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>12</span> Industrial Validation Scoring Metrics</h2>
+                    <p>Deploying business-grade pipelines requires strict, multi-dimensional validation metrics:</p>
+                    <ul>
+                        <li><strong>Mean Absolute Error (MAE):</strong> Measures the raw arithmetic average of absolute
+                            errors.</li>
+                        <li><strong>Root Mean Squared Error (RMSE):</strong> Converts the squared penalty scale back
+                            into the exact measurement units of your target variable, making validation clear and
+                            actionable.</li>
+                        <li><strong>Coefficient of Determination ($R^2$):</strong> Measures the percentage of target
+                            variance explained by the model compared to a flat baseline average. $1.0$ represents a
+                            perfect fit.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s12"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Mean Absolute Deviation (MAE):</span><span id="lbl-s12-mae"
+                                class="val-cyan">0.000</span></div>
+                        <div class="hud-row"><span>Root Mean Squared Error (RMSE):</span><span id="lbl-s12-rmse"
+                                class="val-rose">0.000</span></div>
+                        <div class="hud-row"><span>Explanatory Variance Accuracy ($R^2$):</span><span id="lbl-s12-r2"
+                                class="val-emerald">0.000</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <input type="range" id="slide-s12-w" min="-10" max="30" value="-5"
+                            oninput="playgroundActions.s12_update()">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="13">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>13</span> The L.I.N.E. Protocol Assumptions</h2>
+                    <p>Linear models require strict structural assumptions about the data to remain accurate and
+                        statistically valid:</p>
+                    <ul>
+                        <li><strong>Linearity:</strong> The underlying feature mappings must follow a straight line.
+                        </li>
+                        <li><strong>Independence:</strong> Successive records must not display cyclical time-series
+                            pattern clustering.</li>
+                        <li><strong>Normality:</strong> Residual errors must form a symmetrical Gaussian bell curve
+                            distribution.</li>
+                        <li><strong>Equal Variance (Homoscedasticity):</strong> The distribution width of error points
+                            must remain uniform across the entire feature space.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="dual-chart-grid">
+                        <div class="chart-container"><canvas id="chart-s13-data"></canvas></div>
+                        <div class="chart-container"><canvas id="chart-s13-res"></canvas></div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Residual Diagnostic Vector Status:</span><span id="lbl-s13-status"
+                                class="val-emerald">Healthy Homoscedastic Scatter</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s13-toggle"
+                        onclick="playgroundActions.s13_toggleDataset()">Inject Heteroscedastic Megaphone
+                        Distortion</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="14">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>14</span> Navigating Overfitting & Underfitting</h2>
+                    <p>Managing the **Bias-Variance Tradeoff** is the central challenge when training predictive
+                        engines:</p>
+                    <ul>
+                        <li><strong>Underfitting (High Bias):</strong> The model uses an oversimplified structure that
+                            fails to capture the true underlying data patterns.</li>
+                        <li><strong>Optimal Balanced Generalization:</strong> Captures the true predictive signal while
+                            ignoring random noise.</li>
+                        <li><strong>Overfitting (High Variance):</strong> The model uses an overly complex structure
+                            that captures and memorizes random noise, destroying its ability to generalize to new data.
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s14"></canvas></div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action" style="flex:1; font-size:13px;"
+                            onclick="playgroundActions.s14_setMode('under')">High Bias (Underfit)</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:13px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                            onclick="playgroundActions.s14_setMode('optimal')">Optimal Balance</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:13px; background:linear-gradient(135deg, #ff4a6b 0%, #b91c1c 100%);"
+                            onclick="playgroundActions.s14_setMode('over')">High Variance (Overfit)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="15">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>15</span> Regularization: Ridge vs Lasso</h2>
+                    <p>When engineering high column counts, models overfit by expanding weight scales. We inject
+                        mathematical penalty constraints directly into the loss function to control this complexity:</p>
+                    <div class="math-block" style="font-size: 0.95rem;">
+                        <strong>Ridge Regression (L2 Regularization):</strong> Adds a squared weight penalty to compress
+                        all coefficients uniformly toward zero, while keeping all columns active.
+                        $$L_{\text{ridge}} = \text{MSE} + \lambda \sum w_j^2$$
+                    </div>
+                    <div class="math-block" style="font-size: 0.95rem; border-left-color: #a855f7;">
+                        <strong>Lasso Regression (L1 Regularization):</strong> Adds an absolute weight penalty that
+                        drives less useful feature weights exactly to zero, performing automatic feature selection.
+                        $$L_{\text{lasso}} = \text{MSE} + \lambda \sum |w_j|$$
+                    </div>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s15"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Regularization Penalty Scale ($\lambda$
+                                    Strength)</label><span id="val-s15-lambda" class="val-cyan">0.00</span></div>
+                            <input type="range" id="slide-s15-lambda" min="0" max="100" value="0"
+                                oninput="playgroundActions.s15_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="16">
+            <div class="header-tag">Module 16 // Production Engineering</div>
+            <h1>Enterprise <span>Deployment Pipeline</span></h1>
+            <p style="max-width: 950px; margin-bottom: 1.5rem;">To deploy linear regression models in high-throughput
+                enterprise systems, engineering groups run an automated four-stage operational lifecycle.</p>
+
+            <div class="pipeline-grid">
+                <div class="pipeline-card active-step" id="card-step-1" onclick="playgroundActions.s16_selectStep(1)">
+                    <div class="pipeline-icon">🧹</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.3rem;">1. Vector Preparation</h3>
+                    <p style="font-size:0.95rem; color:#94a3b8; line-height:1.5;">Clean missing data values, remove
+                        extreme outliers, and normalize features using MinMax Scaling or Z-Score standardization.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-2" onclick="playgroundActions.s16_selectStep(2)">
+                    <div class="pipeline-icon">⚙️</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.3rem;">2. Parameter Tuning</h3>
+                    <p style="font-size:0.95rem; color:#94a3b8; line-height:1.5;">Run Gradient Descent optimization
+                        loops over isolated validation folds to lock in optimal weights and feature biases.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-3" onclick="playgroundActions.s16_selectStep(3)">
+                    <div class="pipeline-icon">📊</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.3rem;">3. Statistical Auditing</h3>
+                    <p style="font-size:0.95rem; color:#94a3b8; line-height:1.5;">Analyze residual scatter distributions
+                        to verify homoscedasticity and ensure model performance satisfies rigorous enterprise SLAs.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-4" onclick="playgroundActions.s16_selectStep(4)">
+                    <div class="pipeline-icon">🚀</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.3rem;">4. Production API</h3>
+                    <p style="font-size:0.95rem; color:#94a3b8; line-height:1.5;">Serialize parameters into a highly
+                        optimized format to expose the final algebraic model via an ultra-low-latency API endpoint.</p>
+                </div>
+            </div>
+
+            <div class="telemetry-hud" style="margin-top:1.5rem; border-left:4px solid #10b981;" id="box-s16-details">
+                <span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: VECTOR
+                    PREPARATION</span>
+                <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Executing automated
+                    data cleaning script... Handled null fields via median input imputation... Matrix standardizations
+                    successfully mapped to standard scaling transformations.</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-counter">1 / 16</span>
+            <button class="btn-nav" id="btn-prev" onclick="navigationEngine.navigate(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="navigationEngine.navigate(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL UNIFIED REFERENCE DATASETS
+        const SHARED_DATA = [
+            { x: 1, y: 2.1 },
+            { x: 2, y: 3.9 },
+            { x: 3, y: 4.2 },
+            { x: 4, y: 6.1 },
+            { x: 5, y: 5.8 }
+        ];
+
+        // Global Chart Defaults configuration for modern presentation design
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.font.size = 13;
+        Chart.defaults.plugins.legend.display = false;
+
+        const chartStyler = {
+            grid: { color: 'rgba(255,255,255,0.035)' },
+            xScale: { type: 'linear', min: 0, max: 6, grid: { color: 'rgba(255,255,255,0.035)' } },
+            yScale: { min: 0, max: 8, grid: { color: 'rgba(255,255,255,0.035)' } }
+        };
+
+        // LAZY CHART ROUTING MAP
+        let activeCharts = {};
+
+        // RUNTIME PLAYGROUND ACTIONS STORAGE
+        const playgroundActions = {
+            // Slide 1 Actions
+            s1_chart: null,
+            s1_generateData: function () {
+                let dataset = this.s1_chart.data.datasets[0].data;
+                for (let i = 0; i < dataset.length; i++) {
+                    dataset[i].y = Math.max(1, Math.min(7.5, dataset[i].y + (Math.random() * 1.6 - 0.8)));
+                }
+                this.s1_chart.update();
+            },
+
+            // Slide 2 Actions
+            s2_chart: null,
+            s2_mode: 'linear',
+            s2_toggleArchitecture: function () {
+                const btn = document.getElementById('btn-s2-toggle');
+                const lblEngine = document.getElementById('lbl-s2-engine');
+                const lblLatency = document.getElementById('lbl-s2-latency');
+                const lblExplain = document.getElementById('lbl-s2-explain');
+
+                if (this.s2_mode === 'linear') {
+                    this.s2_mode = 'dnn';
+                    btn.innerText = "Revert to Linear Architecture Framework";
+                    lblEngine.innerText = "Multi-Layered Deep Neural Network";
+                    lblEngine.className = "val-purple";
+                    lblLatency.innerText = "48.52 ms (High Latency Overload)";
+                    lblLatency.className = "val-rose";
+                    lblExplain.innerText = "4.2% (Unverifiable Black Box Model)";
+                    lblExplain.className = "val-rose";
+
+                    // High frequency wavy overfitted function lines mapping
+                    let wavyData = [];
+                    for (let x = 0; x <= 6; x += 0.15) {
+                        wavyData.push({ x: x, y: 1.05 * x + 1.1 + Math.sin(x * 4.5) * 1.2 });
+                    }
+                    this.s2_chart.data.datasets[1].data = wavyData;
+                    this.s2_chart.data.datasets[1].borderColor = '#a855f7';
+                } else {
+                    this.s2_mode = 'linear';
+                    btn.innerText = "Switch to Deep Neural Network Architecture";
+                    lblEngine.innerText = "Standard Linear Estimator";
+                    lblEngine.className = "val-cyan";
+                    lblLatency.innerText = "0.02 ms (Ultra-Low)";
+                    lblLatency.className = "val-emerald";
+                    lblExplain.innerText = "100% Deterministic";
+                    lblExplain.className = "val-emerald";
+
+                    this.s2_chart.data.datasets[1].data = [{ x: 0, y: 1.1 }, { x: 6, y: 7.4 }];
+                    this.s2_chart.data.datasets[1].borderColor = '#00f2fe';
+                }
+                this.s2_chart.update();
+            },
+
+            // Slide 3 Actions
+            s3_chart: null,
+            s3_update: function () {
+                let sliderVal = parseFloat(document.getElementById('slide-s3-w').value) / 100;
+                document.getElementById('val-s3-w').innerText = sliderVal.toFixed(2);
+
+                let b_fixed = 1.3;
+                this.s3_chart.data.datasets[1].data = [{ x: 0, y: b_fixed }, { x: 6, y: sliderVal * 6 + b_fixed }];
+
+                let totalError = 0;
+                SHARED_DATA.forEach(pt => {
+                    let predY = sliderVal * pt.x + b_fixed;
+                    totalError += Math.pow(pt.y - predY, 2);
+                });
+
+                document.getElementById('lbl-s3-variance').innerText = (totalError / 5).toFixed(3);
+
+                let statusLabel = document.getElementById('lbl-s3-status');
+                if (Math.abs(sliderVal - 1.0) < 0.12) {
+                    statusLabel.innerText = "Optimal Alignment Achieved";
+                    statusLabel.className = "val-emerald";
+                } else {
+                    statusLabel.innerText = "Unoptimized Alignment";
+                    statusLabel.className = "val-rose";
+                }
+                this.s3_chart.update();
+            },
+
+            // Slide 4 Actions
+            s4_chart: null,
+            s4_update: function () {
+                let step = parseInt(document.getElementById('slide-s4-w').value);
+                let w = step * 0.15;
+                let b = 4.5 - (w * 3); // Pivot around middle data space center
+
+                this.s4_chart.data.datasets[1].data = [{ x: 0, y: b }, { x: 6, y: w * 6 + b }];
+                document.getElementById('lbl-s4-equation').innerText = `\\hat{y} = ${w.toFixed(2)} \\cdot x + ${b >= 0 ? '+' : ''}${b.toFixed(2)}`;
+                MathJax.typesetPromise([document.getElementById('lbl-s4-equation')]);
+                this.s4_chart.update();
+            },
+
+            // Slide 5 Actions
+            s5_chart: null,
+            s5_update: function () {
+                let w = parseFloat(document.getElementById('slide-s5-w').value) * 0.1;
+                let b = parseFloat(document.getElementById('slide-s5-b').value) * 0.1;
+
+                document.getElementById('val-s5-w').innerText = w.toFixed(2);
+                document.getElementById('val-s5-b').innerText = b.toFixed(2);
+
+                this.s5_chart.data.datasets[1].data = [{ x: 0, y: b }, { x: 6, y: w * 6 + b }];
+                this.s5_chart.update();
+            },
+
+            // Slide 6 Actions
+            s6_chart: null,
+            s6_update: function () {
+                let b = parseFloat(document.getElementById('slide-s6-b').value) * 0.1;
+                let w = 0.9;
+
+                this.s6_chart.data.datasets[1].data = [{ x: 0, y: b }, { x: 6, y: w * 6 + b }];
+
+                // Clear out residual connector segments datasets 
+                this.s6_chart.data.datasets = this.s6_chart.data.datasets.slice(0, 2);
+
+                SHARED_DATA.forEach(pt => {
+                    let predY = w * pt.x + b;
+                    this.s6_chart.data.datasets.push({
+                        type: 'line',
+                        data: [{ x: pt.x, y: pt.y }, { x: pt.x, y: predY }],
+                        borderColor: '#ff4a6b',
+                        borderWidth: 2,
+                        borderDash: [4, 4],
+                        pointRadius: 0,
+                        showLine: true
+                    });
+                });
+                this.s6_chart.update();
+            },
+
+            // Slide 7 Actions
+            s7_main: null,
+            s7_cost: null,
+            s7_update: function () {
+                let w = parseFloat(document.getElementById('slide-s7-w').value) * 0.15;
+                let b = 1.3;
+
+                this.s7_main.data.datasets[1].data = [{ x: 0, y: b }, { x: 6, y: w * 6 + b }];
+
+                let squaredErrors = [];
+                let totalMse = 0;
+
+                SHARED_DATA.forEach((pt, idx) => {
+                    let predY = w * pt.x + b;
+                    let error = pt.y - predY;
+                    let sqErr = error * error;
+                    totalMse += sqErr;
+                    squaredErrors.push(sqErr);
+                });
+
+                document.getElementById('lbl-s7-mse').innerText = (totalMse / 5).toFixed(4);
+                this.s7_cost.data.datasets[0].data = squaredErrors;
+
+                this.s7_main.update();
+                this.s7_cost.update();
+            },
+
+            // Slide 8 Actions
+            s8_chart: null,
+            s8_update: function () {
+                let activeOutlier = document.getElementById('chk-s8-outlier').checked;
+                let activeDataset = [...SHARED_DATA];
+                if (activeOutlier) {
+                    activeDataset.push({ x: 1.5, y: 7.8 });
+                }
+
+                this.s8_chart.data.datasets[0].data = activeDataset;
+
+                // Run evaluation calculations metrics engine
+                let w = 0.9, b = 1.3;
+                let maeSum = 0, mseSum = 0;
+
+                activeDataset.forEach(pt => {
+                    let pred = w * pt.x + b;
+                    let err = Math.abs(pt.y - pred);
+                    maeSum += err;
+                    mseSum += err * err;
+                });
+
+                document.getElementById('lbl-s8-mae').innerText = (maeSum / activeDataset.length).toFixed(3);
+                document.getElementById('lbl-s8-mse').innerText = (mseSum / activeDataset.length).toFixed(3);
+                this.s8_chart.update();
+            },
+
+            // Slide 9 Actions
+            s9_chart: null,
+            s9_w: 0.0,
+            s9_b: 0.0,
+            s9_alpha: 0.04,
+            s9_intervalId: null,
+            s9_step: function () {
+                let dw = 0, db = 0, totalMse = 0;
+                let N = SHARED_DATA.length;
+
+                SHARED_DATA.forEach(pt => {
+                    let pred = this.s9_w * pt.x + this.s9_b;
+                    let err = pred - pt.y;
+                    dw += err * pt.x;
+                    db += err;
+                    totalMse += err * err;
+                });
+
+                dw = (2 / N) * dw;
+                db = (2 / N) * db;
+
+                this.s9_w -= this.s9_alpha * dw;
+                this.s9_b -= this.s9_alpha * db;
+
+                document.getElementById('lbl-s9-w').innerText = this.s9_w.toFixed(3);
+                document.getElementById('lbl-s9-b').innerText = this.s9_b.toFixed(3);
+                document.getElementById('lbl-s9-mse').innerText = (totalMse / N).toFixed(4);
+
+                this.s9_chart.data.datasets[1].data = [{ x: 0, y: this.s9_b }, { x: 6, y: this.s9_w * 6 + this.s9_b }];
+                this.s9_chart.update();
+            },
+            s9_toggleRun: function () {
+                const btn = document.getElementById('btn-s9-run');
+                if (this.s9_intervalId) {
+                    clearInterval(this.s9_intervalId);
+                    this.s9_intervalId = null;
+                    btn.innerText = "Auto-Convergence";
+                    btn.style.background = "linear-gradient(135deg, #10b981 0%, #059669 100%)";
+                } else {
+                    btn.innerText = "Halt Optimizer";
+                    btn.style.background = "linear-gradient(135deg, #ff4a6b 0%, #b91c1c 100%)";
+                    this.s9_intervalId = setInterval(() => {
+                        this.s9_step();
+                        // Self break stop boundary logic
+                        let mse = parseFloat(document.getElementById('lbl-s9-mse').innerText);
+                        if (mse < 0.122) {
+                            this.s9_toggleRun();
+                        }
+                    }, 80);
+                }
+            },
+
+            // Slide 10 Actions
+            s10_chart: null,
+            s10_alpha: 0.25,
+            s10_setRate: function (val) {
+                this.s10_alpha = val;
+                this.s10_chart.data.datasets[1].data = [];
+                this.s10_chart.update();
+            },
+            s10_runTrace: function () {
+                let currentW = -1.2;
+                let traceData = [];
+                // Exact analytical global minimum located at w = 0.95
+                let targetMinW = 0.95;
+
+                for (let step = 0; step < 10; step++) {
+                    let cost = Math.pow(currentW - targetMinW, 2) * 2.5 + 1.0;
+                    traceData.push({ x: currentW, y: cost });
+
+                    // Gradient calculation shortcut structure
+                    let gradient = 2 * (currentW - targetMinW) * 2.5;
+                    currentW = currentW - this.s10_alpha * gradient;
+                    if (Math.abs(currentW) > 3.5) break; // Limit execution boundary
+                }
+
+                this.s10_chart.data.datasets[1].data = traceData;
+                this.s10_chart.update();
+            },
+
+            // Slide 11 Actions
+            s11_chart: null,
+            s11_update: function () {
+                let w = parseFloat(document.getElementById('slide-s11-w').value) * 0.1;
+                let cost = Math.pow(w - 0.95, 2) * 2.5 + 1.0;
+                this.s11_chart.data.datasets[1].data = [{ x: w, y: cost }];
+                this.s11_chart.update();
+            },
+
+            // Slide 12 Actions
+            s12_chart: null,
+            s12_update: function () {
+                let w = parseFloat(document.getElementById('slide-s12-w').value) * 0.1;
+                let b = 1.3;
+                this.s12_chart.data.datasets[1].data = [{ x: 0, y: b }, { x: 6, y: w * 6 + b }];
+
+                let maeSum = 0, mseSum = 0, totalVar = 0;
+                let yMean = 4.42; // Data Mean computation target
+
+                SHARED_DATA.forEach(pt => {
+                    let pred = w * pt.x + b;
+                    maeSum += Math.abs(pt.y - pred);
+                    mseSum += Math.pow(pt.y - pred, 2);
+                    totalVar += Math.pow(pt.y - yMean, 2);
+                });
+
+                let mse = mseSum / 5;
+                let r2 = 1 - (mseSum / totalVar);
+
+                document.getElementById('lbl-s12-mae').innerText = (maeSum / 5).toFixed(3);
+                document.getElementById('lbl-s12-rmse').innerText = Math.sqrt(mse).toFixed(3);
+                document.getElementById('lbl-s12-r2').innerText = r2.toFixed(3);
+                this.s12_chart.update();
+            },
+
+            // Slide 13 Actions
+            s13_data: null,
+            s13_res: null,
+            s13_state: 'healthy',
+            s13_toggleDataset: function () {
+                const btn = document.getElementById('btn-s13-toggle');
+                const lbl = document.getElementById('lbl-s13-status');
+
+                if (this.s13_state === 'healthy') {
+                    this.s13_state = 'violated';
+                    btn.innerText = "Restore Uniform Structural Bounds";
+                    lbl.innerText = "Assumption Violated: Heteroscedasticity Caught";
+                    lbl.className = "val-rose";
+
+                    let vData = []; let vRes = [];
+                    for (let x = 1; x <= 20; x++) {
+                        let spread = (x / 20) * 2.8; // Megaphone variance expanding function
+                        let dev = (Math.random() * 2 - 1) * spread;
+                        let y = 0.8 * x + 2.0 + dev;
+                        vData.push({ x: x, y: y });
+                        vRes.push({ x: x, y: dev });
+                    }
+                    this.s13_data.data.datasets[0].data = vData;
+                    this.s13_res.data.datasets[0].data = vRes;
+                } else {
+                    this.s13_state = 'healthy';
+                    btn.innerText = "Inject Heteroscedastic Megaphone Distortion";
+                    lbl.innerText = "Healthy Homoscedastic Scatter";
+                    lbl.className = "val-emerald";
+
+                    let hData = []; let hRes = [];
+                    for (let x = 1; x <= 20; x++) {
+                        let dev = (Math.random() * 2 - 1) * 0.6; // Flat uniform variant spread distribution
+                        hData.push({ x: x, y: 0.8 * x + 2.0 + dev });
+                        hRes.push({ x: x, y: dev });
+                    }
+                    this.s13_data.data.datasets[0].data = hData;
+                    this.s13_res.data.datasets[0].data = hRes;
+                }
+                this.s13_data.update();
+                this.s13_res.update();
+            },
+
+            // Slide 14 Actions
+            s14_chart: null,
+            s14_setMode: function (mode) {
+                let fitLine = [];
+                if (mode === 'under') {
+                    fitLine = [{ x: 0, y: 4.42 }, { x: 6, y: 4.42 }]; // Flat mean line representation representation
+                    this.s14_chart.data.datasets[1].borderColor = '#ff4a6b';
+                } else if (mode === 'optimal') {
+                    fitLine = [{ x: 0, y: 1.3 }, { x: 6, y: 6.7 }]; // Well balanced general estimation
+                    this.s14_chart.data.datasets[1].borderColor = '#10b981';
+                } else {
+                    // Complex high degree overfitting interpolation structure
+                    for (let x = 0; x <= 6; x += 0.1) {
+                        fitLine.push({ x: x, y: 0.9 * x + 1.3 + Math.sin(x * 6.0) * 0.95 });
+                    }
+                    this.s14_chart.data.datasets[1].borderColor = '#a855f7';
+                }
+                this.s14_chart.data.datasets[1].data = fitLine;
+                this.s14_chart.update();
+            },
+
+            // Slide 15 Actions
+            s15_chart: null,
+            s15_update: function () {
+                let lambda = parseFloat(document.getElementById('slide-s15-lambda').value) / 100;
+                document.getElementById('val-s15-lambda').innerText = lambda.toFixed(2);
+
+                // Mathematical decay coefficients logic paths
+                let ridgeA = 5.2 * Math.exp(-lambda * 0.8);
+                let ridgeB = 3.8 * Math.exp(-lambda * 1.2);
+                let ridgeC = 0.9 * Math.exp(-lambda * 4.0); // Noisy row drop decay rate faster
+
+                let lassoA = Math.max(0, 5.2 - lambda * 4.5);
+                let lassoB = Math.max(0, 3.8 - lambda * 5.0);
+                let lassoC = Math.max(0, 0.9 - lambda * 9.0); // Hits structural absolute zero rapidly
+
+                this.s15_chart.data.datasets[0].data = [ridgeA, ridgeB, ridgeC];
+                this.s15_chart.data.datasets[1].data = [lassoA, lassoB, lassoC];
+                this.s15_chart.update();
+            },
+
+            // Slide 16 Actions
+            s16_selectStep: function (stepId) {
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`card-step-${i}`).classList.remove('active-step');
+                }
+                document.getElementById(`card-step-${stepId}`).classList.add('active-step');
+
+                const logBox = document.getElementById('box-s16-details');
+                if (stepId === 1) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: VECTOR PREPARATION</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Executing automated data cleaning script... Handled null fields via median input imputation... Matrix standardizations successfully mapped to standard scaling transformations.</p>`;
+                } else if (stepId === 2) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 2: PARAMETER TUNING</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#00f2fe;">Grid Search Optimizer active... Iterating hyperparameters... Alpha cross-validation locked convergence at 0.045 with minimal validation variance remainder.</p>`;
+                } else if (stepId === 3) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 3: STATISTICAL AUDITING</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#f59e0b;">Running Durbin-Watson diagnostic matrices... Residual distribution verified normality thresholds within standard variance limitations (R² = 0.892).</p>`;
+                } else {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 4: PRODUCTION API</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#a855f7;">Exporting mathematical structures into ONNX deployment layer... Compiled inference runtime pipeline operational at endpoint: /v1/predict [Latency Benchmark: 0.12ms].</p>`;
+                }
+            }
+        };
+
+        // LAZY LAZY RUNTIME INITIALIZATION PROTOCOLS
+        const lazyChartInitializers = {
+            init_1: function () {
+                let ctx = document.getElementById('chart-s1').getContext('2d');
+                playgroundActions.s1_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{ data: [...SHARED_DATA], backgroundColor: '#00f2fe', pointRadius: 9, pointHoverRadius: 11 }]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_2: function () {
+                let ctx = document.getElementById('chart-s2').getContext('2d');
+                playgroundActions.s2_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#f59e0b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 1.1 }, { x: 6, y: 7.4 }], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0, fill: false }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_3: function () {
+                let ctx = document.getElementById('chart-s3').getContext('2d');
+                playgroundActions.s3_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#10b981', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 1.3 }, { x: 6, y: 2.5 }], borderColor: '#ff4a6b', borderWidth: 3, borderDash: [6, 4], pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s3_update();
+            },
+            init_4: function () {
+                let ctx = document.getElementById('chart-s4').getContext('2d');
+                playgroundActions.s4_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { type: 'line', data: [], borderColor: '#8b5cf6', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s4_update();
+            },
+            init_5: function () {
+                let ctx = document.getElementById('chart-s5').getContext('2d');
+                playgroundActions.s5_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#ffffff', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s5_update();
+            },
+            init_6: function () {
+                let ctx = document.getElementById('chart-s6').getContext('2d');
+                playgroundActions.s6_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#f59e0b', pointRadius: 8, z: 10 },
+                            { type: 'line', data: [], borderColor: 'rgba(255,255,255,0.25)', borderWidth: 2, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s6_update();
+            },
+            init_7: function () {
+                let ctxMain = document.getElementById('chart-s7-main').getContext('2d');
+                playgroundActions.s7_main = new Chart(ctxMain, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#00f2fe', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#ffffff', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+
+                let ctxCost = document.getElementById('chart-s7-cost').getContext('2d');
+                playgroundActions.s7_cost = new Chart(ctxCost, {
+                    type: 'bar',
+                    data: {
+                        labels: ['P1', 'P2', 'P3', 'P4', 'P5'],
+                        datasets: [{ data: [], backgroundColor: '#ff4a6b', borderRadius: 6 }]
+                    },
+                    options: { scales: { y: { min: 0, max: 12, grid: { color: 'rgba(255,255,255,0.035)' } } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s7_update();
+            },
+            init_8: function () {
+                let ctx = document.getElementById('chart-s8').getContext('2d');
+                playgroundActions.s8_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#10b981', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 1.3 }, { x: 6, y: 6.7 }], borderColor: 'rgba(255,255,255,0.15)', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s8_update();
+            },
+            init_9: function () {
+                let ctx = document.getElementById('chart-s9').getContext('2d');
+                playgroundActions.s9_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { type: 'line', data: [], borderColor: '#10b981', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s9_step();
+            },
+            init_10: function () {
+                let ctx = document.getElementById('chart-s10').getContext('2d');
+                let parabolicBounds = [];
+                for (let w = -1.5; w <= 3.4; w += 0.15) {
+                    parabolicBounds.push({ x: w, y: Math.pow(w - 0.95, 2) * 2.5 + 1.0 });
+                }
+                playgroundActions.s10_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: parabolicBounds, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 3, pointRadius: 0, fill: false },
+                            { label: 'Optimizer Track', data: [], borderColor: '#ff4a6b', borderWidth: 2, pointRadius: 6, backgroundColor: '#ffffff' }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: -1.6, max: 3.5, grid: { color: 'rgba(255,255,255,0.035)' } }, y: { min: 0, max: 20, grid: { color: 'rgba(255,255,255,0.035)' } } }, maintainAspectRatio: false }
+                });
+            },
+            init_11: function () {
+                let ctx = document.getElementById('chart-s11').getContext('2d');
+                let landscapeData = [];
+                for (let w = -1.5; w <= 3.4; w += 0.1) {
+                    landscapeData.push({ x: w, y: Math.pow(w - 0.95, 2) * 2.5 + 1.0 });
+                }
+                playgroundActions.s11_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: landscapeData, borderColor: '#8b5cf6', borderWidth: 4, pointRadius: 0 },
+                            { data: [], backgroundColor: '#00f2fe', pointRadius: 10, pointHoverRadius: 12 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: -1.6, max: 3.5, grid: chartStyler.grid }, y: { min: 0, max: 20, grid: chartStyler.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s11_update();
+            },
+            init_12: function () {
+                let ctx = document.getElementById('chart-s12').getContext('2d');
+                playgroundActions.s12_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#f59e0b', pointRadius: 8 },
+                            { type: 'line', data: [], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s12_update();
+            },
+            init_13: function () {
+                let ctxData = document.getElementById('chart-s13-data').getContext('2d');
+                playgroundActions.s13_data = new Chart(ctxData, {
+                    type: 'scatter',
+                    data: { datasets: [{ data: [], backgroundColor: '#3b82f6', pointRadius: 5 }] },
+                    options: { scales: { x: { min: 0, max: 22, grid: chartStyler.grid }, y: { min: 0, max: 25, grid: chartStyler.grid } }, maintainAspectRatio: false }
+                });
+
+                let ctxRes = document.getElementById('chart-s13-res').getContext('2d');
+                playgroundActions.s13_res = new Chart(ctxRes, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [], backgroundColor: '#e2e8f0', pointRadius: 5 },
+                            { type: 'line', data: [{ x: 0, y: 0 }, { x: 22, y: 0 }], borderColor: 'rgba(255,255,255,0.2)', borderWidth: 2, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: { min: 0, max: 22, grid: chartStyler.grid }, y: { min: -4, max: 4, grid: chartStyler.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s13_toggleDataset(); // Hydrate initial default parameters state
+            },
+            init_14: function () {
+                let ctx = document.getElementById('chart-s14').getContext('2d');
+                playgroundActions.s14_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...SHARED_DATA], backgroundColor: '#ffffff', pointRadius: 8 },
+                            { type: 'line', data: [], borderColor: '#10b981', borderWidth: 4, pointRadius: 0, fill: false, tension: 0.2 }
+                        ]
+                    },
+                    options: { scales: { x: chartStyler.xScale, y: chartStyler.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s14_setMode('optimal');
+            },
+            init_15: function () {
+                let ctx = document.getElementById('chart-s15').getContext('2d');
+                playgroundActions.s15_chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Core Asset Size Column', 'Secondary Location Metric', 'Weak Baseline Artifact Noise'],
+                        datasets: [
+                            { label: 'Ridge Execution (L2 Standard)', data: [], backgroundColor: '#3b82f6', borderRadius: 6 },
+                            { label: 'Lasso Execution (L1 Sparsity)', data: [], backgroundColor: '#a855f7', borderRadius: 6 }
+                        ]
+                    },
+                    options: { scales: { y: { min: 0, max: 6, grid: chartStyler.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s15_update();
+            }
+        };
+
+        // CENTRAL CORE SLIDE SLIDE NAVIGATION NAVIGATION CONTROLLER ARCHITECTURE
+        const navigationEngine = {
+            currentSlideIndex: 1,
+            totalSlidesCount: 16,
+
+            navigate: function (direction) {
+                // Break runtime interval threads from Slide 9 if execution active
+                if (playgroundActions.s9_intervalId) {
+                    playgroundActions.s9_toggleRun();
+                }
+
+                let currentSlideDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                currentSlideDOM.classList.remove('active');
+
+                this.currentSlideIndex += direction;
+
+                let targetSlideDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                targetSlideDOM.classList.add('active');
+
+                // UI Interface Button Safeguards updating
+                document.getElementById('btn-prev').disabled = (this.currentSlideIndex === 1);
+                document.getElementById('btn-next').disabled = (this.currentSlideIndex === this.totalSlidesCount);
+                document.getElementById('nav-counter').innerText = `${this.currentSlideIndex} / ${this.totalSlidesCount}`;
+
+                // Process lazy initialization hook bindings safely
+                let initKey = `init_${this.currentSlideIndex}`;
+                if (lazyChartInitializers[initKey] && !activeCharts[initKey]) {
+                    setTimeout(() => {
+                        lazyChartInitializers[initKey]();
+                        activeCharts[initKey] = true;
+                    }, 50); // Small thread execution buffer for crisp DOM layouts layout snaps
+                }
+            }
+        };
+
+        // Initial setup initialization
+        window.addEventListener('DOMContentLoaded', () => {
+            lazyChartInitializers.init_1();
+            activeCharts['init_1'] = true;
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Credit Card Fraud Detection — End-to-End ML Pipeline</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ============================================================
+     GLOBAL STYLES & NEXT.JS DARK THEME
+     ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-main: #09090b;
+      --bg-card: rgba(24, 24, 27, 0.6);
+      --border-card: rgba(255, 255, 255, 0.1);
+      --accent-primary: #8b5cf6; 
+      --accent-secondary: #06b6d4; 
+      --accent-success: #10b981; 
+      --text-primary: #fafafa; 
+      --text-muted: #a1a1aa; 
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      background-image: 
+        radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+    }
+
+    /* ============================================================
+     SLIDE DECK FRAMEWORK
+     ============================================================ */
+    .slide-deck { position: relative; width: 100%; height: 100%; }
+    .slide {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 3rem 6rem;
+      opacity: 0; visibility: hidden;
+      transform: scale(0.98) translateY(10px);
+      transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                  visibility 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+                  transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      z-index: 1;
+    }
+    .slide.active {
+      opacity: 1; visibility: visible;
+      transform: scale(1) translateY(0); z-index: 10;
+    }
+
+    .container {
+      max-width: 1200px; width: 100%;
+      display: grid; grid-template-columns: 1fr; gap: 2rem;
+    }
+    .grid-2 { grid-template-columns: 1fr 1.2fr; align-items: center; }
+
+    /* Cards Design (Glassmorphism) */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px; padding: 2rem;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card:hover {
+      border-color: rgba(139, 92, 246, 0.3);
+      box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.1);
+    }
+
+    h2 {
+      font-size: 2.2rem; color: var(--text-primary); margin-bottom: 1rem;
+      font-weight: 700; border-left: 5px solid var(--accent-primary);
+      padding-left: 0.75rem;
+    }
+
+    p { font-size: 1.1rem; line-height: 1.6; color: var(--text-muted); margin-bottom: 1.5rem; }
+    .highlight { color: var(--text-primary); font-weight: 600; }
+
+    /* Code & Typing */
+    pre {
+      background: #18181b; border-radius: 8px; padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: 'Fira Code', monospace; font-size: 0.95rem; line-height: 1.5;
+    }
+    .typing::after {
+      content: '|'; animation: blink 0.8s infinite; color: var(--accent-primary); margin-left: 2px;
+    }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    /* Stats & Bars */
+    .bar-track {
+      background: rgba(255, 255, 255, 0.05); border-radius: 30px; height: 16px; width: 100%;
+      position: relative; overflow: hidden; margin-top: 0.5rem;
+    }
+    .bar-fill-legit { background: var(--accent-secondary); height: 100%; width: 0%; transition: width 1.5s; }
+    .bar-fill-fraud { background: var(--accent-primary); height: 100%; width: 0%; transition: width 1.5s; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    .stat-box { text-align: center; padding: 1.5rem; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 8px; }
+    .stat-val { font-size: 1.8rem; font-weight: 700; color: var(--text-primary); font-family: 'Fira Code', monospace; }
+
+    /* Nav */
+    .controls-ui {
+      position: absolute; bottom: 2rem; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; padding: 0 4rem; z-index: 100; pointer-events: none;
+    }
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-primary); padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.2s ease; pointer-events: auto;
+    }
+    .nav-btn:hover { background: var(--accent-primary); color: #fff; border-color: var(--accent-primary); box-shadow: 0 0 15px rgba(139, 92, 246, 0.4); }
+    .slide-dots { display: flex; gap: 0.5rem; pointer-events: auto; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); cursor: pointer; transition: all 0.3s; }
+    .dot.active { background: var(--accent-secondary); transform: scale(1.3); box-shadow: 0 0 8px var(--accent-secondary); }
+    #progressBar { position: absolute; top: 0; left: 0; height: 4px; background: linear-gradient(to right, var(--accent-primary), var(--accent-secondary)); width: 0%; z-index: 101; transition: width 0.3s ease; }
+    #counter-tag { font-family: 'Fira Code', monospace; font-size: 0.9rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+  <div id="progressBar"></div>
+  <div class="slide-deck">
+
+    <section class="slide active" id="slide-0">
+      <div style="text-align: center; max-width: 900px;">
+        <h1 style="font-size: 4.5rem; margin-bottom: 1rem; font-weight: 800; letter-spacing: -0.05em; background: linear-gradient(to right, #fafafa, var(--accent-primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Credit Card Fraud Detection</h1>
+        <p style="font-size: 1.6rem; color: var(--accent-secondary); margin-top: 0.5rem; font-weight: 300;">An End-to-End Machine Learning Pipeline</p>
+        <div style="margin-top: 4rem; height: 1px; background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);"></div>
+        <p style="margin-top: 2rem; font-size: 1.1rem; font-family: 'Inter', sans-serif;">Presented by: <span style="color: #fff;">Jayan Gupta</span></p>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-1">
+      <div class="container grid-2">
+        <div>
+          <h2>Q1. Load Dataset</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Imports the necessary libraries and loads the dataset from the CSV file.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="import pandas as pd
+import numpy as np
+
+# Load credit transaction matrix dataset
+df = pd.read_csv('creditcard.csv')
+df.head()"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-2">
+      <div class="container grid-2">
+        <div>
+          <h2>Q2. Data Types & Missing Values</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Checks the structural matrix of the dataset and confirms there are absolutely zero missing values.</p>
+            
+          <div class="stats-grid" style="margin-top:1rem;">
+            <div class="stat-box">
+              <div class="stat-label">Total Records</div>
+              <div class="stat-val">284,807</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Features</div>
+              <div class="stat-val">31</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label">Missing Nulls</div>
+              <div class="stat-val">0</div>
+            </div>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="# Structure inspection summary output
+df.info()
+
+# Check for nulls
+print(&quot;Total Missing Values:&quot;, df.isnull().sum().sum())"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-3">
+      <div class="container grid-2">
+        <div>
+          <h2>Q3. Class Imbalance</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Reveals extreme class imbalance. A model guessing 'Legitimate' every time would achieve 99.82% accuracy, making raw metrics highly deceptive.</p>
+            
+          <div class="card" style="margin-top: 1rem;">
+            <div style="display:flex; justify-content:space-between; margin-bottom: 0.5rem;">
+              <span>Legitimate (Class 0)</span>
+              <span class="highlight" style="color:var(--accent-secondary)">284,315 (99.82%)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill-legit" data-width="99.8%"></div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; margin-top: 1.5rem; margin-bottom: 0.5rem;">
+              <span>Fraudulent (Class 1)</span>
+              <span class="highlight" style="color:var(--accent-primary)">492 (0.17%)</span>
+            </div>
+            <div class="bar-track">
+              <div class="bar-fill-fraud" data-width="25%"></div>
+            </div>
+            <span style="font-size:0.75rem; color:var(--text-muted); display:block; margin-top:0.4rem;">*Fraud scaling amplified visually</span>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="counts = df['Class'].value_counts()
+fraud_pct = (counts[1] / len(df)) * 100
+
+print(f&quot;Fraud Percentage: {fraud_pct:.4f}%&quot;)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-4">
+      <div class="container grid-2">
+        <div>
+          <h2>Q4. EDA: Amounts</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Splits the dataset and calculates summary statistics. Fraudulent transactions have a higher average amount but are capped at lower maximums.</p>
+            
+          <div class="stats-grid" style="grid-template-columns: repeat(2, 1fr); margin-top:1rem;">
+            <div class="stat-box">
+              <div class="stat-label" style="color:var(--accent-secondary);">Legit Mean</div>
+              <div class="stat-val">$88.29</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label" style="color:var(--accent-primary);">Fraud Mean</div>
+              <div class="stat-val" style="color:var(--accent-primary);">$122.21</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label" style="color:var(--accent-secondary);">Legit Max</div>
+              <div class="stat-val">$25,691</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-label" style="color:var(--accent-primary);">Fraud Max</div>
+              <div class="stat-val" style="color:var(--accent-primary);">$2,125</div>
+            </div>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="# Separate transactions by class
+legit = df[df['Class'] == 0]
+fraud = df[df['Class'] == 1]
+
+# Analyze amount statistics
+print(legit['Amount'].describe())
+print(fraud['Amount'].describe())"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-5">
+      <div class="container grid-2">
+        <div>
+          <h2>Q5. EDA: Time vs Amount</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Visualizes transactions over time. Fraud occurs consistently across all hours, bypassing standard diurnal patterns observed in legitimate activity.</p>
+            
+          <div class="card" style="margin-top:1rem; padding:1rem; height:200px; position:relative;">
+            <canvas id="timeAmountChart"></canvas>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="import matplotlib.pyplot as plt
+import seaborn as sns
+
+sns.scatterplot(
+    x='Time', y='Amount', 
+    hue='Class', data=df
+)
+plt.show()"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-6">
+      <div class="container grid-2">
+        <div>
+          <h2>Q6. Feature Correlation</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">PCA features (V1-V28) show zero correlation with each other. Noticeable negative correlations exist between the Fraud Class and specific features like V14, V17.</p>
+            
+          <div class="card" style="margin-top:1rem; padding:1rem; height:200px; position:relative;">
+            <canvas id="corrChart"></canvas>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="# Compute correlation matrix
+corrmat = df.corr()
+
+# Heatmap
+sns.heatmap(corrmat, cmap='RdYlBu_r')"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-7">
+      <div class="container grid-2">
+        <div>
+          <h2>Q7. Splitting the Data</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Splits the dataset into 80% training and 20% testing sets. The 'stratify' parameter ensures the extreme class imbalance is preserved in both sets.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.model_selection import train_test_split
+
+X = df.drop(columns=['Class'])
+y = df['Class']
+
+# Stratified 80/20 train/test split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y
+)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-8">
+      <div class="container grid-2">
+        <div>
+          <h2>Q8. Preprocessing</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Scales numerical features (like Amount) to have a mean of 0 and variance of 1, preventing features with larger scales from dominating the distance metrics.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.preprocessing import StandardScaler
+
+scaler = StandardScaler()
+
+# Scale training and test features
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-9">
+      <div class="container grid-2">
+        <div>
+          <h2>Q9. KNN Training</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Trains a K-Nearest Neighbors classifier on a subset of the data. It maps multidimensional spatial zones to cluster similar transactions.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.neighbors import KNeighborsClassifier
+
+# Initialize and train distance-weighted KNN
+knn = KNeighborsClassifier(
+    n_neighbors=5, weights='distance'
+)
+knn.fit(X_train_sample, y_train_sample)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-10">
+      <div class="container grid-2">
+        <div>
+          <h2>Q10. KNN Evaluation</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Evaluates the KNN model. While it achieves high accuracy, standard accuracy fails to expose hidden errors due to severe class imbalance.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.metrics import classification_report
+
+y_pred_knn = knn.predict(X_test_scaled)
+print(classification_report(y_test, y_pred_knn))"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-11">
+      <div class="container grid-2">
+        <div>
+          <h2>Q11. XGBoost Training</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Trains an XGBoost classifier. We balance class weights via the 'scale_pos_weight' parameter to heavily penalize missing fraud cases sequentially.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from xgboost import XGBClassifier
+
+# Balance XGBoost using class ratio
+ratio = (y_train == 0).sum() / (y_train == 1).sum()
+
+xgb = XGBClassifier(scale_pos_weight=ratio)
+xgb.fit(X_train_scaled, y_train)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-12">
+      <div class="container grid-2">
+        <div>
+          <h2>Q12. XGBoost Evaluation</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Evaluates the XGBoost model. It significantly outperforms KNN, especially in Recall, correctly flagging more total fraud occurrences.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="y_pred_xgb = xgb.predict(X_test_scaled)
+print(classification_report(y_test, y_pred_xgb))"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-13">
+      <div class="container grid-2">
+        <div>
+          <h2>Q13. GridSearch Tuning</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Exhaustively searches over a specified parameter grid to find the optimal model settings. It checks every combination iteratively to maximize recall.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.model_selection import GridSearchCV
+
+param_grid = {'max_depth': [3, 5], 
+              'learning_rate': [0.1, 0.2]}
+grid = GridSearchCV(
+    estimator=xgb, param_grid=param_grid, cv=3
+)
+grid.fit(X_train_sample, y_train_sample)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-14">
+      <div class="container grid-2">
+        <div>
+          <h2>Q14. RandomSearch Tuning</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Randomly samples from parameter distributions, offering a computationally efficient alternative to Grid Search while still finding highly optimized parameters.</p>
+            
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="from sklearn.model_selection import RandomizedSearchCV
+
+search = RandomizedSearchCV(
+    estimator=xgb, 
+    param_distributions=param_dist, n_iter=5
+)
+search.fit(X_train_sample, y_train_sample)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+    <section class="slide " id="slide-15">
+      <div class="container grid-2">
+        <div>
+          <h2>Q15. Model Comparison</h2>
+          <div class="code-desc" style="opacity:0; transform:translateY(10px); transition: all 0.5s ease; padding-top: 1rem;">
+            <p style="border-left: 4px solid var(--accent-primary); padding-left: 1rem;">Final Model Comparison. XGBoost outscores KNN across every operational checkpoint metric, notably boosting Recall parameters and tracking fewer false negatives.</p>
+            
+          <div class="card" style="margin-top:1rem; padding:1rem; height:200px; position:relative;">
+            <canvas id="compareChart"></canvas>
+          </div>
+        
+          </div>
+        </div>
+        <div class="card">
+          <pre><code class="python typewriter-code" data-code="comparison_df = pd.DataFrame({
+    'Metric': ['Accuracy', 'Precision', 'Recall'],
+    'KNN': [0.9994, 0.8427, 0.7653],
+    'XGBoost': [0.9995, 0.8817, 0.8367]
+})
+print(comparison_df)"></code></pre>
+        </div>
+      </div>
+        
+    </section>
+  </div>
+  <div class="controls-ui">
+    <button class="nav-btn" onclick="navigate(-1)">◄ PREV</button>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+      <div class="slide-dots" id="dotsContainer"></div>
+      <div id="counter-tag">1 / 16</div>
+    </div>
+    <button class="nav-btn" onclick="navigate(1)">NEXT ►</button>
+  </div>
+
+  <script>
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    let current = 0;
+    const dotsContainer = document.getElementById('dotsContainer');
+
+    for (let i = 0; i < total; i++) {
+      const dot = document.createElement('div');
+      dot.classList.add('dot');
+      if (i === 0) dot.classList.add('active');
+      dot.addEventListener('click', () => goTo(i));
+      dotsContainer.appendChild(dot);
+    }
+    const dots = document.querySelectorAll('.dot');
+
+    function goTo(n) {
+      if (n < 0 || n >= total) return;
+      slides[current].classList.remove('active');
+      dots[current].classList.remove('active');
+      
+      // Reset animations
+      document.querySelectorAll('.code-desc').forEach(el => {
+          el.style.opacity = '0';
+          el.style.transform = 'translateY(10px)';
+      });
+      document.querySelectorAll('.typewriter-code').forEach(el => {
+          el.textContent = '';
+          el.removeAttribute('data-highlighted'); // reset highlight.js
+          el.className = 'python typewriter-code';
+          clearInterval(el.typeInterval);
+      });
+
+      current = n;
+      slides[current].classList.add('active');
+      dots[current].classList.add('active');
+      document.getElementById('progressBar').style.width = ((current + 1) / total * 100) + '%';
+      document.getElementById('counter-tag').textContent = (current + 1) + ' / ' + total;
+      triggerSlideAnimations(current);
+    }
+
+    function navigate(dir) { goTo(current + dir); }
+
+    function runCodeTypewriter(slideElement) {
+      const codeNodes = slideElement.querySelectorAll('.typewriter-code');
+      if(codeNodes.length === 0) {
+        const desc = slideElement.querySelector('.code-desc');
+        if (desc) {
+            desc.style.opacity = '1';
+            desc.style.transform = 'translateY(0)';
+        }
+      }
+      codeNodes.forEach(node => {
+        const targetText = node.getAttribute('data-code') || "";
+        node.textContent = "";
+        node.classList.add('typing');
+        let index = 0;
+        
+        node.typeInterval = setInterval(() => {
+          if (index < targetText.length) {
+            node.textContent += targetText.charAt(index);
+            index++;
+          } else {
+            clearInterval(node.typeInterval);
+            node.classList.remove('typing');
+            hljs.highlightElement(node); // apply syntax highlighting after typing
+            
+            // Show the explanation
+            const desc = node.closest('.container').querySelector('.code-desc');
+            if (desc) {
+                desc.style.opacity = '1';
+                desc.style.transform = 'translateY(0)';
+            }
+          }
+        }, 20); // ms per char
+      });
+    }
+
+    function triggerSlideAnimations(slideIndex) {
+      const activeSlide = slides[slideIndex];
+      runCodeTypewriter(activeSlide);
+
+      const imbalanceBars = activeSlide.querySelectorAll('.bar-fill-legit, .bar-fill-fraud');
+      imbalanceBars.forEach(bar => {
+        bar.style.width = '0%';
+        setTimeout(() => bar.style.width = bar.getAttribute('data-width'), 150);
+      });
+    }
+
+    document.addEventListener('keydown', e => {
+      if (['ArrowRight', ' ', 'ArrowDown'].includes(e.key)) { e.preventDefault(); navigate(1); }
+      else if (['ArrowLeft', 'ArrowUp'].includes(e.key)) { e.preventDefault(); navigate(-1); }
+    });
+
+    window.onload = () => {
+      document.getElementById('progressBar').style.width = (1 / total * 100) + '%';
+      triggerSlideAnimations(0);
+      
+      // Render Charts
+      const legitData = Array.from({length:300}, ()=>({x: Math.random()*172792, y: Math.random()*200}));
+      const fraudData = Array.from({length:50}, ()=>({x: Math.random()*172792, y: Math.random()*2125}));
+      
+      if(document.getElementById('timeAmountChart')) {
+        new Chart(document.getElementById('timeAmountChart'), {
+          type: 'scatter',
+          data: {
+            datasets: [
+              {label: 'Legitimate', data: legitData, backgroundColor: '#06b6d4', pointRadius: 3, borderWidth: 0},
+              {label: 'Fraudulent', data: fraudData, backgroundColor: '#8b5cf6', pointRadius: 4, borderWidth: 0}
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#fafafa' } } },
+            scales: {
+              x: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+              y: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+      }
+
+      if(document.getElementById('corrChart')) {
+        new Chart(document.getElementById('corrChart'), {
+          type: 'bar',
+          data: {
+            labels: ['V17', 'V14', 'V12', 'V10', 'V16', 'V3', 'V11', 'V4'],
+            datasets: [{
+              label: 'Correlation',
+              data: [-0.33, -0.30, -0.26, -0.22, -0.20, -0.19, 0.15, 0.13],
+              backgroundColor: ctx => ctx.dataset.data[ctx.dataIndex] < 0 ? '#8b5cf6' : '#06b6d4'
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#a1a1aa' }, grid: { display: false } },
+              y: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+      }
+
+      if(document.getElementById('compareChart')) {
+        new Chart(document.getElementById('compareChart'), {
+          type: 'bar',
+          data: {
+            labels: ['Accuracy', 'Precision', 'Recall'],
+            datasets: [
+              {label: 'KNN', data: [0.99, 0.84, 0.76], backgroundColor: '#06b6d4'},
+              {label: 'XGBoost', data: [0.99, 0.88, 0.83], backgroundColor: '#8b5cf6'}
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#fafafa' } } },
+            scales: {
+              x: { ticks: { color: '#a1a1aa' }, grid: { display: false } },
+              y: { ticks: { color: '#a1a1aa' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
+        });
+      }
+    };
+  </script>
+</body>
+</html>

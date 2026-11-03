@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+const originalWarn = console.warn;
+console.warn = function(...args) {
+  if (typeof args[0] === 'string' && (args[0].includes('cdn.tailwindcss.com') || args[0].includes('in-browser Babel transformer'))) return;
+  originalWarn.apply(console, args);
+};
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimensionality Reduction: PCA, LDA & ICA | Elite Data Science Series</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #a78bfa;
+            --code-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(56,189,248,0.08), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(167,139,250,0.07), transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16,185,129,0.06), transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+            padding-top: 5.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { color: var(--accent-primary); margin-bottom: 1rem; font-weight: 800; }
+        h3 { font-size: 1.2rem; }
+        p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 1.05rem; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 1rem 1.4rem; }
+        li { margin-bottom: 0.4rem; }
+        strong { color: var(--text-main); }
+
+        #progressBar {
+            position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-purple), var(--accent-success));
+            z-index: 1000; transition: width 0.1s ease-out;
+            box-shadow: 0 0 10px rgba(56,189,248,0.6);
+        }
+
+        #navBar {
+            position: fixed; top: 4px; left: 0; right: 0; z-index: 999;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0.7rem 1rem;
+            display: flex; gap: 0.4rem; overflow-x: auto;
+            white-space: nowrap;
+        }
+        #navBar::-webkit-scrollbar { height: 4px; }
+        #navBar::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 4px; }
+        #navBar a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.78rem;
+            font-weight: 600; padding: 0.4rem 0.75rem; border-radius: 999px;
+            border: 1px solid transparent; transition: all 0.25s ease; flex-shrink: 0;
+        }
+        #navBar a:hover { color: var(--text-main); border-color: rgba(56,189,248,0.4); }
+        #navBar a.active { color: var(--bg-main); background: var(--accent-primary); }
+
+        .slide {
+            padding: 3rem; margin-bottom: 4rem; background: var(--bg-secondary);
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0; transform: translateY(40px) scale(0.98);
+            scroll-margin-top: 5.5rem;
+        }
+        .slide.in-view { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0) scale(1); } }
+        .slide:hover { transform: scale(1.005); }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+        @media (max-width: 800px) { .grid, .grid3 { grid-template-columns: 1fr; } }
+
+        .canvas-container { background: #000; border-radius: 12px; padding: 1rem; border: 1px solid var(--accent-primary); }
+
+        code, pre { font-family: 'Fira Code', monospace; background: var(--code-bg); padding: 0.2rem 0.5rem; border-radius: 4px; color: #e2e8f0; }
+        pre { padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; border-left: 4px solid var(--accent-primary); font-size: 0.88rem; position: relative; }
+        pre .c-import { color: #f472b6; }
+        pre .c-comment { color: #64748b; font-style: italic; }
+        pre .c-str { color: #a3e635; }
+        pre .c-fn { color: #38bdf8; }
+
+        .code-label {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(56,189,248,0.12); color: var(--accent-primary);
+            padding: 0.3rem 0.9rem; border-radius: 999px 999px 0 0;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; margin-top: 1.5rem;
+        }
+        .code-label + pre { margin-top: 0; border-radius: 0 8px 8px 8px; }
+
+        .explain-list {
+            background: rgba(0,0,0,0.25); border-radius: 8px; padding: 1.2rem 1.2rem 1.2rem 1rem;
+            margin: -0.5rem 0 1.5rem 0; border-left: 4px solid var(--accent-success);
+        }
+        .explain-list li { color: var(--text-secondary); font-size: 0.92rem; }
+        .explain-list code { font-size: 0.82rem; }
+
+        .btn {
+            background: var(--accent-primary); color: var(--bg-main); border: none;
+            padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; margin-right: 10px; margin-bottom: 10px;
+            font-family: inherit; font-size: 0.9rem;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0) scale(0.97); }
+        .btn-secondary { background: transparent; border: 2px solid var(--accent-primary); color: var(--accent-primary); }
+        .btn-success { background: var(--accent-success); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .badge {
+            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+            font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem;
+            background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); letter-spacing: 1px;
+        }
+
+        .math-block { background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; text-align: center; margin: 1rem 0; border: 1px solid rgba(56,189,248,0.15); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 1rem; border-bottom: 1px solid var(--bg-main); font-size: 0.92rem; }
+        th { color: var(--accent-primary); }
+        td { color: var(--text-secondary); }
+
+        .highlight-box { border-left: 4px solid var(--accent-warning); background: rgba(245, 158, 11, 0.05); padding: 1.5rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+        .box-danger { border-left-color: var(--accent-danger); background: rgba(239,68,68,0.05); }
+        .box-success { border-left-color: var(--accent-success); background: rgba(16,185,129,0.05); }
+        .box-purple { border-left-color: var(--accent-purple); background: rgba(167,139,250,0.05); }
+
+        #pcaSim { width: 100%; height: 420px; background: #0f172a; border-radius: 8px; display: block; cursor: crosshair; }
+
+        .legend-row { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 1rem 0; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+        .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+        .app-card { background: rgba(0,0,0,0.25); border-radius: 12px; padding: 1.4rem; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, border-color 0.3s ease; }
+        .app-card:hover { transform: translateY(-6px); border-color: var(--accent-primary); }
+        .app-card .icon { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+        .app-card h4 { color: var(--text-main); margin-bottom: 0.4rem; font-size: 1rem; }
+        .app-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+        .checklist { list-style: none; margin-left: 0; }
+        .checklist li { padding-left: 1.8rem; position: relative; }
+        .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--accent-success); font-weight: 800; }
+        .xlist li { padding-left: 1.8rem; position: relative; list-style: none; }
+        .xlist li::before { content: '✕'; position: absolute; left: 0; color: var(--accent-danger); font-weight: 800; }
+
+        .metric-svg-wrap { display: flex; flex-direction: column; align-items: center; }
+        .metric-svg-wrap span { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        .sim-readout {
+            display: flex; flex-wrap: wrap; gap: 1.5rem; background: rgba(0,0,0,0.3);
+            border-radius: 8px; padding: 1rem 1.4rem; margin-top: 1rem; font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+        }
+        .sim-readout div span:first-child { color: var(--text-secondary); display: block; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sim-readout div span:last-child { color: var(--accent-primary); font-size: 1.1rem; font-weight: 700; }
+
+        footer { text-align: center; padding: 4rem 0 2rem; color: var(--text-secondary); }
+        ::selection { background: var(--accent-primary); color: var(--bg-main); }
+    </style>
+</head>
+<body>
+
+    <div id="progressBar"></div>
+    <nav id="navBar">
+        <a href="#intro">1. Intro</a>
+        <a href="#curse">2. Curse of Dimensionality</a>
+        <a href="#iris">3. Iris Dataset</a>
+        <a href="#pca">4. PCA</a>
+        <a href="#simulator">5. Live Simulator</a>
+        <a href="#variance">6. Explained Variance</a>
+        <a href="#lda">7. LDA</a>
+        <a href="#pcavslda">8. PCA vs LDA</a>
+        <a href="#ica">9. ICA</a>
+        <a href="#python">10. Python</a>
+        <a href="#comparison">11. Comparison</a>
+        <a href="#summary">12. Summary</a>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 4rem;">
+        <div class="badge">Machine Learning Mastery Series &middot; Beginner Friendly</div>
+        <h1 style="font-size: 3.3rem; letter-spacing: -1px;">Dimensionality Reduction</h1>
+        <p style="font-size: 1.3rem;">PCA, LDA and ICA — three ways to compress features without losing the story.</p>
+    </header>
+
+    <!-- ============ 1. INTRODUCTION ============ -->
+    <section class="slide" id="intro">
+        <div class="badge">Section 1</div>
+        <h2>What is Dimensionality Reduction?</h2>
+        <p>Imagine every feature in your dataset is one dimension. A dataset with 4 columns lives in 4-dimensional space; one with 500 columns (like a gene-expression panel or a bag-of-words vector) lives in 500-dimensional space. <strong>Dimensionality reduction</strong> takes that high-dimensional cloud of points and re-expresses it using fewer dimensions, while trying to keep whatever made the data interesting in the first place.</p>
+
+        <h3>Why Too Many Features Hurts</h3>
+        <div class="grid">
+            <div>
+                <ul class="xlist">
+                    <li>More computation — every extra column costs memory and training time</li>
+                    <li>Harder visualization — humans can only really see in 2D or 3D</li>
+                    <li>Overfitting — models can latch onto noise when features vastly outnumber examples</li>
+                    <li>Redundant information — many features are correlated and say the same thing twice</li>
+                </ul>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; background: #000; border-radius: 12px;">
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem;" id="lightEmoji">🔦</div>
+                    <p>Fewer dimensions, same story — like a shadow that still shows the shape</p>
+                </div>
+            </div>
+        </div>
+
+        <h3>Real-World Applications</h3>
+        <div class="grid3">
+            <div class="app-card reveal"><span class="icon">🖼️</span><h4>Image Compression</h4><p>Representing thousands of pixels with a handful of components while keeping recognizable structure.</p></div>
+            <div class="app-card reveal"><span class="icon">🧬</span><h4>Genomics</h4><p>Reducing tens of thousands of gene-expression measurements down to a few interpretable axes.</p></div>
+            <div class="app-card reveal"><span class="icon">📝</span><h4>NLP Embeddings</h4><p>Compressing high-dimensional word/sentence embeddings for visualization or faster search.</p></div>
+            <div class="app-card reveal"><span class="icon">🎯</span><h4>Preprocessing for ML</h4><p>Feeding a smaller, decorrelated feature set into a downstream classifier or regressor.</p></div>
+            <div class="app-card reveal"><span class="icon">🎧</span><h4>Signal Separation</h4><p>Untangling mixed audio, EEG, or financial signals into their original independent sources.</p></div>
+            <div class="app-card reveal"><span class="icon">📊</span><h4>Data Visualization</h4><p>Projecting complex, many-featured datasets down to 2D scatter plots humans can read.</p></div>
+        </div>
+    </section>
+
+    <!-- ============ 2. CURSE OF DIMENSIONALITY ============ -->
+    <section class="slide" id="curse">
+        <div class="badge">Section 2</div>
+        <h2>The Curse of Dimensionality</h2>
+        <p>As the number of features grows, the space they live in grows <strong>exponentially</strong> larger. Your data doesn't grow with it, so the same number of points ends up scattered thinly across a nearly-empty space — distances stop being meaningful and every point starts looking roughly equally far from every other point.</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Fraction of a hypercube's volume that lies within 10% of its surface, by dimension</h4>
+            <canvas id="curseChart"></canvas>
+        </div>
+        <p>In just a handful of dimensions, almost all of the volume sits near the outer shell — there's essentially no "middle" left. This is exactly why raw distance-based methods degrade in high dimensions, and why reducing dimensions first often helps.</p>
+
+        <div class="grid">
+            <div>
+                <h3>Symptoms</h3>
+                <ul>
+                    <li>Nearest-neighbor and farthest-neighbor distances converge</li>
+                    <li>Models need exponentially more data to cover the space</li>
+                    <li>Density-based and distance-based algorithms (like KNN, DBSCAN) become unreliable</li>
+                </ul>
+            </div>
+            <div>
+                <h3>The Fix</h3>
+                <div class="highlight-box box-success">Reduce dimensions <em>first</em>, either by dropping uninformative features or — better — by combining correlated features into a smaller set of new ones that still carry the important structure. That's exactly what PCA, LDA and ICA do, each with a different notion of "important."</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ 3. IRIS DATASET ============ -->
+    <section class="slide" id="iris">
+        <div class="badge">Section 3</div>
+        <h2>Why the Iris Dataset?</h2>
+        <p>We'll use the same small, well-known dataset for all three techniques so the comparison is apples-to-apples: <strong>150 flowers</strong>, <strong>4 features</strong> (sepal length, sepal width, petal length, petal width), and <strong>3 classes</strong> (setosa, versicolor, virginica).</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Original Dataset — first two raw features</h4>
+            <canvas id="irisChart"></canvas>
+        </div>
+        <div class="legend-row">
+            <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span>Setosa</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#a78bfa;"></span>Versicolor</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#f59e0b;"></span>Virginica</div>
+        </div>
+
+        <table>
+            <thead><tr><th>Feature</th><th>What it Measures</th></tr></thead>
+            <tbody>
+                <tr><td>Sepal length / width</td><td>Size of the outer, leaf-like part protecting the flower bud</td></tr>
+                <tr><td>Petal length / width</td><td>Size of the colored inner petals</td></tr>
+            </tbody>
+        </table>
+        <p>Even with just 4 features, setosa is already clearly separated while versicolor and virginica overlap — a good, gentle test case for seeing what each method does differently.</p>
+    </section>
+
+    <!-- ============ 4. PCA ============ -->
+    <section class="slide" id="pca">
+        <div class="badge">Section 4</div>
+        <h2>PCA — Principal Component Analysis</h2>
+        <p>PCA is <strong>unsupervised</strong> — it never looks at the class labels. It creates new features, called <strong>Principal Components</strong>, that are linear combinations of the originals, chosen to preserve as much variance (spread) in the data as possible.</p>
+
+        <h3>What Are Principal Components?</h3>
+        <div class="highlight-box">Think of shining a flashlight on a 3D object and looking at its shadow on the wall. The shadow is only 2D, but if you angle the light correctly, that shadow still preserves the object's most important shape information. PCA finds the "best angle" mathematically — the direction that keeps the shadow as spread-out (informative) as possible.</div>
+
+        <h3>The Algorithm, Step by Step</h3>
+        <ol>
+            <li><strong>Standardize</strong> the data (mean 0, variance 1) so no single feature dominates just because of its scale.</li>
+            <li>Compute the <strong>covariance matrix</strong> of the standardized features.</li>
+            <li>Find its <strong>eigenvectors and eigenvalues</strong> — the eigenvectors are the candidate directions, the eigenvalues tell you how much variance each direction captures.</li>
+            <li>Keep the top-$k$ eigenvectors (highest eigenvalues) as your new axes and <strong>project</strong> the data onto them.</li>
+        </ol>
+
+        <div class="math-block">$$\Sigma = \frac{1}{n-1}X^{\top}X \qquad \Sigma v = \lambda v$$</div>
+        <p>Here $\Sigma$ is the covariance matrix, and each eigenvector $v$ with eigenvalue $\lambda$ defines one principal component — $\lambda$ is exactly the variance captured along that direction.</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Iris projected onto the top 2 principal components</h4>
+            <canvas id="pcaChart"></canvas>
+        </div>
+        <p>Notice setosa is still cleanly separated, and most of the spread now happens along one horizontal axis (PC1) — PCA rotated the data so that axis carries the most information, purely by chasing variance, without ever knowing the class labels.</p>
+    </section>
+
+    <!-- ============ 5. LIVE SIMULATOR ============ -->
+    <section class="slide" id="simulator">
+        <div class="badge">Section 5</div>
+        <h2>Live Simulator: Finding the Best Direction</h2>
+        <p>Real PCA solves for the optimal direction instantly via eigen decomposition. To build intuition, this simulator does it the slow, brute-force way: it sweeps a line through the data at different angles and measures how spread-out ("variance") the shadow of the points is along that line. Click anywhere on the canvas to test an angle yourself, or let the search run.</p>
+
+        <div class="canvas-container">
+            <canvas id="pcaSim"></canvas>
+        </div>
+
+        <div class="sim-readout">
+            <div><span>Current Angle</span><span id="simAngle">—</span></div>
+            <div><span>Variance Along Line</span><span id="simVar">—</span></div>
+            <div><span>Best So Far</span><span id="simBest">—</span></div>
+            <div><span>True Principal Angle</span><span id="simTrue">—</span></div>
+        </div>
+        <p id="simStatus" style="margin-top: 1rem; color: var(--text-secondary); font-style: italic;">Click the canvas to test a direction, or press "Next Step" to start the sweep.</p>
+
+        <div style="margin-top: 1rem;">
+            <button class="btn" id="stepBtnP" onclick="stepSim()">Next Step</button>
+            <button class="btn btn-secondary" id="autoBtnP" onclick="toggleAutoSim()">▶ Auto Sweep</button>
+            <button class="btn btn-success" onclick="initSim()">↺ Reset</button>
+        </div>
+        <div class="highlight-box box-purple" style="margin-top: 1.5rem;"><strong>Key idea:</strong> whichever angle produces the largest variance <em>is</em> the first principal component. In practice, scikit-learn finds this exactly and instantly through eigen decomposition — no sweeping required.</div>
+    </section>
+
+    <!-- ============ 6. EXPLAINED VARIANCE ============ -->
+    <section class="slide" id="variance">
+        <div class="badge">Section 6</div>
+        <h2>Explained Variance Ratio</h2>
+        <p>Explained variance ratio tells us how much of the total information (variance) each principal component preserves. It's how you decide how many components to keep.</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Explained variance ratio per component (standardized Iris)</h4>
+            <canvas id="varianceChart"></canvas>
+        </div>
+
+        <table>
+            <thead><tr><th>Component</th><th>Variance Explained</th><th>Cumulative</th></tr></thead>
+            <tbody>
+                <tr><td>PC1</td><td>72.96%</td><td>72.96%</td></tr>
+                <tr><td>PC2</td><td>22.85%</td><td>95.81%</td></tr>
+                <tr><td>PC3</td><td>3.67%</td><td>99.48%</td></tr>
+                <tr><td>PC4</td><td>0.52%</td><td>100.00%</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box box-success"><strong>Takeaway:</strong> just the first 2 components already capture nearly 96% of the total variance in Iris — which is exactly why a 2D PCA scatter plot is such a faithful summary of the original 4D dataset.</div>
+    </section>
+
+    <!-- ============ 7. LDA ============ -->
+    <section class="slide" id="lda">
+        <div class="badge">Section 7</div>
+        <h2>LDA — Linear Discriminant Analysis</h2>
+        <p>LDA is <strong>supervised</strong> — it uses the class labels directly. Instead of asking "which direction has the most spread?" like PCA, it asks a different question entirely.</p>
+
+        <div class="highlight-box box-purple"><strong>Why Labels?</strong> Instead of preserving variance, LDA asks: <em>how can I separate the classes as much as possible?</em> It looks for directions where points from the same class stay close together, while points from different classes end up far apart.</div>
+
+        <h3>The Objective</h3>
+        <div class="math-block">$$J(w) = \frac{w^{\top}S_B\,w}{w^{\top}S_W\,w}$$</div>
+        <p>$S_B$ is the <strong>between-class scatter</strong> (how far apart the class means are) and $S_W$ is the <strong>within-class scatter</strong> (how spread out each class is internally). LDA finds the direction $w$ that maximizes this ratio — big separation between classes, small spread within each class.</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Iris projected with LDA (using class labels)</h4>
+            <canvas id="ldaChart"></canvas>
+        </div>
+        <p>Compare this to the PCA plot above — the three classes are now much more tightly grouped and clearly separated, because LDA was explicitly optimizing for exactly that.</p>
+    </section>
+
+    <!-- ============ 8. PCA VS LDA ============ -->
+    <section class="slide" id="pcavslda">
+        <div class="badge">Section 8</div>
+        <h2>PCA vs LDA</h2>
+        <div class="grid">
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">PCA — chases variance</h4>
+                <canvas id="pcaMiniChart"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">LDA — chases separation</h4>
+                <canvas id="ldaMiniChart"></canvas>
+            </div>
+        </div>
+
+        <table>
+            <thead><tr><th>Aspect</th><th>PCA</th><th>LDA</th></tr></thead>
+            <tbody>
+                <tr><td>Type</td><td>Unsupervised</td><td>Supervised</td></tr>
+                <tr><td>Goal</td><td>Maximize variance</td><td>Maximize class separation</td></tr>
+                <tr><td>Needs labels?</td><td>No</td><td>Yes</td></tr>
+                <tr><td>Max components</td><td>Up to number of original features</td><td>Up to (number of classes − 1)</td></tr>
+                <tr><td>Typical use</td><td>Compression, visualization, noise reduction</td><td>Feature reduction before classification</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box"><strong>Interview Tip:</strong> PCA can occasionally discard a direction that happens to separate classes well, if that direction has low overall variance — because PCA has no idea classes even exist. LDA never makes that mistake, but it needs labeled data and caps out at (classes − 1) components, which for Iris means only 2.</div>
+    </section>
+
+    <!-- ============ 9. ICA ============ -->
+    <section class="slide" id="ica">
+        <div class="badge">Section 9</div>
+        <h2>ICA — Independent Component Analysis</h2>
+        <p>ICA is also unsupervised, but it optimizes for something different again: it looks for components that are <strong>statistically independent</strong> of each other, rather than components that maximize variance (PCA) or class separation (LDA).</p>
+
+        <div class="highlight-box box-purple"><strong>The Cocktail Party Problem.</strong> Imagine several people speaking at once in a room, and several microphones scattered around recording mixed audio. Each microphone hears a different blend of every voice. ICA tries to "un-blend" the recordings and recover each person's original, independent voice signal.</div>
+
+        <div class="grid">
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Mixed signals (what the microphones hear)</h4>
+                <canvas id="icaMixedChart"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Recovered independent sources</h4>
+                <canvas id="icaUnmixedChart"></canvas>
+            </div>
+        </div>
+
+        <div class="math-block">$$X = A\,S \qquad \hat{S} = W\,X$$</div>
+        <p>$S$ are the true, unknown independent sources; $A$ is the unknown mixing matrix that blends them into what we observe, $X$. ICA estimates an unmixing matrix $W \approx A^{-1}$ that recovers $\hat S$ — components that are as statistically independent (and non-Gaussian) as possible.</p>
+
+        <div class="canvas-container">
+            <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">Iris projected with ICA</h4>
+            <canvas id="icaChart"></canvas>
+        </div>
+
+        <h3>Real-World Applications</h3>
+        <div class="grid3">
+            <div class="app-card reveal"><span class="icon">🧠</span><h4>EEG / fMRI Analysis</h4><p>Separating true brain signals from eye-blink and muscle artifacts.</p></div>
+            <div class="app-card reveal"><span class="icon">🎙️</span><h4>Audio Source Separation</h4><p>Isolating individual voices or instruments from a mixed recording.</p></div>
+            <div class="app-card reveal"><span class="icon">📈</span><h4>Financial Signals</h4><p>Disentangling independent driving factors behind correlated market data.</p></div>
+        </div>
+        <div class="highlight-box box-danger" style="margin-top: 1.5rem;"><strong>Requirement:</strong> ICA needs the underlying sources to be non-Gaussian and statistically independent — if the true sources are Gaussian, PCA and ICA become indistinguishable and ICA has nothing extra to exploit.</div>
+    </section>
+
+    <!-- ============ 10. PYTHON IMPLEMENTATION ============ -->
+    <section class="slide" id="python">
+        <div class="badge">Section 10</div>
+        <h2>Python Implementation</h2>
+        <p>We'll run all three techniques on the same standardized Iris data so the comparison stays fair.</p>
+
+        <div class="code-label">1 · Import Libraries &amp; Load Data</div>
+        <pre><span class="c-import">import</span> matplotlib.pyplot <span class="c-import">as</span> plt
+<span class="c-import">from</span> sklearn.datasets <span class="c-import">import</span> load_iris
+<span class="c-import">from</span> sklearn.preprocessing <span class="c-import">import</span> StandardScaler
+<span class="c-import">from</span> sklearn.decomposition <span class="c-import">import</span> PCA, FastICA
+<span class="c-import">from</span> sklearn.discriminant_analysis <span class="c-import">import</span> LinearDiscriminantAnalysis
+
+data = load_iris()
+X = data.data
+y = data.target
+X_scaled = StandardScaler().fit_transform(X)
+
+plt.scatter(X[:,0], X[:,1], c=y, cmap=<span class="c-str">'viridis'</span>)
+plt.title(<span class="c-str">"Original Dataset"</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>load_iris()</code> returns 150 samples, 4 features, and integer class labels 0–2.</li>
+                <li><code>StandardScaler</code> rescales every feature to mean 0, variance 1 — essential before any variance- or distance-based method.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">2 · PCA</div>
+        <pre>pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+plt.scatter(X_pca[:,0], X_pca[:,1], c=y, cmap=<span class="c-str">'viridis'</span>)
+plt.title(<span class="c-str">"PCA"</span>)
+plt.show()
+<span class="c-fn">print</span>(<span class="c-str">"Explained Variance Ratio:"</span>, pca.explained_variance_ratio_)</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>n_components=2</code> keeps only the top 2 principal components.</li>
+                <li><code>fit_transform</code> both fits PCA on the data and returns the projected coordinates in one call.</li>
+                <li><code>explained_variance_ratio_</code> reports the fraction of total variance each kept component captures.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">3 · LDA</div>
+        <pre>lda = LinearDiscriminantAnalysis(n_components=2)
+X_lda = lda.fit_transform(X_scaled, y)
+plt.scatter(X_lda[:,0], X_lda[:,1], c=y, cmap=<span class="c-str">'viridis'</span>)
+plt.title(<span class="c-str">"LDA"</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Unlike PCA, <code>fit_transform</code> here takes <strong>both</strong> <code>X_scaled</code> and <code>y</code> — LDA needs the labels to compute between/within-class scatter.</li>
+                <li>For Iris (3 classes), LDA can produce at most 2 components (classes − 1).</li>
+            </ul>
+        </div>
+
+        <div class="code-label">4 · ICA</div>
+        <pre>ica = FastICA(n_components=2, random_state=42)
+X_ica = ica.fit_transform(X_scaled)
+plt.scatter(X_ica[:,0], X_ica[:,1], c=y, cmap=<span class="c-str">'viridis'</span>)
+plt.title(<span class="c-str">"ICA"</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>FastICA</code> is scikit-learn's efficient implementation of ICA, using a fixed-point iteration algorithm.</li>
+                <li><code>random_state=42</code> makes the (otherwise randomly-initialized) unmixing search reproducible.</li>
+                <li>ICA doesn't rank components by importance the way PCA does — its 2 axes are just "the 2 most independent signals found."</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============ 11. COMPARISON ============ -->
+    <section class="slide" id="comparison">
+        <div class="badge">Section 11</div>
+        <h2>Final Comparison &amp; When to Use</h2>
+
+        <table>
+            <thead><tr><th></th><th>PCA</th><th>LDA</th><th>ICA</th></tr></thead>
+            <tbody>
+                <tr><td>Learning type</td><td>Unsupervised</td><td>Supervised</td><td>Unsupervised</td></tr>
+                <tr><td>Optimizes for</td><td>Preserving variance</td><td>Maximizing class separation</td><td>Finding independent signals</td></tr>
+                <tr><td>Best for</td><td>Compression</td><td>Classification prep</td><td>Signal separation</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Decision Guide</h3>
+        <table>
+            <thead><tr><th>Situation</th><th>Use</th></tr></thead>
+            <tbody>
+                <tr><td>Need visualization or general compression, no labels available</td><td>PCA</td></tr>
+                <tr><td>Have labels and want the best features before a classifier</td><td>LDA</td></tr>
+                <tr><td>Need to un-mix overlapping audio, EEG, or other blended signals</td><td>ICA</td></tr>
+                <tr><td>Not sure sources are non-Gaussian / independent</td><td>PCA (ICA offers no extra benefit on Gaussian data)</td></tr>
+                <tr><td>Just exploring a new high-dimensional dataset</td><td>PCA first, always</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============ 12. SUMMARY ============ -->
+    <section class="slide" id="summary">
+        <div class="badge">Section 12</div>
+        <h2>Summary</h2>
+        <ul class="checklist">
+            <li>Dimensionality reduction compresses many features into fewer, while trying to keep what matters.</li>
+            <li>The curse of dimensionality is why fewer, better features often beat more, redundant ones.</li>
+            <li><strong>PCA</strong> is unsupervised and chases variance — the flashlight-and-shadow analogy.</li>
+            <li><strong>LDA</strong> is supervised and chases class separation, using labels directly.</li>
+            <li><strong>ICA</strong> chases statistical independence — the cocktail-party un-mixing problem.</li>
+            <li>All three can be swapped in with a couple of lines of scikit-learn once your data is standardized.</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Elite Frontend Designer &amp; UI/UX Developer. Dimensionality Reduction — PCA, LDA &amp; ICA.</p>
+    </footer>
+
+    <script>
+        // ---------------- Scroll progress + nav spy ----------------
+        const progressBar = document.getElementById('progressBar');
+        function updateProgress() {
+            const h = document.documentElement;
+            const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+            progressBar.style.width = scrolled + '%';
+        }
+        window.addEventListener('scroll', updateProgress);
+        updateProgress();
+
+        const navLinks = Array.from(document.querySelectorAll('#navBar a'));
+        const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+        const navSpy = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const idx = sections.indexOf(entry.target);
+                if (idx === -1) return;
+                if (entry.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    navLinks[idx].classList.add('active');
+                }
+            });
+        }, { rootMargin: '-45% 0px -45% 0px' });
+        sections.forEach(s => s && navSpy.observe(s));
+
+        // ---------------- Reveal-on-scroll ----------------
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.slide, .reveal').forEach(el => revealObserver.observe(el));
+
+        // ---------------- Flashlight emoji subtle float ----------------
+        const lightEmoji = document.getElementById('lightEmoji');
+        if (lightEmoji) {
+            let t = 0;
+            setInterval(() => {
+                t += 0.15;
+                lightEmoji.style.transform = `translateY(${Math.sin(t) * 6}px) rotate(${Math.sin(t*0.5)*8}deg)`;
+            }, 60);
+        }
+
+        // ---------------- Helpers: synthetic blob generator ----------------
+        function gaussish() { return (Math.random()+Math.random()+Math.random()+Math.random()-2)/2; }
+        function makeCluster(cx, cy, sx, sy, angleDeg, n) {
+            const rad = angleDeg*Math.PI/180, cos = Math.cos(rad), sin = Math.sin(rad);
+            const pts = [];
+            for (let i=0;i<n;i++) {
+                const x = gaussish()*sx, y = gaussish()*sy;
+                pts.push({ x: cx + (x*cos - y*sin), y: cy + (x*sin + y*cos) });
+            }
+            return pts;
+        }
+        const commonScatterOptions = {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        };
+        const COL = { setosa: '#38bdf8', versicolor: '#a78bfa', virginica: '#f59e0b' };
+
+        // ---------------- Curse of dimensionality chart ----------------
+        const curseDims = [1,2,3,5,10,20,40,80];
+        const curseFrac = curseDims.map(d => (1 - Math.pow(0.9, d)) * 100);
+        new Chart(document.getElementById('curseChart'), {
+            type: 'bar',
+            data: { labels: curseDims.map(d => d + 'D'), datasets: [{
+                label: '% volume near the shell', data: curseFrac,
+                backgroundColor: '#f59e0b'
+            }]},
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                }
+            }
+        });
+
+        // ---------------- Iris original scatter ----------------
+        const setosaO = makeCluster(30, 75, 6, 9, 10, 50);
+        const versicolorO = makeCluster(62, 45, 10, 8, -15, 50);
+        const virginicaO = makeCluster(72, 35, 12, 9, -10, 50);
+        new Chart(document.getElementById('irisChart'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: setosaO, backgroundColor: COL.setosa },
+                { data: versicolorO, backgroundColor: COL.versicolor },
+                { data: virginicaO, backgroundColor: COL.virginica }
+            ]},
+            options: commonScatterOptions
+        });
+
+        // ---------------- PCA projected scatter ----------------
+        const setosaP = makeCluster(-32, 0, 5, 8, 0, 50);
+        const versicolorP = makeCluster(10, -3, 11, 6, 5, 50);
+        const virginicaP = makeCluster(26, 4, 13, 7, -5, 50);
+        function drawPcaLike(canvasId) {
+            return new Chart(document.getElementById(canvasId), {
+                type: 'scatter',
+                data: { datasets: [
+                    { data: setosaP, backgroundColor: COL.setosa },
+                    { data: versicolorP, backgroundColor: COL.versicolor },
+                    { data: virginicaP, backgroundColor: COL.virginica }
+                ]},
+                options: commonScatterOptions
+            });
+        }
+        drawPcaLike('pcaChart');
+
+        // ---------------- Explained variance chart ----------------
+        new Chart(document.getElementById('varianceChart'), {
+            type: 'bar',
+            data: { labels: ['PC1','PC2','PC3','PC4'], datasets: [{
+                label: 'Explained Variance Ratio', data: [72.96, 22.85, 3.67, 0.52],
+                backgroundColor: ['#38bdf8','#a78bfa','#10b981','#f59e0b']
+            }]},
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#94a3b8', callback: v => v + '%' }, grid: { color: '#334155' } },
+                    x: { ticks: { color: '#94a3b8' }, grid: { display: false } }
+                }
+            }
+        });
+
+        // ---------------- LDA projected scatter ----------------
+        const setosaL = makeCluster(-42, 0, 3, 3, 0, 50);
+        const versicolorL = makeCluster(2, 6, 4, 3, 0, 50);
+        const virginicaL = makeCluster(38, -6, 4, 3, 0, 50);
+        function drawLdaLike(canvasId) {
+            return new Chart(document.getElementById(canvasId), {
+                type: 'scatter',
+                data: { datasets: [
+                    { data: setosaL, backgroundColor: COL.setosa },
+                    { data: versicolorL, backgroundColor: COL.versicolor },
+                    { data: virginicaL, backgroundColor: COL.virginica }
+                ]},
+                options: commonScatterOptions
+            });
+        }
+        drawLdaLike('ldaChart');
+
+        // ---------------- PCA vs LDA mini charts ----------------
+        drawPcaLike('pcaMiniChart');
+        drawLdaLike('ldaMiniChart');
+
+        // ---------------- ICA mixed / unmixed waveform charts ----------------
+        const tRange = Array.from({length: 60}, (_, i) => i);
+        const s1 = tRange.map(t => Math.sin(t*0.35));
+        const s2 = tRange.map(t => Math.sign(Math.sin(t*0.22)));
+        const mixed1 = tRange.map((t,i) => 0.6*s1[i] + 0.4*s2[i]);
+        const mixed2 = tRange.map((t,i) => 0.3*s1[i] - 0.7*s2[i]);
+        const lineCommon = { responsive: true, elements: { point: { radius: 0 } },
+            plugins: { legend: { labels: { color: '#94a3b8', font: { size: 10 } } } },
+            scales: { x: { display: false }, y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' } } } };
+        new Chart(document.getElementById('icaMixedChart'), {
+            type: 'line',
+            data: { labels: tRange, datasets: [
+                { label: 'Mic 1', data: mixed1, borderColor: '#f59e0b', tension: 0.2 },
+                { label: 'Mic 2', data: mixed2, borderColor: '#ef4444', tension: 0.2 }
+            ]},
+            options: lineCommon
+        });
+        new Chart(document.getElementById('icaUnmixedChart'), {
+            type: 'line',
+            data: { labels: tRange, datasets: [
+                { label: 'Source 1', data: s1, borderColor: '#38bdf8', tension: 0.2 },
+                { label: 'Source 2', data: s2, borderColor: '#10b981', tension: 0.2 }
+            ]},
+            options: lineCommon
+        });
+
+        // ---------------- ICA projected scatter (illustrative) ----------------
+        const setosaI = makeCluster(-20, 25, 9, 6, 30, 50);
+        const versicolorI = makeCluster(15, -10, 8, 10, -20, 50);
+        const virginicaI = makeCluster(25, 15, 9, 8, 40, 50);
+        new Chart(document.getElementById('icaChart'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: setosaI, backgroundColor: COL.setosa },
+                { data: versicolorI, backgroundColor: COL.versicolor },
+                { data: virginicaI, backgroundColor: COL.virginica }
+            ]},
+            options: commonScatterOptions
+        });
+
+        // ---------------- Live PCA direction-finding simulator ----------------
+        const canvasP = document.getElementById('pcaSim');
+        const ctxP = canvasP.getContext('2d');
+        const TRUE_ANGLE = 35;
+        let ptsP = [], centroidP = { x: 0, y: 0 };
+        let searchAngles = [], stepIdx = 0, bestAngle = null, bestVar = -Infinity;
+        let currentAngle = null, autoRunningP = false, autoTimerP = null;
+
+        function projVariance(angleDeg) {
+            const rad = angleDeg*Math.PI/180, ux = Math.cos(rad), uy = Math.sin(rad);
+            const vals = ptsP.map(p => (p.x-centroidP.x)*ux + (p.y-centroidP.y)*uy);
+            const mean = vals.reduce((a,b)=>a+b,0)/vals.length;
+            return vals.reduce((a,b)=>a+(b-mean)*(b-mean),0)/vals.length;
+        }
+
+        function initSim() {
+            stopAutoSim();
+            const rect = canvasP.getBoundingClientRect();
+            canvasP.width = rect.width;
+            canvasP.height = 420;
+            const cx = canvasP.width/2, cy = canvasP.height/2;
+            ptsP = makeCluster(cx, cy, Math.min(canvasP.width*0.32, 160), 26, TRUE_ANGLE, 260);
+            let sx=0, sy=0;
+            ptsP.forEach(p => { sx+=p.x; sy+=p.y; });
+            centroidP = { x: sx/ptsP.length, y: sy/ptsP.length };
+
+            searchAngles = [];
+            for (let a=0; a<180; a+=10) searchAngles.push(a);
+            stepIdx = 0; bestAngle = null; bestVar = -Infinity; currentAngle = null;
+
+            document.getElementById('simAngle').innerText = '—';
+            document.getElementById('simVar').innerText = '—';
+            document.getElementById('simBest').innerText = '—';
+            document.getElementById('simTrue').innerText = TRUE_ANGLE + '°';
+            document.getElementById('simStatus').innerText = 'Data generated. Click the canvas to test a direction, or press "Next Step" to start the sweep.';
+            drawSim(null);
+        }
+
+        function drawSim(angleDeg) {
+            ctxP.clearRect(0,0,canvasP.width,canvasP.height);
+            ptsP.forEach(p => {
+                ctxP.beginPath();
+                ctxP.arc(p.x, p.y, 3.5, 0, Math.PI*2);
+                ctxP.fillStyle = 'rgba(56,189,248,0.55)';
+                ctxP.fill();
+            });
+            if (angleDeg === null) return;
+            const rad = angleDeg*Math.PI/180, ux = Math.cos(rad), uy = Math.sin(rad);
+            const L = Math.max(canvasP.width, canvasP.height);
+            ctxP.beginPath();
+            ctxP.moveTo(centroidP.x-ux*L, centroidP.y-uy*L);
+            ctxP.lineTo(centroidP.x+ux*L, centroidP.y+uy*L);
+            ctxP.strokeStyle = '#f59e0b';
+            ctxP.lineWidth = 2;
+            ctxP.stroke();
+            ptsP.forEach(p => {
+                const d = (p.x-centroidP.x)*ux + (p.y-centroidP.y)*uy;
+                const fx = centroidP.x + ux*d, fy = centroidP.y + uy*d;
+                ctxP.beginPath();
+                ctxP.moveTo(p.x, p.y);
+                ctxP.lineTo(fx, fy);
+                ctxP.strokeStyle = 'rgba(245,158,11,0.15)';
+                ctxP.lineWidth = 1;
+                ctxP.stroke();
+                ctxP.beginPath();
+                ctxP.arc(fx, fy, 2, 0, Math.PI*2);
+                ctxP.fillStyle = '#f59e0b';
+                ctxP.fill();
+            });
+        }
+
+        function updateReadout(angleDeg, v) {
+            document.getElementById('simAngle').innerText = angleDeg.toFixed(0) + '°';
+            document.getElementById('simVar').innerText = v.toFixed(1);
+            if (v > bestVar) { bestVar = v; bestAngle = angleDeg; }
+            document.getElementById('simBest').innerText = bestAngle.toFixed(0) + '° (' + bestVar.toFixed(1) + ')';
+        }
+
+        function stepSim() {
+            if (!ptsP.length) initSim();
+            if (stepIdx >= searchAngles.length) {
+                document.getElementById('simStatus').innerText = 'Sweep finished — best direction found ≈ ' + bestAngle.toFixed(0) + '°, close to the true axis at ' + TRUE_ANGLE + '°. Real PCA gets this exactly via eigen decomposition, instantly.';
+                stopAutoSim();
+                return;
+            }
+            const angle = searchAngles[stepIdx];
+            const v = projVariance(angle);
+            currentAngle = angle;
+            drawSim(angle);
+            updateReadout(angle, v);
+            document.getElementById('simStatus').innerText = 'Testing angle ' + angle + '° → variance along this line: ' + v.toFixed(1) + '.';
+            stepIdx++;
+        }
+
+        function toggleAutoSim() {
+            if (autoRunningP) { stopAutoSim(); return; }
+            autoRunningP = true;
+            document.getElementById('autoBtnP').innerText = '⏸ Pause';
+            runAutoLoopSim();
+        }
+        function runAutoLoopSim() {
+            if (!autoRunningP) return;
+            if (stepIdx >= searchAngles.length) { stopAutoSim(); return; }
+            stepSim();
+            autoTimerP = setTimeout(runAutoLoopSim, 260);
+        }
+        function stopAutoSim() {
+            autoRunningP = false;
+            clearTimeout(autoTimerP);
+            const btn = document.getElementById('autoBtnP');
+            if (btn) btn.innerText = '▶ Auto Sweep';
+        }
+
+        canvasP.addEventListener('click', (e) => {
+            if (!ptsP.length) return;
+            const rect = canvasP.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            let angle = Math.atan2(my - centroidP.y, mx - centroidP.x) * 180/Math.PI;
+            angle = ((angle % 180) + 180) % 180;
+            const v = projVariance(angle);
+            currentAngle = angle;
+            drawSim(angle);
+            updateReadout(angle, v);
+            document.getElementById('simStatus').innerText = 'Manual test at ' + angle.toFixed(0) + '° → variance: ' + v.toFixed(1) + '.';
+        });
+
+        window.addEventListener('resize', initSim);
+        initSim();
+    </script>
+</body>
+</html>

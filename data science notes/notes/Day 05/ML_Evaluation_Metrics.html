@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ML Evaluation Metrics: A Deep Dive</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #0d0f17;
+            --surface: #151923;
+            --surface2: #1c2333;
+            --border: #2a3550;
+            --accent: #4f9cf9;
+            --accent2: #a78bfa;
+            --green: #34d399;
+            --red: #f87171;
+            --yellow: #fbbf24;
+            --text: #e2e8f0;
+            --muted: #64748b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'DM Sans', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .mono { font-family: 'Space Mono', monospace; }
+        .code { font-family: 'Courier Prime', monospace; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: var(--surface); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* Confusion Matrix Cell */
+        .cm-cell {
+            border: 1px solid var(--border);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+            cursor: default;
+            border-radius: 6px;
+        }
+
+        /* Animated bar */
+        .metric-bar {
+            height: 8px;
+            border-radius: 4px;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* ROC Curve Canvas */
+        #roc-canvas { width: 100%; height: 100%; }
+
+        /* Glowing accent */
+        .glow { box-shadow: 0 0 20px rgba(79,156,249,0.3); }
+        .glow-green { box-shadow: 0 0 20px rgba(52,211,153,0.3); }
+        .glow-red { box-shadow: 0 0 20px rgba(248,113,113,0.3); }
+        .glow-purple { box-shadow: 0 0 20px rgba(167,139,250,0.3); }
+
+        /* Dot pulse animation */
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        @keyframes slide-in {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .slide-in { animation: slide-in 0.4s ease forwards; }
+
+        .tag {
+            font-family: 'Space Mono', monospace;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            border: 1px solid;
+            letter-spacing: 0.05em;
+        }
+
+        .progress-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        /* Threshold slider */
+        input[type=range] {
+            -webkit-appearance: none;
+            background: var(--border);
+            height: 4px;
+            border-radius: 2px;
+            outline: none;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 8px rgba(79,156,249,0.6);
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    // ─── SHARED COMPONENTS ────────────────────────────────────────────────────
+
+    const Tag = ({ color = 'blue', children }) => {
+        const colors = {
+            blue: 'border-blue-500 text-blue-400 bg-blue-500/10',
+            green: 'border-emerald-500 text-emerald-400 bg-emerald-500/10',
+            purple: 'border-purple-500 text-purple-400 bg-purple-500/10',
+            yellow: 'border-yellow-500 text-yellow-400 bg-yellow-500/10',
+            red: 'border-red-500 text-red-400 bg-red-500/10',
+        };
+        return <span className={`tag ${colors[color]}`}>{children}</span>;
+    };
+
+    const MetricCard = ({ label, value, color = 'blue', formula }) => {
+        const colors = {
+            blue: 'border-blue-500/40 bg-blue-500/5',
+            green: 'border-emerald-500/40 bg-emerald-500/5',
+            purple: 'border-purple-500/40 bg-purple-500/5',
+            yellow: 'border-yellow-500/40 bg-yellow-500/5',
+            red: 'border-red-500/40 bg-red-500/5',
+        };
+        const textColors = {
+            blue: 'text-blue-400', green: 'text-emerald-400',
+            purple: 'text-purple-400', yellow: 'text-yellow-400', red: 'text-red-400'
+        };
+        return (
+            <div className={`border rounded-lg p-3 ${colors[color]}`}>
+                <div className="text-xs text-slate-500 mono mb-1">{label}</div>
+                <div className={`text-2xl font-bold mono ${textColors[color]}`}>{value}</div>
+                {formula && <div className="text-[10px] text-slate-600 code mt-1">{formula}</div>}
+            </div>
+        );
+    };
+
+    // ─── SLIDE 0: TITLE ───────────────────────────────────────────────────────
+    const TitleViz = () => {
+        const metrics = ['Accuracy','Precision','Recall','F1','AUC-ROC','MSE','R²','Log Loss','IoU','BLEU'];
+        const [active, setActive] = useState(0);
+        useEffect(() => {
+            const id = setInterval(() => setActive(a => (a+1) % metrics.length), 800);
+            return () => clearInterval(id);
+        }, []);
+        return (
+            <div className="h-full flex flex-col items-center justify-center relative overflow-hidden" style={{background:'linear-gradient(135deg,#0d0f17 0%,#151b2e 100%)'}}>
+                <div className="absolute inset-0" style={{backgroundImage:'radial-gradient(circle at 30% 50%, rgba(79,156,249,0.08) 0%, transparent 60%), radial-gradient(circle at 70% 50%, rgba(167,139,250,0.06) 0%, transparent 60%)'}}>
+                </div>
+                <div className="text-center z-10 space-y-6">
+                    <div className="mono text-xs text-slate-500 tracking-widest uppercase mb-4">ML Education Series · Module 3</div>
+                    <div className="text-6xl font-black tracking-tight" style={{background:'linear-gradient(90deg, #4f9cf9, #a78bfa)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent'}}>
+                        Evaluation<br/>Metrics
+                    </div>
+                    <div className="text-slate-400 text-sm max-w-xs leading-relaxed">How do we know if a model is actually good?</div>
+                    <div className="flex flex-wrap justify-center gap-2 max-w-xs">
+                        {metrics.map((m,i) => (
+                            <span key={m} className={`tag transition-all duration-300 ${i === active ? 'border-blue-400 text-blue-300 bg-blue-400/20' : 'border-slate-700 text-slate-600 bg-slate-800/50'}`}>{m}</span>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 1: CONFUSION MATRIX PLAYGROUND ─────────────────────────────────
+    const ConfusionMatrixLab = () => {
+        const [tp, setTp] = useState(80);
+        const [fp, setFp] = useState(20);
+        const [fn, setFn] = useState(15);
+        const [tn, setTn] = useState(85);
+        const total = tp + fp + fn + tn;
+        const accuracy = ((tp + tn) / total * 100).toFixed(1);
+        const precision = (tp / (tp + fp) * 100).toFixed(1);
+        const recall = (tp / (tp + fn) * 100).toFixed(1);
+        const f1 = (2 * tp / (2*tp + fp + fn) * 100).toFixed(1);
+
+        const Slider = ({ label, value, setValue, color }) => (
+            <div className="space-y-1">
+                <div className="flex justify-between text-xs">
+                    <span className="text-slate-400">{label}</span>
+                    <span className={`mono font-bold ${color}`}>{value}</span>
+                </div>
+                <input type="range" min="0" max="100" value={value}
+                    onChange={e => setValue(Number(e.target.value))} className="w-full" />
+            </div>
+        );
+
+        const Cell = ({ val, label, color, sublabel }) => (
+            <div className={`cm-cell p-3 ${color}`} style={{minHeight:'90px'}}>
+                <div className="text-2xl font-black mono">{val}</div>
+                <div className="text-xs font-bold mt-1">{label}</div>
+                <div className="text-[10px] text-slate-500 text-center leading-tight mt-1">{sublabel}</div>
+            </div>
+        );
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">INTERACTIVE LAB · Adjust values to see metric changes</div>
+
+                <div className="flex gap-4 flex-1">
+                    {/* Left: Matrix */}
+                    <div className="flex-1">
+                        <div className="text-xs text-slate-500 mb-2 text-center">← Predicted →</div>
+                        <div className="grid grid-cols-3 gap-1 text-xs mb-1">
+                            <div></div>
+                            <div className="text-center text-slate-400 font-bold py-1">Positive</div>
+                            <div className="text-center text-slate-400 font-bold py-1">Negative</div>
+                        </div>
+                        <div className="grid grid-cols-3 gap-1">
+                            <div className="flex items-center justify-center text-slate-400 font-bold text-xs" style={{writingMode:'vertical-rl',transform:'rotate(180deg)'}}>Actual +</div>
+                            <Cell val={tp} label="TP" color="border border-emerald-500/40 bg-emerald-500/10 text-emerald-400" sublabel="Correctly predicted positive" />
+                            <Cell val={fn} label="FN" color="border border-red-500/40 bg-red-500/10 text-red-400" sublabel="Missed positive (Type II)" />
+                            <div className="flex items-center justify-center text-slate-400 font-bold text-xs" style={{writingMode:'vertical-rl',transform:'rotate(180deg)'}}>Actual −</div>
+                            <Cell val={fp} label="FP" color="border border-yellow-500/40 bg-yellow-500/10 text-yellow-400" sublabel="False alarm (Type I)" />
+                            <Cell val={tn} label="TN" color="border border-blue-500/40 bg-blue-500/10 text-blue-400" sublabel="Correctly predicted negative" />
+                        </div>
+                        <div className="mt-3 text-[10px] text-slate-600 border border-slate-800 rounded p-2 leading-relaxed">
+                            <span className="text-slate-400">Total samples:</span> <span className="mono text-slate-300">{total}</span> &nbsp;|&nbsp;
+                            <span className="text-slate-400">Imbalance:</span> <span className="mono text-slate-300">{((tp+fn)/total*100).toFixed(0)}% positive</span>
+                        </div>
+                    </div>
+
+                    {/* Right: Controls + Metrics */}
+                    <div className="w-48 flex flex-col gap-4">
+                        <div className="space-y-3 border border-slate-700/50 rounded-lg p-3 bg-slate-800/40">
+                            <Slider label="True Positives" value={tp} setValue={setTp} color="text-emerald-400" />
+                            <Slider label="False Positives" value={fp} setValue={setFp} color="text-yellow-400" />
+                            <Slider label="False Negatives" value={fn} setValue={setFn} color="text-red-400" />
+                            <Slider label="True Negatives" value={tn} setValue={setTn} color="text-blue-400" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            <MetricCard label="Accuracy" value={`${accuracy}%`} color="blue" />
+                            <MetricCard label="Precision" value={`${precision}%`} color="green" />
+                            <MetricCard label="Recall" value={`${recall}%`} color="yellow" />
+                            <MetricCard label="F1 Score" value={`${f1}%`} color="purple" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 2: PRECISION vs RECALL TRADEOFF ────────────────────────────────
+    const PrecisionRecallLab = () => {
+        const [threshold, setThreshold] = useState(0.5);
+
+        // Synthetic predictions sorted by confidence
+        const predictions = [
+            {score:0.95,actual:1},{score:0.88,actual:1},{score:0.82,actual:0},{score:0.78,actual:1},
+            {score:0.74,actual:1},{score:0.69,actual:0},{score:0.65,actual:1},{score:0.61,actual:0},
+            {score:0.57,actual:1},{score:0.52,actual:0},{score:0.48,actual:1},{score:0.44,actual:0},
+            {score:0.40,actual:1},{score:0.36,actual:0},{score:0.30,actual:0},{score:0.24,actual:1},
+            {score:0.18,actual:0},{score:0.12,actual:0},{score:0.08,actual:1},{score:0.03,actual:0},
+        ];
+
+        const predicted_pos = predictions.filter(p => p.score >= threshold);
+        const tp = predicted_pos.filter(p => p.actual === 1).length;
+        const fp = predicted_pos.filter(p => p.actual === 0).length;
+        const total_actual_pos = predictions.filter(p => p.actual === 1).length;
+        const precision = tp + fp === 0 ? 0 : (tp / (tp + fp));
+        const recall = (tp / total_actual_pos);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">THRESHOLD PLAYGROUND · Move slider to adjust decision boundary</div>
+
+                {/* Prediction Strip */}
+                <div className="border border-slate-700 rounded-lg p-3 bg-slate-800/30">
+                    <div className="text-xs text-slate-400 mb-2">Model confidence scores (sorted high → low) · <span className="text-slate-500">Green = actual positive, Red = actual negative</span></div>
+                    <div className="flex gap-1 flex-wrap">
+                        {predictions.map((p, i) => (
+                            <div key={i} title={`Score: ${p.score} | Actual: ${p.actual === 1 ? 'Positive' : 'Negative'}`}
+                                className="relative flex flex-col items-center">
+                                <div className={`w-8 h-8 rounded flex items-center justify-center text-[9px] mono font-bold transition-all duration-300 border
+                                    ${p.score >= threshold
+                                        ? (p.actual === 1 ? 'bg-emerald-500/20 border-emerald-500 text-emerald-300' : 'bg-yellow-500/20 border-yellow-500 text-yellow-300')
+                                        : 'bg-slate-700/50 border-slate-600 text-slate-500'
+                                    }`}>
+                                    {p.score.toFixed(2).slice(1)}
+                                </div>
+                                <div className={`w-1.5 h-1.5 rounded-full mt-0.5 ${p.actual === 1 ? 'bg-emerald-500' : 'bg-red-500'}`}></div>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="mt-3">
+                        <div className="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Threshold: <span className="mono text-blue-400 font-bold">{threshold.toFixed(2)}</span></span>
+                            <span>Predicting positive: <span className="mono text-slate-300">{predicted_pos.length}/{predictions.length}</span></span>
+                        </div>
+                        <input type="range" min="0" max="1" step="0.01" value={threshold}
+                            onChange={e => setThreshold(Number(e.target.value))} className="w-full" />
+                    </div>
+                </div>
+
+                {/* Metrics + Explanation */}
+                <div className="flex gap-4">
+                    <div className="flex-1 grid grid-cols-2 gap-3">
+                        <MetricCard label="Precision" value={`${(precision*100).toFixed(1)}%`} color="green"
+                            formula={`TP / (TP+FP) = ${tp}/${tp+fp}`} />
+                        <MetricCard label="Recall (Sensitivity)" value={`${(recall*100).toFixed(1)}%`} color="yellow"
+                            formula={`TP / (TP+FN) = ${tp}/${total_actual_pos}`} />
+                        <div className="col-span-2 border border-slate-700 rounded-lg p-3 bg-slate-800/30">
+                            <div className="text-xs text-slate-400 mb-2">The Tradeoff:</div>
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="text-xs text-slate-400 w-20">Precision</div>
+                                <div className="flex-1 bg-slate-700 rounded h-2">
+                                    <div className="metric-bar bg-emerald-500" style={{width:`${precision*100}%`}}></div>
+                                </div>
+                                <span className="mono text-xs text-emerald-400 w-10 text-right">{(precision*100).toFixed(0)}%</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="text-xs text-slate-400 w-20">Recall</div>
+                                <div className="flex-1 bg-slate-700 rounded h-2">
+                                    <div className="metric-bar bg-yellow-500" style={{width:`${recall*100}%`}}></div>
+                                </div>
+                                <span className="mono text-xs text-yellow-400 w-10 text-right">{(recall*100).toFixed(0)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w-44 border border-slate-700 rounded-lg p-3 bg-slate-800/30 text-xs space-y-3">
+                        <div className="font-bold text-slate-300">When to prioritize?</div>
+                        <div className="space-y-1">
+                            <div className="text-emerald-400 font-bold">↑ Precision</div>
+                            <div className="text-slate-500 leading-tight">Spam filter: don't block good emails. Fraud alerts: avoid annoying legit customers.</div>
+                        </div>
+                        <div className="space-y-1">
+                            <div className="text-yellow-400 font-bold">↑ Recall</div>
+                            <div className="text-slate-500 leading-tight">Cancer detection: never miss a real case. Defect detection: catch every flaw.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 3: F1 SCORE & HARMONIC MEAN ────────────────────────────────────
+    const F1Lab = () => {
+        const [p, setP] = useState(0.7);
+        const [r, setR] = useState(0.6);
+        const f1 = 2 * p * r / (p + r);
+        const arithmetic = (p + r) / 2;
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">F1 VISUALIZER · The harmonic mean penalizes extreme imbalances</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 space-y-4">
+                        {/* Sliders */}
+                        <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/30 space-y-4">
+                            <div>
+                                <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Precision (P)</span><span className="mono text-emerald-400 font-bold">{(p*100).toFixed(0)}%</span></div>
+                                <input type="range" min="0.01" max="1" step="0.01" value={p} onChange={e=>setP(Number(e.target.value))} className="w-full"/>
+                            </div>
+                            <div>
+                                <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Recall (R)</span><span className="mono text-yellow-400 font-bold">{(r*100).toFixed(0)}%</span></div>
+                                <input type="range" min="0.01" max="1" step="0.01" value={r} onChange={e=>setR(Number(e.target.value))} className="w-full"/>
+                            </div>
+                        </div>
+
+                        {/* Comparison visual */}
+                        <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/30">
+                            <div className="text-xs text-slate-400 mb-3">Arithmetic vs Harmonic Mean</div>
+                            {[
+                                { label: 'Arithmetic Mean', val: arithmetic, color: 'bg-slate-500', text: 'text-slate-300', formula: '(P + R) / 2' },
+                                { label: 'F1 (Harmonic)', val: f1, color: 'bg-purple-500', text: 'text-purple-300', formula: '2·P·R / (P+R)' },
+                            ].map(item => (
+                                <div key={item.label} className="mb-3">
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className={item.text}>{item.label}</span>
+                                        <span className={`mono font-bold ${item.text}`}>{(item.val*100).toFixed(1)}%</span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex-1 bg-slate-700 rounded h-3">
+                                            <div className={`${item.color} h-3 rounded transition-all duration-500`} style={{width:`${item.val*100}%`}}></div>
+                                        </div>
+                                        <div className="text-[10px] code text-slate-600 w-28 text-right">{item.formula}</div>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="mt-2 p-2 rounded bg-slate-900/60 text-[11px] text-slate-400 leading-relaxed">
+                                {f1 < arithmetic - 0.02
+                                    ? `⚠️ F1 (${(f1*100).toFixed(1)}%) < Arithmetic (${(arithmetic*100).toFixed(1)}%) — Harmonic mean punishes imbalance between P and R.`
+                                    : `✓ P and R are balanced — F1 ≈ Arithmetic Mean.`}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-44 space-y-3">
+                        <div className="border border-purple-500/30 bg-purple-500/5 rounded-lg p-3">
+                            <div className="text-xs text-slate-500 mono">F1 Score</div>
+                            <div className="text-4xl font-black mono text-purple-400">{(f1*100).toFixed(1)}<span className="text-xl">%</span></div>
+                            <div className="text-[10px] code text-slate-600 mt-1">2·P·R / (P+R)</div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-2 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">Why harmonic?</div>
+                            <div className="text-slate-500 leading-tight">A model with P=100%, R=1% has arithmetic mean 50.5% — misleadingly high. Harmonic mean gives only 1.98%, which is honest.</div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-2 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">F-beta generalization</div>
+                            <div className="code text-slate-500 text-[10px]">(1+β²)·P·R / (β²·P+R)</div>
+                            <div className="text-slate-500 leading-tight">β {'>'} 1 weighs recall more. β {'<'} 1 weighs precision more.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 4: ROC-AUC ─────────────────────────────────────────────────────
+    const ROCLab = () => {
+        const [threshold, setThreshold] = useState(0.5);
+
+        const predictions = [
+            {score:0.97,actual:1},{score:0.93,actual:1},{score:0.89,actual:1},{score:0.85,actual:1},
+            {score:0.81,actual:0},{score:0.77,actual:1},{score:0.73,actual:0},{score:0.69,actual:1},
+            {score:0.65,actual:1},{score:0.61,actual:0},{score:0.57,actual:0},{score:0.53,actual:1},
+            {score:0.49,actual:0},{score:0.45,actual:0},{score:0.41,actual:1},{score:0.37,actual:0},
+            {score:0.33,actual:0},{score:0.29,actual:1},{score:0.25,actual:0},{score:0.21,actual:0},
+        ];
+
+        // Compute full ROC curve points
+        const thresholds = Array.from({length:101}, (_,i) => i/100).reverse();
+        const rocPoints = thresholds.map(t => {
+            const pos_preds = predictions.filter(p => p.score >= t);
+            const tp = pos_preds.filter(p => p.actual === 1).length;
+            const fp = pos_preds.filter(p => p.actual === 0).length;
+            const total_pos = predictions.filter(p => p.actual === 1).length;
+            const total_neg = predictions.filter(p => p.actual === 0).length;
+            return { tpr: tp/total_pos, fpr: fp/total_neg, t };
+        });
+
+        // AUC (trapezoidal)
+        let auc = 0;
+        for (let i=1; i<rocPoints.length; i++) {
+            auc += (rocPoints[i].fpr - rocPoints[i-1].fpr) * (rocPoints[i].tpr + rocPoints[i-1].tpr) / 2;
+        }
+        auc = Math.abs(auc);
+
+        // Current threshold point
+        const pos_preds = predictions.filter(p => p.score >= threshold);
+        const tp = pos_preds.filter(p => p.actual === 1).length;
+        const fp = pos_preds.filter(p => p.actual === 0).length;
+        const total_pos = predictions.filter(p => p.actual === 1).length;
+        const total_neg = predictions.filter(p => p.actual === 0).length;
+        const curTPR = tp / total_pos;
+        const curFPR = fp / total_neg;
+
+        const W = 260, H = 220;
+        const pad = 30;
+        const toX = fpr => pad + fpr * (W - pad*2);
+        const toY = tpr => H - pad - tpr * (H - pad*2);
+
+        const pathData = rocPoints.map((pt, i) =>
+            `${i===0?'M':'L'}${toX(pt.fpr)},${toY(pt.tpr)}`
+        ).join(' ');
+
+        const fillData = `${pathData} L${toX(1)},${toY(0)} L${toX(0)},${toY(0)} Z`;
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">ROC CURVE · Trade TPR vs FPR across all thresholds</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 border border-slate-700 rounded-lg bg-slate-800/30 p-4 flex flex-col">
+                        <svg viewBox={`0 0 ${W} ${H}`} className="flex-1">
+                            {/* Grid */}
+                            {[0.25,0.5,0.75].map(v => (
+                                <g key={v}>
+                                    <line x1={toX(0)} y1={toY(v)} x2={toX(1)} y2={toY(v)} stroke="#2a3550" strokeDasharray="3,3"/>
+                                    <line x1={toX(v)} y1={toY(0)} x2={toX(v)} y2={toY(1)} stroke="#2a3550" strokeDasharray="3,3"/>
+                                    <text x={pad-4} y={toY(v)+4} fontSize="8" fill="#4a5568" textAnchor="end">{v}</text>
+                                    <text x={toX(v)} y={H-6} fontSize="8" fill="#4a5568" textAnchor="middle">{v}</text>
+                                </g>
+                            ))}
+                            {/* Random classifier line */}
+                            <line x1={toX(0)} y1={toY(0)} x2={toX(1)} y2={toY(1)} stroke="#4a5568" strokeDasharray="4,4"/>
+                            <text x={toX(0.7)} y={toY(0.6)-5} fontSize="8" fill="#4a5568">Random</text>
+
+                            {/* AUC fill */}
+                            <path d={fillData} fill="rgba(79,156,249,0.12)" />
+                            {/* ROC curve */}
+                            <path d={pathData} fill="none" stroke="#4f9cf9" strokeWidth="2" strokeLinejoin="round"/>
+
+                            {/* Current threshold point */}
+                            <circle cx={toX(curFPR)} cy={toY(curTPR)} r="5" fill="#a78bfa" stroke="#0d0f17" strokeWidth="2"/>
+                            <line x1={toX(curFPR)} y1={toY(0)} x2={toX(curFPR)} y2={toY(curTPR)} stroke="#a78bfa" strokeDasharray="3,3" strokeWidth="1"/>
+                            <line x1={toX(0)} y1={toY(curTPR)} x2={toX(curFPR)} y2={toY(curTPR)} stroke="#a78bfa" strokeDasharray="3,3" strokeWidth="1"/>
+
+                            {/* Axes */}
+                            <line x1={toX(0)} y1={toY(0)} x2={toX(1)} y2={toY(0)} stroke="#64748b" strokeWidth="1"/>
+                            <line x1={toX(0)} y1={toY(0)} x2={toX(0)} y2={toY(1)} stroke="#64748b" strokeWidth="1"/>
+
+                            {/* Labels */}
+                            <text x={W/2} y={H-2} fontSize="9" fill="#64748b" textAnchor="middle">False Positive Rate (FPR)</text>
+                            <text x="8" y={H/2} fontSize="9" fill="#64748b" textAnchor="middle" transform={`rotate(-90,8,${H/2})`}>True Positive Rate (TPR)</text>
+
+                            {/* AUC label */}
+                            <text x={toX(0.6)} y={toY(0.4)} fontSize="10" fill="#4f9cf9" fontWeight="bold" fontFamily="monospace">AUC = {auc.toFixed(3)}</text>
+                        </svg>
+
+                        <div className="mt-2">
+                            <div className="flex justify-between text-xs mb-1">
+                                <span className="text-slate-400">Threshold: <span className="mono text-purple-400">{threshold.toFixed(2)}</span></span>
+                                <span className="text-slate-400">TPR: <span className="mono text-emerald-400">{curTPR.toFixed(2)}</span> | FPR: <span className="mono text-red-400">{curFPR.toFixed(2)}</span></span>
+                            </div>
+                            <input type="range" min="0" max="1" step="0.01" value={threshold}
+                                onChange={e=>setThreshold(Number(e.target.value))} className="w-full"/>
+                        </div>
+                    </div>
+
+                    <div className="w-44 space-y-3">
+                        <div className="border border-blue-500/30 bg-blue-500/5 rounded-lg p-3">
+                            <div className="text-xs text-slate-500 mono">AUC Score</div>
+                            <div className="text-3xl font-black mono text-blue-400">{auc.toFixed(3)}</div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-2 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">Interpretation</div>
+                            {[
+                                { range:'0.5', label:'Random guessing', color:'text-red-400' },
+                                { range:'0.7–0.8', label:'Acceptable', color:'text-yellow-400' },
+                                { range:'0.8–0.9', label:'Good model', color:'text-emerald-400' },
+                                { range:'0.9+', label:'Excellent', color:'text-blue-400' },
+                            ].map(it => (
+                                <div key={it.range} className="flex justify-between">
+                                    <span className={`mono ${it.color}`}>{it.range}</span>
+                                    <span className="text-slate-500">{it.label}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs bg-slate-800/30">
+                            <div className="text-slate-300 font-bold mb-1">Key insight</div>
+                            <div className="text-slate-500 leading-tight">AUC is threshold-independent. A model with AUC=0.9 beats one with AUC=0.7 at every threshold.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 5: REGRESSION METRICS ─────────────────────────────────────────
+    const RegressionLab = () => {
+        const [noise, setNoise] = useState(30);
+
+        const trueVals = [10,25,30,50,60,70,80,95,100,120];
+        const predicted = trueVals.map(v => Math.round(v + (Math.random()*2-1) * noise));
+        const errors = trueVals.map((v,i) => predicted[i] - v);
+
+        const mae = errors.reduce((s,e) => s + Math.abs(e), 0) / errors.length;
+        const mse = errors.reduce((s,e) => s + e*e, 0) / errors.length;
+        const rmse = Math.sqrt(mse);
+        const mean_y = trueVals.reduce((a,b) => a+b,0) / trueVals.length;
+        const ss_tot = trueVals.reduce((s,v) => s + (v-mean_y)**2, 0);
+        const ss_res = errors.reduce((s,e) => s + e**2, 0);
+        const r2 = 1 - ss_res/ss_tot;
+
+        const W = 320, H = 180, pad = 30;
+        const maxV = 140;
+        const toX = i => pad + i * (W - pad*2) / (trueVals.length-1);
+        const toY = v => H - pad - (v/maxV) * (H - pad*2);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">REGRESSION METRICS · Measuring distance between predictions and ground truth</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 space-y-3">
+                        {/* Chart */}
+                        <div className="border border-slate-700 rounded-lg bg-slate-800/30 p-3">
+                            <svg viewBox={`0 0 ${W} ${H}`} width="100%">
+                                {/* Error bars */}
+                                {trueVals.map((v,i) => (
+                                    <line key={i}
+                                        x1={toX(i)} y1={toY(v)}
+                                        x2={toX(i)} y2={toY(predicted[i])}
+                                        stroke={errors[i] > 0 ? '#f87171' : '#34d399'}
+                                        strokeWidth="2" strokeDasharray="3,2"
+                                        opacity="0.7"
+                                    />
+                                ))}
+                                {/* True line */}
+                                <polyline points={trueVals.map((v,i)=>`${toX(i)},${toY(v)}`).join(' ')} fill="none" stroke="#4f9cf9" strokeWidth="2"/>
+                                {/* Predicted dots */}
+                                {predicted.map((v,i) => (
+                                    <circle key={i} cx={toX(i)} cy={toY(v)} r="4" fill="#a78bfa" stroke="#0d0f17" strokeWidth="1.5"/>
+                                ))}
+                                {/* True dots */}
+                                {trueVals.map((v,i) => (
+                                    <circle key={i} cx={toX(i)} cy={toY(v)} r="3" fill="#4f9cf9"/>
+                                ))}
+                                {/* Legend */}
+                                <circle cx={pad} cy={15} r="3" fill="#4f9cf9"/>
+                                <text x={pad+8} y={18} fontSize="9" fill="#4f9cf9">True values</text>
+                                <circle cx={pad+80} cy={15} r="4" fill="#a78bfa"/>
+                                <text x={pad+90} y={18} fontSize="9" fill="#a78bfa">Predictions</text>
+                                <line x1={pad+165} y1={12} x2={pad+175} y2={18} stroke="#f87171" strokeWidth="1.5" strokeDasharray="2,2"/>
+                                <text x={pad+180} y={18} fontSize="9" fill="#64748b">Error</text>
+                            </svg>
+                            <div className="mt-1">
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-slate-400">Noise level: <span className="mono text-slate-300">{noise}</span></span>
+                                </div>
+                                <input type="range" min="0" max="60" value={noise} onChange={e=>setNoise(Number(e.target.value))} className="w-full"/>
+                            </div>
+                        </div>
+
+                        {/* Formula explanations */}
+                        <div className="grid grid-cols-2 gap-2">
+                            {[
+                                { label:'MAE', val:`${mae.toFixed(1)}`, formula:'Σ|yᵢ−ŷᵢ| / n', desc:'Mean Absolute Error. Robust to outliers.', color:'green' },
+                                { label:'MSE', val:`${mse.toFixed(1)}`, formula:'Σ(yᵢ−ŷᵢ)² / n', desc:'Penalizes large errors heavily.', color:'yellow' },
+                                { label:'RMSE', val:`${rmse.toFixed(1)}`, formula:'√MSE', desc:'Same units as target variable.', color:'red' },
+                                { label:'R² Score', val:`${r2.toFixed(3)}`, formula:'1 − SS_res/SS_tot', desc:'Variance explained. 1 = perfect.', color:'blue' },
+                            ].map(m => (
+                                <div key={m.label} className={`border rounded-lg p-3 ${
+                                    m.color === 'green' ? 'border-emerald-500/30 bg-emerald-500/5' :
+                                    m.color === 'yellow' ? 'border-yellow-500/30 bg-yellow-500/5' :
+                                    m.color === 'red' ? 'border-red-500/30 bg-red-500/5' :
+                                    'border-blue-500/30 bg-blue-500/5'
+                                }`}>
+                                    <div className="flex justify-between">
+                                        <span className="text-xs text-slate-500 mono">{m.label}</span>
+                                        <span className={`text-sm font-bold mono ${
+                                            m.color === 'green' ? 'text-emerald-400' :
+                                            m.color === 'yellow' ? 'text-yellow-400' :
+                                            m.color === 'red' ? 'text-red-400' : 'text-blue-400'
+                                        }`}>{m.val}</span>
+                                    </div>
+                                    <div className="code text-[10px] text-slate-600 mt-0.5">{m.formula}</div>
+                                    <div className="text-[10px] text-slate-500 mt-1">{m.desc}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 6: CLASS IMBALANCE ─────────────────────────────────────────────
+    const ImbalanceLab = () => {
+        const [imbalance, setImbalance] = useState(90);
+
+        const total = 1000;
+        const pos = Math.round(total * (1 - imbalance/100));
+        const neg = total - pos;
+
+        // Dumb model: always predict negative
+        const dumb_acc = (neg / total * 100).toFixed(1);
+
+        // Smart model: decent recall
+        const smart_tp = Math.round(pos * 0.7);
+        const smart_fp = Math.round(neg * 0.1);
+        const smart_acc = ((smart_tp + (neg - smart_fp)) / total * 100).toFixed(1);
+        const smart_f1 = (2*smart_tp / (2*smart_tp + smart_fp + (pos - smart_tp)) * 100).toFixed(1);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">IMBALANCE TRAP · Why accuracy alone can be misleading</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 space-y-4">
+                        {/* Class distribution */}
+                        <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/30">
+                            <div className="flex justify-between text-xs mb-3">
+                                <span className="text-slate-400">Dataset composition</span>
+                                <span className="mono text-slate-300">{total} samples</span>
+                            </div>
+                            <div className="flex h-8 rounded overflow-hidden mb-2">
+                                <div className="bg-red-500 flex items-center justify-center text-white text-[10px] font-bold transition-all duration-500"
+                                    style={{width:`${pos/total*100}%`, minWidth: pos > 0 ? '4px' : 0}}>
+                                    {pos/total*100 > 8 ? `${pos}` : ''}
+                                </div>
+                                <div className="bg-slate-600 flex-1 flex items-center justify-center text-slate-300 text-[10px] font-bold">
+                                    {neg}
+                                </div>
+                            </div>
+                            <div className="flex gap-4 text-xs">
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500 rounded-sm inline-block"></span><span className="text-slate-400">Minority (positive): <span className="text-red-400 font-bold">{pos}</span></span></span>
+                                <span className="flex items-center gap-1"><span className="w-2 h-2 bg-slate-600 rounded-sm inline-block"></span><span className="text-slate-400">Majority (negative): <span className="text-slate-300 font-bold">{neg}</span></span></span>
+                            </div>
+                            <div className="mt-3">
+                                <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Imbalance ratio</span><span className="mono text-slate-300">{imbalance}% negative</span></div>
+                                <input type="range" min="50" max="99" value={imbalance} onChange={e=>setImbalance(Number(e.target.value))} className="w-full"/>
+                            </div>
+                        </div>
+
+                        {/* Two models comparison */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="border border-red-500/30 bg-red-500/5 rounded-lg p-3">
+                                <div className="text-xs text-red-400 font-bold mb-2">🚨 Naive Model</div>
+                                <div className="text-[10px] text-slate-500 mb-2 italic">"Always predict negative"</div>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">Accuracy</span><span className="mono text-yellow-400 font-bold">{dumb_acc}%</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">Recall</span><span className="mono text-red-400 font-bold">0%</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">F1</span><span className="mono text-red-400 font-bold">0%</span></div>
+                                </div>
+                                <div className="mt-2 text-[10px] text-red-500/80">High accuracy is a lie — it catches zero positives!</div>
+                            </div>
+                            <div className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-3">
+                                <div className="text-xs text-emerald-400 font-bold mb-2">✓ Smart Model</div>
+                                <div className="text-[10px] text-slate-500 mb-2 italic">"Learns both classes"</div>
+                                <div className="space-y-1">
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">Accuracy</span><span className="mono text-emerald-400 font-bold">{smart_acc}%</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">Recall</span><span className="mono text-emerald-400 font-bold">70%</span></div>
+                                    <div className="flex justify-between text-xs"><span className="text-slate-500">F1</span><span className="mono text-emerald-400 font-bold">{smart_f1}%</span></div>
+                                </div>
+                                <div className="mt-2 text-[10px] text-emerald-500/80">Lower accuracy, but genuinely useful!</div>
+                            </div>
+                        </div>
+
+                        <div className="border border-yellow-500/30 bg-yellow-500/5 rounded-lg p-3 text-xs text-yellow-400/80">
+                            💡 <strong>Rule of thumb:</strong> For imbalanced datasets, always report F1, Recall, and AUC-ROC alongside accuracy. Consider using <span className="mono">class_weight='balanced'</span> or SMOTE oversampling.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 7: LOG LOSS ────────────────────────────────────────────────────
+    const LogLossLab = () => {
+        const [confScore, setConfScore] = useState(0.7);
+        const [actualClass, setActualClass] = useState(1);
+
+        const logloss = actual => {
+            const eps = 1e-7;
+            const p = Math.min(Math.max(confScore, eps), 1-eps);
+            return actual === 1 ? -Math.log(p) : -Math.log(1-p);
+        };
+
+        const ll = logloss(actualClass);
+
+        // Generate loss curve
+        const pts = Array.from({length:100}, (_,i) => {
+            const p = 0.01 + i * 0.0098;
+            return { p, loss1: -Math.log(p), loss0: -Math.log(1-p) };
+        });
+        const W=300, H=180, pad=35;
+        const maxL = 4.5;
+        const toX = p => pad + p * (W - pad*2);
+        const toY = l => H - pad - Math.min(l, maxL) / maxL * (H - pad*2);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">LOG LOSS · Penalizes confident wrong predictions severely</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 border border-slate-700 rounded-lg bg-slate-800/30 p-4">
+                        <svg viewBox={`0 0 ${W} ${H}`} width="100%">
+                            {/* Grid */}
+                            {[1,2,3,4].map(v => (
+                                <g key={v}>
+                                    <line x1={toX(0)} y1={toY(v)} x2={toX(1)} y2={toY(v)} stroke="#2a3550" strokeDasharray="3,3"/>
+                                    <text x={pad-4} y={toY(v)+4} fontSize="8" fill="#4a5568" textAnchor="end">{v}</text>
+                                </g>
+                            ))}
+                            {[0.2,0.4,0.6,0.8].map(v => (
+                                <g key={v}>
+                                    <line x1={toX(v)} y1={toY(0)} x2={toX(v)} y2={toY(maxL)} stroke="#2a3550" strokeDasharray="3,3"/>
+                                    <text x={toX(v)} y={H-6} fontSize="8" fill="#4a5568" textAnchor="middle">{v}</text>
+                                </g>
+                            ))}
+                            {/* Loss curve for actual=1 */}
+                            <polyline points={pts.map(pt=>`${toX(pt.p)},${toY(pt.loss1)}`).join(' ')} fill="none" stroke="#34d399" strokeWidth="1.5"/>
+                            {/* Loss curve for actual=0 */}
+                            <polyline points={pts.map(pt=>`${toX(pt.p)},${toY(pt.loss0)}`).join(' ')} fill="none" stroke="#f87171" strokeWidth="1.5"/>
+
+                            {/* Axes */}
+                            <line x1={toX(0)} y1={toY(0)} x2={toX(1)} y2={toY(0)} stroke="#64748b"/>
+                            <line x1={toX(0)} y1={toY(0)} x2={toX(0)} y2={toY(maxL)} stroke="#64748b"/>
+                            <text x={W/2} y={H-1} fontSize="9" fill="#64748b" textAnchor="middle">Predicted P(positive)</text>
+                            <text x="8" y={H/2} fontSize="9" fill="#64748b" textAnchor="middle" transform={`rotate(-90,8,${H/2})`}>Log Loss</text>
+
+                            {/* Current point */}
+                            <circle cx={toX(confScore)} cy={toY(ll)} r="5" fill={actualClass===1?"#34d399":"#f87171"} stroke="#0d0f17" strokeWidth="2"/>
+                            <line x1={toX(confScore)} y1={toY(0)} x2={toX(confScore)} y2={toY(ll)} stroke="#a78bfa" strokeDasharray="3,3"/>
+
+                            {/* Legend */}
+                            <line x1={pad} y1={12} x2={pad+15} y2={12} stroke="#34d399" strokeWidth="1.5"/>
+                            <text x={pad+18} y={15} fontSize="8" fill="#34d399">Actual = 1</text>
+                            <line x1={pad+70} y1={12} x2={pad+85} y2={12} stroke="#f87171" strokeWidth="1.5"/>
+                            <text x={pad+88} y={15} fontSize="8" fill="#f87171">Actual = 0</text>
+                        </svg>
+
+                        <div className="mt-3 space-y-3">
+                            <div>
+                                <div className="flex justify-between text-xs mb-1">
+                                    <span className="text-slate-400">Predicted probability: <span className="mono text-blue-400">{confScore.toFixed(2)}</span></span>
+                                </div>
+                                <input type="range" min="0.01" max="0.99" step="0.01" value={confScore}
+                                    onChange={e=>setConfScore(Number(e.target.value))} className="w-full"/>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={()=>setActualClass(1)}
+                                    className={`flex-1 text-xs py-1.5 rounded border transition-all ${actualClass===1?'bg-emerald-500/20 border-emerald-500 text-emerald-400':'border-slate-600 text-slate-500 hover:border-slate-500'}`}>
+                                    Actual = 1 (Positive)
+                                </button>
+                                <button onClick={()=>setActualClass(0)}
+                                    className={`flex-1 text-xs py-1.5 rounded border transition-all ${actualClass===0?'bg-red-500/20 border-red-500 text-red-400':'border-slate-600 text-slate-500 hover:border-slate-500'}`}>
+                                    Actual = 0 (Negative)
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-44 space-y-3">
+                        <div className={`border rounded-lg p-3 ${ll > 1 ? 'border-red-500/40 bg-red-500/5' : 'border-emerald-500/40 bg-emerald-500/5'}`}>
+                            <div className="text-xs text-slate-500 mono">Log Loss</div>
+                            <div className={`text-3xl font-black mono ${ll > 1 ? 'text-red-400' : 'text-emerald-400'}`}>{ll.toFixed(3)}</div>
+                            <div className="text-[10px] text-slate-600 code mt-1">
+                                {actualClass===1 ? `-log(${confScore.toFixed(2)})` : `-log(1-${confScore.toFixed(2)})`}
+                            </div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-2 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">Key insight</div>
+                            <div className="text-slate-500 leading-tight">If you're 95% confident but wrong, the loss is enormous: <span className="mono text-red-400">-log(0.05) ≈ 3.0</span></div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-1 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">Why use it?</div>
+                            <div className="text-slate-500 leading-tight">Trains the model to be well-calibrated, not just correct. Used in LR, XGBoost, neural nets.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 8: METRIC SELECTION GUIDE ─────────────────────────────────────
+    const MetricGuide = () => {
+        const scenarios = [
+            { task:'Binary Classification', metrics:['Accuracy','F1','AUC-ROC','Log Loss'], note:'Use F1 when classes are imbalanced', icon:'🎯', color:'blue' },
+            { task:'Imbalanced Classification', metrics:['F1','Precision','Recall','MCC'], note:'Never rely on accuracy alone!', icon:'⚖️', color:'red' },
+            { task:'Regression', metrics:['MAE','RMSE','R²','MAPE'], note:'RMSE penalizes outliers more than MAE', icon:'📈', color:'green' },
+            { task:'Multi-class Classification', metrics:['Macro F1','Micro F1','Confusion Matrix'], note:'Choose macro/micro based on class frequency', icon:'🧩', color:'purple' },
+            { task:'Ranking / Recommendation', metrics:['NDCG','MAP','MRR','Precision@K'], note:'Order matters, not just correctness', icon:'🏆', color:'yellow' },
+            { task:'Object Detection', metrics:['IoU','mAP','Precision@IoU'], note:'IoU threshold typically set at 0.5', icon:'📦', color:'blue' },
+        ];
+
+        const [selected, setSelected] = useState(null);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">METRIC SELECTION GUIDE · Pick the right tool for the job</div>
+                <div className="grid grid-cols-2 gap-3 flex-1">
+                    {scenarios.map((s,i) => {
+                        const colorMap = {
+                            blue: 'border-blue-500/30 bg-blue-500/5 hover:border-blue-500/60',
+                            red: 'border-red-500/30 bg-red-500/5 hover:border-red-500/60',
+                            green: 'border-emerald-500/30 bg-emerald-500/5 hover:border-emerald-500/60',
+                            purple: 'border-purple-500/30 bg-purple-500/5 hover:border-purple-500/60',
+                            yellow: 'border-yellow-500/30 bg-yellow-500/5 hover:border-yellow-500/60',
+                        };
+                        const tagColors = { blue:'blue', red:'red', green:'green', purple:'purple', yellow:'yellow' };
+                        return (
+                            <div key={i}
+                                className={`border rounded-lg p-3 cursor-pointer transition-all duration-200 ${colorMap[s.color]} ${selected === i ? 'scale-[1.02]' : ''}`}
+                                onClick={() => setSelected(selected===i ? null : i)}>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-lg">{s.icon}</span>
+                                    <span className="text-xs font-bold text-slate-300">{s.task}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                    {s.metrics.map(m => <Tag key={m} color={tagColors[s.color]}>{m}</Tag>)}
+                                </div>
+                                {selected === i && (
+                                    <div className="text-[11px] text-slate-400 border-t border-slate-700/50 pt-2 mt-1 leading-relaxed slide-in">
+                                        💡 {s.note}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="text-xs text-slate-600 text-center">Click any card to expand details</div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 9: OVERFITTING DETECTOR ───────────────────────────────────────
+    const OverfitLab = () => {
+        const [complexity, setComplexity] = useState(5);
+
+        const trainAcc = Math.min(99, 60 + complexity * 4);
+        const valAcc = Math.max(45, 88 - Math.max(0, complexity-4)*8);
+        const gap = trainAcc - valAcc;
+
+        const status = gap > 15 ? 'Overfitting' : gap < -5 ? 'Underfitting' : 'Good Fit';
+        const statusColor = gap > 15 ? 'text-red-400' : gap < -5 ? 'text-yellow-400' : 'text-emerald-400';
+
+        const pts = Array.from({length:12}, (_,i) => {
+            const c = i;
+            const tr = Math.min(99, 60 + c * 4);
+            const vl = Math.max(45, 88 - Math.max(0,c-4)*8);
+            return { c, tr, vl };
+        });
+
+        const W=300, H=160, pad=30;
+        const toX = c => pad + c/(pts.length-1) * (W-pad*2);
+        const toY = a => H - pad - (a-40)/65 * (H-pad*2);
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">OVERFITTING DETECTOR · How validation metrics reveal model health</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 space-y-4">
+                        <div className="border border-slate-700 rounded-lg bg-slate-800/30 p-4">
+                            <svg viewBox={`0 0 ${W} ${H}`} width="100%">
+                                {[60,70,80,90].map(v => (
+                                    <g key={v}>
+                                        <line x1={toX(0)} y1={toY(v)} x2={toX(11)} y2={toY(v)} stroke="#2a3550" strokeDasharray="3,3"/>
+                                        <text x={pad-4} y={toY(v)+4} fontSize="8" fill="#4a5568" textAnchor="end">{v}%</text>
+                                    </g>
+                                ))}
+                                {/* Train accuracy line */}
+                                <polyline points={pts.map(p=>`${toX(p.c)},${toY(p.tr)}`).join(' ')} fill="none" stroke="#4f9cf9" strokeWidth="2"/>
+                                {/* Val accuracy line */}
+                                <polyline points={pts.map(p=>`${toX(p.c)},${toY(p.vl)}`).join(' ')} fill="none" stroke="#34d399" strokeWidth="2"/>
+                                {/* Gap fill */}
+                                <polygon
+                                    points={`${pts.map(p=>`${toX(p.c)},${toY(p.tr)}`).join(' ')} ${pts.slice().reverse().map(p=>`${toX(p.c)},${toY(p.vl)}`).join(' ')}`}
+                                    fill="rgba(248,113,113,0.08)"
+                                />
+                                {/* Current complexity indicator */}
+                                <line x1={toX(complexity)} y1={toY(40)} x2={toX(complexity)} y2={toY(105)} stroke="#a78bfa" strokeWidth="1" strokeDasharray="3,2"/>
+                                <circle cx={toX(complexity)} cy={toY(trainAcc)} r="4" fill="#4f9cf9" stroke="#0d0f17" strokeWidth="1.5"/>
+                                <circle cx={toX(complexity)} cy={toY(valAcc)} r="4" fill="#34d399" stroke="#0d0f17" strokeWidth="1.5"/>
+
+                                {/* Axes */}
+                                <line x1={toX(0)} y1={toY(40)} x2={toX(11)} y2={toY(40)} stroke="#64748b"/>
+                                <line x1={toX(0)} y1={toY(40)} x2={toX(0)} y2={toY(105)} stroke="#64748b"/>
+                                <text x={W/2} y={H-1} fontSize="9" fill="#64748b" textAnchor="middle">Model Complexity →</text>
+
+                                {/* Legend */}
+                                <line x1={pad} y1={12} x2={pad+12} y2={12} stroke="#4f9cf9" strokeWidth="2"/>
+                                <text x={pad+15} y={15} fontSize="8" fill="#4f9cf9">Train Acc</text>
+                                <line x1={pad+70} y1={12} x2={pad+82} y2={12} stroke="#34d399" strokeWidth="2"/>
+                                <text x={pad+85} y={15} fontSize="8" fill="#34d399">Val Acc</text>
+                            </svg>
+                            <div className="mt-2">
+                                <div className="flex justify-between text-xs mb-1"><span className="text-slate-400">Complexity level</span><span className="mono text-slate-300">{complexity}/11</span></div>
+                                <input type="range" min="0" max="11" value={complexity} onChange={e=>setComplexity(Number(e.target.value))} className="w-full"/>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-3 gap-2">
+                            <MetricCard label="Train Acc" value={`${trainAcc}%`} color="blue" />
+                            <MetricCard label="Val Acc" value={`${valAcc}%`} color="green" />
+                            <div className={`border rounded-lg p-3 ${gap>15?'border-red-500/40 bg-red-500/5':gap<-5?'border-yellow-500/40 bg-yellow-500/5':'border-emerald-500/40 bg-emerald-500/5'}`}>
+                                <div className="text-xs text-slate-500 mono">Status</div>
+                                <div className={`text-sm font-bold ${statusColor} leading-tight mt-1`}>{status}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-44 space-y-3">
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs space-y-2 bg-slate-800/30">
+                            <div className="text-slate-300 font-bold">Diagnosis</div>
+                            {[
+                                { label:'Train ↑ Val ↓', meaning:'Overfitting. Model memorizes, not generalizes.', color:'text-red-400' },
+                                { label:'Both Low', meaning:'Underfitting. Model too simple.', color:'text-yellow-400' },
+                                { label:'Both High, Small Gap', meaning:'Good generalization!', color:'text-emerald-400' },
+                            ].map(d => (
+                                <div key={d.label} className="space-y-0.5">
+                                    <div className={`mono text-[10px] ${d.color}`}>{d.label}</div>
+                                    <div className="text-slate-500 text-[10px] leading-tight">{d.meaning}</div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs bg-slate-800/30">
+                            <div className="text-slate-300 font-bold mb-1">Fixes</div>
+                            <div className="text-slate-500 text-[10px] leading-relaxed">Regularization (L1/L2), dropout, more data, early stopping, cross-validation</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 10: CROSS VALIDATION ───────────────────────────────────────────
+    const CrossValLab = () => {
+        const [fold, setFold] = useState(0);
+        const [running, setRunning] = useState(false);
+        const k = 5;
+        const foldScores = [0.87, 0.91, 0.84, 0.89, 0.93];
+        const mean = (foldScores.reduce((a,b)=>a+b,0)/k).toFixed(3);
+        const std = Math.sqrt(foldScores.reduce((s,v)=>s+(v-mean)**2,0)/k).toFixed(3);
+
+        const runAnim = async () => {
+            if (running) return;
+            setRunning(true);
+            for (let i=0; i<k; i++) {
+                setFold(i);
+                await new Promise(r=>setTimeout(r, 600));
+            }
+            setFold(-1);
+            setRunning(false);
+        };
+
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'var(--surface)'}}>
+                <div className="text-xs text-slate-500 mono">K-FOLD CROSS VALIDATION · Reliable metric estimation</div>
+
+                <div className="flex gap-4 flex-1">
+                    <div className="flex-1 space-y-4">
+                        {/* Fold visualization */}
+                        <div className="border border-slate-700 rounded-lg p-4 bg-slate-800/30">
+                            <div className="text-xs text-slate-400 mb-3">5-Fold CV — Each segment takes a turn as the validation set</div>
+                            {Array.from({length:k}, (_,fi) => (
+                                <div key={fi} className="flex items-center gap-2 mb-2">
+                                    <div className="text-[10px] text-slate-500 mono w-12">Fold {fi+1}</div>
+                                    <div className="flex gap-0.5 flex-1">
+                                        {Array.from({length:k}, (_,si) => (
+                                            <div key={si} className={`flex-1 h-6 rounded transition-all duration-300 flex items-center justify-center text-[9px] font-bold
+                                                ${si === fi
+                                                    ? (fold === fi ? 'bg-purple-500 text-white scale-105' : 'bg-purple-500/30 border border-purple-500/50 text-purple-400')
+                                                    : (fold === fi ? 'bg-blue-500/20 border border-blue-500/30 text-blue-400' : 'bg-slate-700/50 border border-slate-700 text-slate-600')
+                                                }`}>
+                                                {si === fi ? 'VAL' : 'TR'}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className={`text-[10px] mono w-10 text-right transition-all duration-300 ${fold >= fi ? 'text-emerald-400' : 'text-slate-600'}`}>
+                                        {fold >= fi ? foldScores[fi] : '—'}
+                                    </div>
+                                </div>
+                            ))}
+                            <button onClick={runAnim} disabled={running}
+                                className={`mt-3 w-full text-xs py-2 rounded border transition-all ${running ? 'border-slate-700 text-slate-600' : 'border-blue-500/50 text-blue-400 hover:bg-blue-500/10'}`}>
+                                {running ? '▶ Running...' : '▶ Animate CV'}
+                            </button>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="grid grid-cols-3 gap-2">
+                            <MetricCard label="Mean Score" value={mean} color="blue" />
+                            <MetricCard label="Std Dev" value={`±${std}`} color="purple" />
+                            <div className="border border-emerald-500/30 bg-emerald-500/5 rounded-lg p-3">
+                                <div className="text-xs text-slate-500 mono">Confidence</div>
+                                <div className="text-sm font-bold text-emerald-400">High</div>
+                                <div className="text-[10px] text-slate-600 mt-0.5">Low σ = stable</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-44 space-y-3">
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs bg-slate-800/30 space-y-2">
+                            <div className="text-slate-300 font-bold">Why CV?</div>
+                            <div className="text-slate-500 leading-tight">A single train/test split can be lucky or unlucky. CV averages over K experiments for a trustworthy estimate.</div>
+                        </div>
+                        <div className="border border-slate-700 rounded-lg p-3 text-xs bg-slate-800/30 space-y-2">
+                            <div className="text-slate-300 font-bold">Variants</div>
+                            {[
+                                'K-Fold (standard)',
+                                'Stratified K-Fold',
+                                'Leave-One-Out (LOO)',
+                                'Time-Series Split',
+                            ].map(v => <div key={v} className="text-slate-500 text-[10px]">• {v}</div>)}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // ─── SLIDE 11: SUMMARY ────────────────────────────────────────────────────
+    const SummaryViz = () => {
+        const items = [
+            { label: 'Confusion Matrix', desc: 'Foundation. Every classification metric derives from TP, FP, FN, TN.', icon: '🔲', color: 'blue' },
+            { label: 'Precision & Recall', desc: 'Complementary metrics. Threshold controls the tradeoff.', icon: '⚖️', color: 'green' },
+            { label: 'F1 Score', desc: 'Harmonic mean. Balanced view when classes are unequal.', icon: '🎯', color: 'purple' },
+            { label: 'AUC-ROC', desc: 'Threshold-independent. Ranks models by separability.', icon: '📈', color: 'blue' },
+            { label: 'MAE / RMSE / R²', desc: 'For regression: measure distance between predictions and truth.', icon: '📏', color: 'yellow' },
+            { label: 'Log Loss', desc: 'Rewards calibrated confidence. Penalizes certainty in errors.', icon: '⚡', color: 'red' },
+            { label: 'Class Imbalance', desc: 'Accuracy lies. Use F1 + Recall + AUC for skewed datasets.', icon: '⚠️', color: 'yellow' },
+            { label: 'Cross-Validation', desc: 'Reliable estimation through repeated evaluation across folds.', icon: '🔁', color: 'green' },
+        ];
+        return (
+            <div className="h-full flex flex-col p-5 gap-4 overflow-auto" style={{background:'linear-gradient(135deg, #0d0f17 0%, #11182e 100%)'}}>
+                <div className="text-xs text-slate-500 mono">MODULE COMPLETE · Key takeaways</div>
+                <div className="grid grid-cols-2 gap-2 flex-1">
+                    {items.map((item, i) => {
+                        const tagColor = item.color;
+                        return (
+                            <div key={i} className="flex items-start gap-3 border border-slate-800 rounded-lg p-3 bg-slate-800/20 hover:border-slate-600 transition-all">
+                                <span className="text-xl">{item.icon}</span>
+                                <div>
+                                    <div className="text-xs font-bold text-slate-300 mb-0.5"><Tag color={tagColor}>{item.label}</Tag></div>
+                                    <div className="text-[10px] text-slate-500 leading-relaxed mt-1">{item.desc}</div>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+                <div className="text-center text-xs text-slate-600 mono">Remember: no single metric tells the full story.</div>
+            </div>
+        );
+    };
+
+    // ─── MAIN APP ─────────────────────────────────────────────────────────────
+    const App = () => {
+        const [slide, setSlide] = useState(0);
+
+        const slides = [
+            {
+                title: "Evaluation Metrics in ML",
+                desc: "Building a model is only half the challenge. How do we know if it's actually good? This module covers the complete toolkit for evaluating classification and regression models — from the confusion matrix to ROC curves.",
+                tag: { color: 'blue', label: 'INTRO' },
+                viz: <TitleViz />
+            },
+            {
+                title: "The Confusion Matrix",
+                desc: "Every classification metric is derived from four fundamental values: True Positives (TP), False Positives (FP), False Negatives (FN), and True Negatives (TN). Adjust the sliders to see how each changes.",
+                tag: { color: 'blue', label: 'CLASSIFICATION' },
+                viz: <ConfusionMatrixLab />
+            },
+            {
+                title: "Precision vs Recall",
+                desc: "Precision asks: 'Of all my positive predictions, how many were right?' Recall asks: 'Of all actual positives, how many did I catch?' Moving the threshold trades one for the other.",
+                tag: { color: 'green', label: 'TRADEOFF' },
+                viz: <PrecisionRecallLab />
+            },
+            {
+                title: "The F1 Score",
+                desc: "F1 is the harmonic mean of Precision and Recall. Unlike the arithmetic mean, it severely punishes extreme imbalances between P and R — making it the go-to metric for imbalanced datasets.",
+                tag: { color: 'purple', label: 'COMPOSITE' },
+                viz: <F1Lab />
+            },
+            {
+                title: "ROC Curve & AUC",
+                desc: "The ROC curve plots True Positive Rate vs False Positive Rate at every threshold. The Area Under the Curve (AUC) summarizes model performance in a single threshold-independent number.",
+                tag: { color: 'blue', label: 'RANKING' },
+                viz: <ROCLab />
+            },
+            {
+                title: "Regression Metrics",
+                desc: "For continuous predictions, we measure the distance between predictions and ground truth. MAE is robust to outliers. RMSE penalizes large errors harder. R² tells us what fraction of variance the model explains.",
+                tag: { color: 'yellow', label: 'REGRESSION' },
+                viz: <RegressionLab />
+            },
+            {
+                title: "The Imbalance Trap",
+                desc: "A model that predicts 'negative' for every sample achieves 90%+ accuracy on a 90:10 imbalanced dataset — while being completely useless. This is why we look beyond accuracy.",
+                tag: { color: 'red', label: 'PITFALL' },
+                viz: <ImbalanceLab />
+            },
+            {
+                title: "Log Loss",
+                desc: "Log Loss measures confidence quality, not just correctness. A model that says 99% positive but is wrong gets brutally punished. This trains models to be calibrated — not just accurate.",
+                tag: { color: 'yellow', label: 'PROBABILITY' },
+                viz: <LogLossLab />
+            },
+            {
+                title: "Metric Selection Guide",
+                desc: "Choosing the right metric depends on your task, class distribution, and what errors are costly. There is no universal 'best' metric — context determines the right choice.",
+                tag: { color: 'green', label: 'GUIDE' },
+                viz: <MetricGuide />
+            },
+            {
+                title: "Detecting Overfitting",
+                desc: "Evaluation metrics on training data can be misleading. Comparing training accuracy vs validation accuracy reveals overfitting (model memorizes) or underfitting (model is too simple).",
+                tag: { color: 'purple', label: 'DIAGNOSTICS' },
+                viz: <OverfitLab />
+            },
+            {
+                title: "Cross-Validation",
+                desc: "A single train/test split may not be representative. K-Fold CV evaluates the model K times, each time using a different fold as the validation set — giving a robust, variance-aware estimate.",
+                tag: { color: 'blue', label: 'VALIDATION' },
+                viz: <CrossValLab />
+            },
+            {
+                title: "Module Summary",
+                desc: "You now have a complete evaluation toolkit. No single metric tells the full story — combine them wisely based on your problem, your class distribution, and your cost of errors.",
+                tag: { color: 'green', label: 'COMPLETE' },
+                viz: <SummaryViz />
+            },
+        ];
+
+        return (
+            <div className="w-screen h-screen flex flex-col" style={{background:'var(--bg)'}}>
+                {/* Header */}
+                <header className="flex justify-between items-center px-6 py-3 border-b border-slate-800/80 z-10" style={{background:'rgba(13,15,23,0.95)', backdropFilter:'blur(10px)'}}>
+                    <div className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded flex items-center justify-center text-xs font-black mono" style={{background:'linear-gradient(135deg,#4f9cf9,#a78bfa)'}}>ML</div>
+                        <div className="mono text-xs text-slate-400 tracking-wide uppercase">Evaluation Metrics in Machine Learning</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="flex gap-1">
+                            {slides.map((_,i) => (
+                                <button key={i} onClick={() => setSlide(i)}
+                                    className={`progress-dot transition-all ${i === slide ? 'bg-blue-400 scale-125' : i < slide ? 'bg-slate-500' : 'bg-slate-700'}`}
+                                />
+                            ))}
+                        </div>
+                        <div className="mono text-[10px] text-slate-600 ml-2">{String(slide+1).padStart(2,'0')} / {slides.length}</div>
+                    </div>
+                </header>
+
+                {/* Main */}
+                <main className="flex-1 flex p-8 gap-10 items-center overflow-hidden">
+                    {/* Left panel */}
+                    <div className="w-80 flex-shrink-0 space-y-5">
+                        <div>
+                            <Tag color={slides[slide].tag.color}>{slides[slide].tag.label}</Tag>
+                        </div>
+                        <h2 className="text-4xl font-black leading-tight text-slate-100"
+                            style={{fontFamily:'DM Sans, sans-serif'}}>
+                            {slides[slide].title}
+                        </h2>
+                        <div className="w-10 h-0.5" style={{background:'linear-gradient(90deg,#4f9cf9,#a78bfa)'}}></div>
+                        <p className="text-sm text-slate-400 leading-relaxed font-light">
+                            {slides[slide].desc}
+                        </p>
+                        <div className="flex gap-3 pt-4">
+                            <button
+                                onClick={() => setSlide(s => Math.max(0, s-1))}
+                                className="px-6 py-2 border border-slate-700 text-slate-400 text-xs mono rounded hover:border-slate-500 hover:text-slate-300 transition-all disabled:opacity-30"
+                                disabled={slide === 0}>
+                                ← PREV
+                            </button>
+                            <button
+                                onClick={() => setSlide(s => Math.min(slides.length-1, s+1))}
+                                className="px-6 py-2 text-xs mono rounded font-bold transition-all shadow-lg disabled:opacity-30"
+                                style={{background:'linear-gradient(135deg,#4f9cf9,#a78bfa)', color:'white'}}
+                                disabled={slide === slides.length-1}>
+                                NEXT →
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Right: Viz panel */}
+                    <div className="flex-1 h-[520px] rounded-2xl border border-slate-800 overflow-hidden shadow-2xl relative">
+                        {/* Title bar */}
+                        <div className="flex items-center justify-between px-4 py-2 border-b border-slate-800" style={{background:'rgba(21,25,35,0.9)'}}>
+                            <div className="flex gap-1.5">
+                                <div className="w-3 h-3 rounded-full bg-red-500/60"></div>
+                                <div className="w-3 h-3 rounded-full bg-yellow-500/60"></div>
+                                <div className="w-3 h-3 rounded-full bg-emerald-500/60"></div>
+                            </div>
+                            <div className="mono text-[10px] text-slate-600">ml_eval_lab.py · Interactive Playground</div>
+                            <div></div>
+                        </div>
+                        <div className="h-full overflow-hidden" style={{background:'var(--surface)'}}>
+                            {slides[slide].viz}
+                        </div>
+                    </div>
+                </main>
+            </div>
+        );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+</body>
+</html>

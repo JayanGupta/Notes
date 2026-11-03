@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+const originalWarn = console.warn;
+console.warn = function(...args) {
+  if (typeof args[0] === 'string' && (args[0].includes('cdn.tailwindcss.com') || args[0].includes('in-browser Babel transformer'))) return;
+  originalWarn.apply(console, args);
+};
+</script>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Introduction to Natural Language Processing (NLP)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone@7.21.0/babel.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=DM+Sans:wght@300;400;500&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        body{background:#020617;color:#e2e8f0;font-family:'DM Sans',sans-serif;overflow:hidden}
+        h1,h2,h3,h4,h5,h6,.font-bold,strong{font-family:'Outfit',sans-serif}
+        .font-mono{font-family:'JetBrains Mono',monospace}
+        .custom-scroll::-webkit-scrollbar{width:5px}
+        .custom-scroll::-webkit-scrollbar-track{background:#0f172a}
+        .custom-scroll::-webkit-scrollbar-thumb{background:#3b82f6;border-radius:3px}
+        @keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        .animate-fade-in-up{animation:fadeInUp .6s cubic-bezier(.16,1,.3,1) forwards}
+    </style>
+</head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef}=React;
+
+// ====== VISUALIZATION COMPONENTS ======
+
+const Slide1Viz = () => {
+    const [text, setText] = React.useState("NLP is amazing!");
+    const [isComputerView, setIsComputerView] = React.useState(false);
+
+    const tokens = text.split(/\s+/).filter(t => t.length > 0);
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center mb-4">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-blue-400 bg-blue-900/30 border border-blue-800 rounded-full uppercase">Introduction</span>
+                <h1 className="text-4xl font-bold text-white mt-4">Welcome to the World of NLP</h1>
+                <p className="text-slate-400 mt-2">Bridging the gap between human chaos and computer logic</p>
+            </div>
+
+            <div className="w-full max-w-2xl bg-slate-900/60 border border-slate-700 rounded-2xl p-8 space-y-6">
+                <div className="space-y-4">
+                    <label className="text-sm font-medium text-slate-300">Try typing something:</label>
+                    <input 
+                        type="text" 
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="w-full bg-slate-800 border border-slate-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        placeholder="Type a sentence..."
+                    />
+                </div>
+
+                <div className="flex flex-wrap gap-3 min-h-[100px] items-center justify-center p-6 bg-slate-950/50 rounded-xl border border-slate-800">
+                    {tokens.map((token, i) => (
+                        <div 
+                            key={i}
+                            className={`px-4 py-2 rounded-lg border transition-all duration-500 transform hover:scale-105 ${isComputerView ? 'bg-indigo-900/40 border-indigo-500 text-indigo-300 font-mono' : 'bg-blue-600/20 border-blue-500 text-blue-100'}`}
+                        >
+                            {isComputerView 
+                                ? token.split('').map(char => char.charCodeAt(0)).join(' ')
+                                : token
+                            }
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-between items-center pt-4 border-t border-slate-800">
+                    <p className="text-xs text-slate-400 italic">
+                        {isComputerView ? "Computers see raw numerical values (Unicode/ASCII)" : "Humans see semantic symbols (Words)"}
+                    </p>
+                    <button 
+                        onClick={() => setIsComputerView(!isComputerView)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-indigo-900/20"
+                    >
+                        Switch to {isComputerView ? "Human View" : "Computer View"}
+                    </button>
+                </div>
+            </div>
+
+            <div className="max-w-2xl text-center space-y-4">
+                <p className="text-slate-300 leading-relaxed">
+                    <strong className="text-blue-400">Natural Language Processing (NLP)</strong> is the intersection of linguistics and AI focused on enabling computers to process and "understand" human language. Unlike rigid programming languages, human language is fluid, evolved, and messy, making it the ultimate challenge for deterministic machines.
+                </p>
+                <p className="text-slate-300 leading-relaxed">
+                    We are moving from simple <strong className="text-indigo-400">String Processing</strong> (finding characters) to <strong className="text-indigo-400">Semantic Understanding</strong> (interpreting intent and meaning).
+                </p>
+            </div>
+        </div>
+    );
+};
+
+const Slide2Viz = () => {
+    const [rotation, setRotation] = React.useState(0);
+    const [showDistance, setShowDistance] = React.useState(false);
+
+    const points = [
+        { label: "King", x: 20, y: 20, z: 80, color: "#3b82f6" },
+        { label: "Queen", x: 30, y: 25, z: 75, color: "#f472b6" },
+        { label: "Apple", x: 80, y: 70, z: 20, color: "#10b981" }
+    ];
+
+    const project = (x, y, z) => {
+        const rad = (rotation * Math.PI) / 180;
+        const rotX = x * Math.cos(rad) - z * Math.sin(rad);
+        const rotZ = x * Math.sin(rad) + z * Math.cos(rad);
+        return { 
+            px: 150 + rotX * 1.5, 
+            py: 150 - y * 1.5 
+        };
+    };
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-indigo-400 bg-indigo-900/30 border border-indigo-800 rounded-full uppercase">Intuition</span>
+                <h1 className="text-4xl font-bold text-white mt-4">How Computers "Read"</h1>
+                <p className="text-slate-400 mt-2">From symbols to numerical features</p>
+            </div>
+
+            <div className="w-full max-w-2xl bg-slate-900/60 border border-slate-700 rounded-2xl p-6 flex flex-col items-center">
+                <svg viewBox="0 0 300 300" className="w-full h-64 overflow-visible">
+                    {/* Axes */}
+                    <line x1="150" y1="150" x2="280" y2="150" stroke="#475569" strokeWidth="1" strokeDasharray="4" />
+                    <line x1="150" y1="150" x2="150" y2="20" stroke="#475569" strokeWidth="1" strokeDasharray="4" />
+                    <line x1="150" y1="150" x2="50" y2="250" stroke="#475569" strokeWidth="1" strokeDasharray="4" />
+                    
+                    {/* Distance Lines */}
+                    {showDistance && (
+                        <>
+                            <line 
+                                x1={project(points[0].x, points[0].y, points[0].z).px} 
+                                y1={project(points[0].x, points[0].y, points[0].z).py}
+                                x2={project(points[1].x, points[1].y, points[1].z).px} 
+                                y2={project(points[1].x, points[1].y, points[1].z).py}
+                                stroke="#f472b6" strokeWidth="2" strokeDasharray="4"
+                                className="animate-pulse"
+                            />
+                            <line 
+                                x1={project(points[0].x, points[0].y, points[0].z).px} 
+                                y1={project(points[0].x, points[0].y, points[0].z).py}
+                                x2={project(points[2].x, points[2].y, points[2].z).px} 
+                                y2={project(points[2].x, points[2].y, points[2].z).py}
+                                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4"
+                            />
+                        </>
+                    )}
+
+                    {/* Points */}
+                    {points.map((p, i) => {
+                        const { px, py } = project(p.x, p.y, p.z);
+                        return (
+                            <g key={i} style={{transition: 'all 0.3s ease'}}>
+                                <circle cx={px} cy={py} r="6" fill={p.color} className="shadow-lg" />
+                                <text x={px + 10} y={py - 10} fill="white" fontSize="12" fontWeight="bold">{p.label}</text>
+                                <text x={px + 10} y={py + 5} fill={p.color} fontSize="8" className="font-mono opacity-70">
+                                    [{p.x}, {p.y}, {p.z}]
+                                </text>
+                            </g>
+                        );
+                    })}
+                </svg>
+
+                <div className="w-full space-y-4 mt-4">
+                    <div className="flex items-center gap-4">
+                        <span className="text-xs text-slate-400 w-24">Rotate View</span>
+                        <input 
+                            type="range" min="0" max="360" value={rotation} 
+                            onChange={e => setRotation(parseInt(e.target.value))}
+                            className="flex-1 accent-indigo-500"
+                        />
+                    </div>
+                    <div className="flex justify-center">
+                        <button 
+                            onClick={() => setShowDistance(!showDistance)}
+                            className="px-6 py-2 bg-slate-800 border border-slate-600 hover:border-indigo-500 text-white rounded-full transition-all"
+                        >
+                            {showDistance ? "Hide Distances" : "Calculate Semantic Distance"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="max-w-2xl grid grid-cols-2 gap-6 mt-2">
+                <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-indigo-400 font-bold mb-1">Feature Vectors</h4>
+                    <p className="text-sm text-slate-300">Words are transformed into coordinates in a multi-dimensional mathematical space.</p>
+                </div>
+                <div className="bg-slate-900/40 p-4 rounded-xl border border-slate-800">
+                    <h4 className="text-pink-400 font-bold mb-1">Geometric Meaning</h4>
+                    <p className="text-sm text-slate-300">Similar meanings (King/Queen) are placed close together, while unrelated words (Apple) are far apart.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Slide3Viz = () => {
+    const [flipped, setFlipped] = React.useState(null);
+
+    const tasks = [
+        { title: "Sentiment Analysis", icon: "😊", desc: "Detecting mood and opinion in text.", detail: "Input: 'The movie was not bad.'\nResult: Positive\nContext: 'not' flips 'bad'." },
+        { title: "Spam Detection", icon: "🚫", desc: "Filtering unwanted messages.", detail: "Identifies patterns like 'FREE', 'URGENT', and suspicious links." },
+        { title: "Machine Translation", icon: "🌐", desc: "Converting text between languages.", detail: "Mapping semantic meaning from English to French or Japanese." },
+        { title: "Summarization", icon: "📝", desc: "Condensing long text into key points.", detail: "Extracting the most important sentences from a news article." },
+        { title: "NER", icon: "🏷️", desc: "Identifying names, places, and dates.", detail: "Extracting 'Apple' as ORG and 'Cupertino' as LOC." },
+        { title: "Text Generation", icon: "✍️", desc: "Creating human-like text.", detail: "Predicting the next most likely word in a sequence." }
+    ];
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-purple-400 bg-purple-900/30 border border-purple-800 rounded-full uppercase">Case Study</span>
+                <h1 className="text-4xl font-bold text-white mt-4">The NLP Toolkit</h1>
+                <p className="text-slate-400 mt-2">Solving real-world problems with language</p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4 w-full max-w-4xl">
+                {tasks.map((task, i) => (
+                    <div 
+                        key={i}
+                        onClick={() => setFlipped(flipped === i ? null : i)}
+                        className="relative h-48 cursor-pointer group perspective"
+                    >
+                        <div className={`relative w-full h-full transition-all duration-500 preserve-3d ${flipped === i ? 'rotate-y-180' : ''}`}>
+                            {/* Front */}
+                            <div className="absolute inset-0 backface-hidden bg-slate-900/60 border border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-center group-hover:border-purple-500 transition-colors">
+                                <span className="text-4xl mb-3">{task.icon}</span>
+                                <h3 className="text-white font-bold">{task.title}</h3>
+                                <p className="text-xs text-slate-400 mt-2">{task.desc}</p>
+                            </div>
+                            {/* Back */}
+                            <div className="absolute inset-0 backface-hidden rotate-y-180 bg-purple-900/40 border border-purple-500 rounded-2xl p-4 flex flex-col items-center justify-center text-center">
+                                <p className="text-xs text-purple-100 whitespace-pre-line leading-relaxed">
+                                    {task.detail}
+                                </p>
+                                <span className="mt-3 text-[10px] uppercase font-bold text-purple-300">Click to flip back</span>
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <style>{`
+                .perspective { perspective: 1000px; }
+                .preserve-3d { transform-style: preserve-3d; }
+                .backface-hidden { backface-visibility: hidden; }
+                .rotate-y-180 { transform: rotateY(180deg); }
+            `}</style>
+
+            <p className="text-slate-300 text-center max-w-2xl mt-4">
+                Whether it's a chatbot answering questions or a system generating new stories, the goal is to map input text to a useful output by extracting different types of "value" from raw text.
+            </p>
+        </div>
+    );
+};
+
+const Slide4Viz = () => {
+    const [step, setStep] = React.useState(0);
+    const [isAnimating, setIsAnimating] = React.useState(false);
+
+    const stages = [
+        { label: "Raw Text", content: "<html>I LOVE data!!</html>", color: "#94a3b8" },
+        { label: "Clean", content: "I LOVE data!!", color: "#fb7185" },
+        { label: "Normalize", content: "i love data", color: "#f472b6" },
+        { label: "Tokenize", content: "['i', 'love', 'data']", color: "#c084fc" },
+        { label: "Vectorize", content: "[0.12, 0.88, 0.45]", color: "#818cf8" }
+    ];
+
+    const handleNext = () => {
+        if (step < stages.length - 1) {
+            setIsAnimating(true);
+            setTimeout(() => {
+                setStep(s => s + 1);
+                setIsAnimating(false);
+            }, 500);
+        } else {
+            setStep(0);
+        }
+    };
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-pink-400 bg-pink-900/30 border border-pink-800 rounded-full uppercase">Algorithm</span>
+                <h1 className="text-4xl font-bold text-white mt-4">The NLP Pipeline</h1>
+                <p className="text-slate-400 mt-2">The assembly line of understanding</p>
+            </div>
+
+            <div className="w-full max-w-3xl bg-slate-900/60 border border-slate-700 rounded-2xl p-10 relative overflow-hidden">
+                {/* Conveyor Belt */}
+                <div className="absolute bottom-20 left-0 right-0 h-4 bg-slate-800 border-y border-slate-700 flex">
+                    {[...Array(20)].map((_, i) => (
+                        <div key={i} className="w-10 h-full border-r border-slate-700 animate-pulse" style={{animationDelay: `${i*0.1}s`}}></div>
+                    ))}
+                </div>
+
+                <div className="flex justify-between items-start mb-24 relative z-10">
+                    {stages.map((s, i) => (
+                        <div key={i} className="flex flex-col items-center w-32">
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${i <= step ? 'bg-pink-600 border-pink-400 shadow-lg shadow-pink-900/40' : 'bg-slate-800 border-slate-700'}`}>
+                                {i < step ? '✓' : i + 1}
+                            </div>
+                            <span className={`text-xs mt-2 font-bold ${i === step ? 'text-pink-400' : 'text-slate-500'}`}>{s.label}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <div 
+                    className={`absolute bottom-24 transition-all duration-500 ease-in-out transform ${isAnimating ? 'opacity-50 scale-95' : 'opacity-100 scale-100'}`}
+                    style={{ left: `${10 + (step * 20)}%` }}
+                >
+                    <div className="bg-slate-800 border-2 border-pink-500 p-4 rounded-lg shadow-2xl min-w-[160px] text-center">
+                        <code className="text-pink-300 text-sm font-mono">{stages[step].content}</code>
+                    </div>
+                    <div className="w-4 h-4 bg-pink-500 rotate-45 mx-auto -mt-2"></div>
+                </div>
+
+                <div className="flex justify-center mt-12">
+                    <button 
+                        onClick={handleNext}
+                        className="px-8 py-3 bg-pink-600 hover:bg-pink-500 text-white font-bold rounded-xl transition-all flex items-center gap-2"
+                    >
+                        {step === stages.length - 1 ? "Reset Pipeline" : "Process Next Step"}
+                        <span className="text-xl">→</span>
+                    </button>
+                </div>
+            </div>
+
+            <p className="text-slate-300 text-center max-w-2xl">
+                This <strong className="text-pink-400">"Text Car Wash"</strong> ensures that the model focuses on the most important features of the language by removing noise like HTML tags and inconsistent casing.
+            </p>
+        </div>
+    );
+};
+
+const Slide5Viz = () => {
+    const [isTokenized, setIsTokenized] = React.useState(false);
+    const [removeStopwords, setRemoveStopwords] = React.useState(false);
+
+    const sentence = "The quick brown fox jumps over the lazy dog";
+    const stopwords = ["the", "over"];
+    const words = sentence.split(" ");
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-rose-400 bg-rose-900/30 border border-rose-800 rounded-full uppercase">Visualization</span>
+                <h1 className="text-4xl font-bold text-white mt-4">Tokenization & Stopwords</h1>
+                <p className="text-slate-400 mt-2">Breaking it down and filtering the noise</p>
+            </div>
+
+            <div className="w-full max-w-3xl bg-slate-900/60 border border-slate-700 rounded-2xl p-12 flex flex-col items-center gap-10">
+                <div className="flex flex-wrap justify-center gap-3 min-h-[120px] items-center">
+                    {words.map((word, i) => {
+                        const isStopword = stopwords.includes(word.toLowerCase());
+                        const hidden = removeStopwords && isStopword;
+                        
+                        return (
+                            <div 
+                                key={i}
+                                className={`
+                                    transition-all duration-500 transform
+                                    ${isTokenized ? 'px-4 py-2 border rounded-lg' : 'px-1'}
+                                    ${hidden ? 'opacity-0 scale-0 w-0 h-0 overflow-hidden' : 'opacity-100 scale-100'}
+                                    ${isTokenized ? 'bg-rose-900/20 border-rose-500/50 text-rose-100' : 'border-transparent text-white text-2xl'}
+                                    ${!isStopword && removeStopwords ? 'scale-125 font-bold text-rose-400' : ''}
+                                `}
+                            >
+                                {word}
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div className="flex gap-6">
+                    <button 
+                        onClick={() => setIsTokenized(!isTokenized)}
+                        className={`px-6 py-3 rounded-xl font-bold transition-all ${isTokenized ? 'bg-rose-600 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
+                    >
+                        {isTokenized ? "Tokens Created" : "✂️ Tokenize"}
+                    </button>
+                    <button 
+                        onClick={() => setRemoveStopwords(!removeStopwords)}
+                        disabled={!isTokenized}
+                        className={`px-6 py-3 rounded-xl font-bold transition-all ${!isTokenized ? 'opacity-50 cursor-not-allowed' : ''} ${removeStopwords ? 'bg-orange-600 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
+                    >
+                        {removeStopwords ? "Stopwords Removed" : "💨 Remove Stopwords"}
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-8 max-w-3xl">
+                <div className="space-y-2">
+                    <h4 className="text-rose-400 font-bold">Tokenization</h4>
+                    <p className="text-sm text-slate-300">Splitting text into smaller units (tokens). Think of them as Lego bricks used to build the sentence structure.</p>
+                </div>
+                <div className="space-y-2">
+                    <h4 className="text-orange-400 font-bold">Stopword Removal</h4>
+                    <p className="text-sm text-slate-300">Filtering out common words like "the" and "is" that carry little unique information for the model.</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Slide6Viz = () => {
+    const [mode, setMode] = React.useState('none');
+
+    const data = [
+        { original: "Studies", stem: "Studi", lemma: "Study" },
+        { original: "Studying", stem: "Studi", lemma: "Study" },
+        { original: "Cried", stem: "Cri", lemma: "Cry" },
+        { original: "Feet", stem: "Feet", lemma: "Foot" }
+    ];
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-orange-400 bg-orange-900/30 border border-orange-800 rounded-full uppercase">Comparison</span>
+                <h1 className="text-4xl font-bold text-white mt-4">Stemming vs. Lemmatization</h1>
+                <p className="text-slate-400 mt-2">Finding the root of the matter</p>
+            </div>
+
+            <div className="w-full max-w-2xl bg-slate-900/60 border border-slate-700 rounded-2xl overflow-hidden">
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr className="bg-slate-800/50">
+                            <th className="p-4 text-slate-400 font-medium">Original Word</th>
+                            <th className="p-4 text-slate-400 font-medium">Processed Result</th>
+                            <th className="p-4 text-slate-400 font-medium">Method</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {data.map((row, i) => (
+                            <tr key={i} className="border-t border-slate-800">
+                                <td className="p-4 text-white font-medium">{row.original}</td>
+                                <td className="p-4">
+                                    <span className={`px-3 py-1 rounded-md font-mono transition-all duration-500 ${mode === 'none' ? 'text-slate-500' : mode === 'stem' ? 'bg-orange-900/30 text-orange-400' : 'bg-amber-900/30 text-amber-400'}`}>
+                                        {mode === 'none' ? row.original : mode === 'stem' ? row.stem : row.lemma}
+                                    </span>
+                                </td>
+                                <td className="p-4">
+                                    {mode !== 'none' && (
+                                        <span className="text-[10px] uppercase font-bold text-slate-500">
+                                            {mode === 'stem' ? 'Heuristic Chop' : 'Dictionary Lookup'}
+                                        </span>
+                                    )}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div className="p-6 bg-slate-800/30 flex justify-center gap-4">
+                    <button 
+                        onClick={() => setMode('stem')}
+                        className={`px-6 py-2 rounded-lg font-bold transition-all ${mode === 'stem' ? 'bg-orange-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                    >
+                        Run Stemmer
+                    </button>
+                    <button 
+                        onClick={() => setMode('lemma')}
+                        className={`px-6 py-2 rounded-lg font-bold transition-all ${mode === 'lemma' ? 'bg-amber-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                    >
+                        Run Lemmatizer
+                    </button>
+                    <button 
+                        onClick={() => setMode('none')}
+                        className="px-4 py-2 text-slate-500 hover:text-slate-300 text-sm"
+                    >
+                        Reset
+                    </button>
+                </div>
+            </div>
+
+            <div className="max-w-2xl bg-amber-900/10 border border-amber-900/30 p-4 rounded-xl">
+                <p className="text-sm text-slate-300 leading-relaxed">
+                    <strong className="text-orange-400">Stemming</strong> is a crude "chopping" method that often creates non-words. <strong className="text-amber-400">Lemmatization</strong> is smarter; it uses linguistic rules to find the actual dictionary root (the "lemma"), preserving semantic meaning.
+                </p>
+            </div>
+        </div>
+    );
+};
+
+const Slide7Viz = () => {
+    const [context, setContext] = React.useState('none');
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-emerald-400 bg-emerald-900/30 border border-emerald-800 rounded-full uppercase">Limitations</span>
+                <h1 className="text-4xl font-bold text-white mt-4">The Challenge of Ambiguity</h1>
+                <p className="text-slate-400 mt-2">Why language is hard for machines</p>
+            </div>
+
+            <div className="w-full max-w-2xl bg-slate-900/60 border border-slate-700 rounded-2xl p-10 flex flex-col items-center gap-8">
+                <div className="text-3xl text-white font-light flex items-center gap-3 flex-wrap justify-center">
+                    <span>I went to the</span>
+                    <span className={`px-4 py-1 rounded-lg border-2 transition-all duration-500 ${context === 'money' ? 'bg-emerald-600/20 border-emerald-500 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]' : context === 'nature' ? 'bg-teal-600/20 border-teal-500 text-teal-400 shadow-[0_0_20px_rgba(20,184,166,0.3)]' : 'border-slate-700 text-slate-300'}`}>
+                        bank
+                    </span>
+                    <span className={`transition-all duration-700 overflow-hidden whitespace-nowrap ${context === 'money' ? 'max-w-xs opacity-100' : 'max-w-0 opacity-0'}`}>
+                        to deposit a check.
+                    </span>
+                    <span className={`transition-all duration-700 overflow-hidden whitespace-nowrap ${context === 'nature' ? 'max-w-xs opacity-100' : 'max-w-0 opacity-0'}`}>
+                        to catch a fish.
+                    </span>
+                </div>
+
+                <div className="h-40 w-40 flex items-center justify-center bg-slate-950/50 rounded-full border border-slate-800 relative">
+                    {context === 'none' && <span className="text-6xl animate-pulse">❓</span>}
+                    {context === 'money' && (
+                        <svg viewBox="0 0 24 24" className="w-24 h-24 text-emerald-500 animate-bounce">
+                            <path fill="currentColor" d="M11.5,1L2,6V8H21V6M16,10V17H19V10M2,22H21V19H2M10,10V17H13V10M4,10V17H7V10" />
+                        </svg>
+                    )}
+                    {context === 'nature' && (
+                        <svg viewBox="0 0 24 24" className="w-24 h-24 text-teal-500 animate-bounce">
+                            <path fill="currentColor" d="M20,6C20,6 18.5,4 15,4C11.5,4 10,6 10,6C10,6 8.5,4 5,4C1.5,4 0,6 0,6V11C0,11 1.5,13 5,13C8.5,13 10,11 10,11C10,11 11.5,13 15,13C18.5,13 20,11 20,11V6M20,15C20,15 18.5,13 15,13C11.5,13 10,15 10,15C10,15 8.5,13 5,13C1.5,13 0,15 0,15V20C0,20 1.5,22 5,22C8.5,22 10,20 10,20C10,20 11.5,22 15,22C18.5,22 20,20 20,20V15Z" />
+                        </svg>
+                    )}
+                </div>
+
+                <div className="flex gap-4">
+                    <button 
+                        onClick={() => setContext('money')}
+                        className="px-8 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl transition-all"
+                    >
+                        Context: Money
+                    </button>
+                    <button 
+                        onClick={() => setContext('nature')}
+                        className="px-8 py-3 bg-teal-600 hover:bg-teal-500 text-white font-bold rounded-xl transition-all"
+                    >
+                        Context: Nature
+                    </button>
+                </div>
+            </div>
+
+            <p className="text-slate-300 text-center max-w-2xl">
+                Human language is riddled with <strong className="text-emerald-400">Ambiguity</strong> and <strong className="text-emerald-400">Sarcasm</strong>. Computers struggle because they lack real-world experience and common sense to resolve these "hidden" meanings.
+            </p>
+        </div>
+    );
+};
+
+const Slide8Viz = () => {
+    const [view, setView] = React.useState('none');
+
+    const words = [
+        { text: "Apple", pos: "NNP", ner: "ORG", nerColor: "bg-blue-500/20 border-blue-500 text-blue-300" },
+        { text: "is", pos: "VBZ", ner: null },
+        { text: "buying", pos: "VBG", ner: null },
+        { text: "a", pos: "DT", ner: null },
+        { text: "startup", pos: "NN", ner: null },
+        { text: "in", pos: "IN", ner: null },
+        { text: "London", pos: "NNP", ner: "GPE", nerColor: "bg-emerald-500/20 border-emerald-500 text-emerald-300" },
+        { text: "for", pos: "IN", ner: null },
+        { text: "$1 billion", pos: "CD", ner: "MONEY", nerColor: "bg-amber-500/20 border-amber-500 text-amber-300" }
+    ];
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-teal-400 bg-teal-900/30 border border-teal-800 rounded-full uppercase">Implementation</span>
+                <h1 className="text-4xl font-bold text-white mt-4">NER & POS Tagging</h1>
+                <p className="text-slate-400 mt-2">Identifying the 'Who' and 'What'</p>
+            </div>
+
+            <div className="w-full max-w-3xl bg-slate-900/60 border border-slate-700 rounded-2xl p-12">
+                <div className="flex flex-wrap gap-x-4 gap-y-10 justify-center">
+                    {words.map((w, i) => (
+                        <div key={i} className="relative flex flex-col items-center">
+                            {view === 'pos' && (
+                                <span className="absolute -top-8 text-[10px] font-mono font-bold text-teal-400 bg-teal-900/40 px-1.5 py-0.5 rounded border border-teal-800 animate-bounce">
+                                    {w.pos}
+                                </span>
+                            )}
+                            
+                            <div className={`px-3 py-2 rounded-lg border-2 transition-all duration-500 ${view === 'ner' && w.ner ? w.nerColor : 'border-transparent text-white text-xl'}`}>
+                                {w.text}
+                                {view === 'ner' && w.ner && (
+                                    <span className="block text-[8px] font-bold uppercase mt-1 text-center">{w.ner}</span>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="flex justify-center gap-4 mt-16">
+                    <button 
+                        onClick={() => setView('pos')}
+                        className={`px-6 py-2 rounded-lg font-bold transition-all ${view === 'pos' ? 'bg-teal-600 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
+                    >
+                        Show POS Tags
+                    </button>
+                    <button 
+                        onClick={() => setView('ner')}
+                        className={`px-6 py-2 rounded-lg font-bold transition-all ${view === 'ner' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 border border-slate-700'}`}
+                    >
+                        Show NER
+                    </button>
+                    <button 
+                        onClick={() => setView('none')}
+                        className="px-6 py-2 text-slate-500 hover:text-slate-300"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 max-w-3xl mt-4">
+                <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800">
+                    <h4 className="text-teal-400 font-bold text-sm mb-1">POS Tagging</h4>
+                    <p className="text-xs text-slate-400">Labels grammatical roles (Noun, Verb, Adjective) to understand sentence structure.</p>
+                </div>
+                <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800">
+                    <h4 className="text-cyan-400 font-bold text-sm mb-1">NER</h4>
+                    <p className="text-xs text-slate-400">Identifies real-world entities like Organizations (Apple), Locations (London), and Values ($1B).</p>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const Slide9Viz = () => {
+    const [selected, setSelected] = React.useState(4);
+
+    const timeline = [
+        { year: "1950", label: "Rule-based", context: 10, gen: 5, desc: "Manual 'If-Then' logic and Turing Test foundations." },
+        { year: "1990", label: "Statistical", context: 25, gen: 15, desc: "Hidden Markov Models and frequency-based patterns." },
+        { year: "2013", label: "Embeddings", context: 50, gen: 30, desc: "Word2Vec: Words as dense vectors in space." },
+        { year: "2017", label: "Transformers", context: 85, gen: 70, desc: "Attention mechanism: Understanding long-range context." },
+        { year: "2024", label: "LLMs", context: 98, gen: 95, desc: "GPT-4 & beyond: Human-level reasoning and generation." }
+    ];
+
+    const Gauge = ({ value, label, color }) => {
+        const radius = 40;
+        const circ = 2 * Math.PI * radius;
+        const offset = circ - (value / 100) * circ;
+        return (
+            <div className="flex flex-col items-center gap-2">
+                <svg className="w-24 h-24 transform -rotate-90">
+                    <circle cx="48" cy="48" r={radius} stroke="#1e293b" strokeWidth="8" fill="transparent" />
+                    <circle 
+                        cx="48" cy="48" r={radius} stroke={color} strokeWidth="8" fill="transparent"
+                        strokeDasharray={circ}
+                        style={{ strokeDashoffset: offset, transition: 'stroke-dashoffset 1s ease' }}
+                        strokeLinecap="round"
+                    />
+                </svg>
+                <span className="text-xs font-bold text-slate-400 uppercase">{label}</span>
+                <span className="text-xl font-bold text-white">{value}%</span>
+            </div>
+        );
+    };
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-blue-400 bg-blue-900/30 border border-blue-800 rounded-full uppercase">Summary</span>
+                <h1 className="text-4xl font-bold text-white mt-4">The Evolution of NLP</h1>
+                <p className="text-slate-400 mt-2">From If-Then rules to Large Language Models</p>
+            </div>
+
+            <div className="w-full max-w-4xl bg-slate-900/60 border border-slate-700 rounded-2xl p-8">
+                <div className="flex justify-between items-center mb-12 relative">
+                    <div className="absolute top-1/2 left-0 right-0 h-1 bg-slate-800 -translate-y-1/2 z-0"></div>
+                    {timeline.map((item, i) => (
+                        <button 
+                            key={i}
+                            onClick={() => setSelected(i)}
+                            className={`relative z-10 flex flex-col items-center transition-all duration-300 ${selected === i ? 'scale-110' : 'opacity-50 hover:opacity-80'}`}
+                        >
+                            <div className={`w-4 h-4 rounded-full mb-2 ${selected === i ? 'bg-blue-500 ring-4 ring-blue-900' : 'bg-slate-600'}`}></div>
+                            <span className="text-sm font-bold text-white">{item.year}</span>
+                            <span className="text-[10px] text-slate-400">{item.label}</span>
+                        </button>
+                    ))}
+                </div>
+
+                <div className="grid grid-cols-3 gap-8 items-center">
+                    <div className="col-span-1 space-y-4">
+                        <h3 className="text-2xl font-bold text-blue-400">{timeline[selected].label} Era</h3>
+                        <p className="text-slate-300 text-sm leading-relaxed">{timeline[selected].desc}</p>
+                    </div>
+                    <div className="col-span-2 flex justify-around bg-slate-950/40 p-8 rounded-2xl border border-slate-800">
+                        <Gauge value={timeline[selected].context} label="Context Awareness" color="#3b82f6" />
+                        <Gauge value={timeline[selected].gen} label="Generative Ability" color="#c084fc" />
+                    </div>
+                </div>
+            </div>
+
+            <p className="text-slate-400 text-sm italic">
+                We have shifted from manually engineering features to letting models learn complex representations of language on their own.
+            </p>
+        </div>
+    );
+};
+
+const Slide10Viz = () => {
+    const [hovered, setHovered] = React.useState(null);
+
+    const path = [
+        { id: 0, label: "Pipeline", status: "completed", peek: "You've mastered cleaning and tokenizing text!" },
+        { id: 1, label: "NER & POS", status: "completed", peek: "You know how to tag entities and grammar." },
+        { id: 2, label: "Bag of Words", status: "next", peek: "Next: Turning tokens into simple frequency counts." },
+        { id: 3, label: "Word2Vec", status: "future", peek: "Learning how words get their own 'address' in vector space." },
+        { id: 4, label: "Transformers", status: "future", peek: "The engine behind modern AI like ChatGPT." },
+        { id: 5, label: "LLMs", status: "future", peek: "Building massive models that can reason and code." }
+    ];
+
+    return (
+        <div className="flex flex-col h-full justify-center items-center gap-5 p-6 animate-fade-in-up">
+            <div className="text-center">
+                <span className="px-3 py-1 text-xs font-bold tracking-wider text-indigo-400 bg-indigo-900/30 border border-indigo-800 rounded-full uppercase">Summary</span>
+                <h1 className="text-4xl font-bold text-white mt-4">Your NLP Roadmap</h1>
+                <p className="text-slate-400 mt-2">Where do we go from here?</p>
+            </div>
+
+            <div className="w-full max-w-3xl bg-slate-900/60 border border-slate-700 rounded-2xl p-12 relative">
+                <svg viewBox="0 0 800 200" className="w-full h-48 overflow-visible">
+                    <path 
+                        d="M 50 100 Q 200 20, 400 100 T 750 100" 
+                        fill="transparent" stroke="#1e293b" strokeWidth="8" strokeLinecap="round"
+                    />
+                    <path 
+                        d="M 50 100 Q 200 20, 400 100 T 750 100" 
+                        fill="transparent" stroke="url(#grad)" strokeWidth="8" strokeLinecap="round"
+                        strokeDasharray="800" strokeDashoffset="400"
+                    />
+                    <defs>
+                        <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor="#6366f1" />
+                            <stop offset="100%" stopColor="#a855f7" />
+                        </linearGradient>
+                    </defs>
+
+                    {path.map((node, i) => {
+                        const x = 50 + (i * 140);
+                        const y = 100 + (i % 2 === 0 ? -30 : 30);
+                        return (
+                            <g 
+                                key={i} 
+                                className="cursor-pointer"
+                                onMouseEnter={() => setHovered(i)}
+                                onMouseLeave={() => setHovered(null)}
+                            >
+                                <circle 
+                                    cx={x} cy={y} r={node.status === 'completed' ? "12" : "16"} 
+                                    fill={node.status === 'completed' ? "#6366f1" : "#1e293b"}
+                                    stroke={node.status === 'next' ? "#a855f7" : "#475569"}
+                                    strokeWidth="3"
+                                    className={node.status === 'next' ? 'animate-pulse' : ''}
+                                />
+                                {node.status === 'completed' && (
+                                    <text x={x} y={y+4} textAnchor="middle" fill="white" fontSize="10" fontWeight="bold">✓</text>
+                                )}
+                                <text x={x} y={y + (i % 2 === 0 ? -25 : 35)} textAnchor="middle" fill="white" fontSize="12" fontWeight="bold">
+                                    {node.label}
+                                </text>
+                            </g>
+                        );
+                    })}
+                </svg>
+
+                <div className="mt-8 min-h-[80px] flex items-center justify-center">
+                    {hovered !== null ? (
+                        <div className="bg-indigo-900/30 border border-indigo-500/50 p-4 rounded-xl text-center animate-fade-in">
+                            <h4 className="text-indigo-400 font-bold text-sm uppercase tracking-widest mb-1">Sneak Peek</h4>
+                            <p className="text-white">{path[hovered].peek}</p>
+                        </div>
+                    ) : (
+                        <p className="text-slate-500 italic">Hover over a node to see what's next...</p>
+                    )}
+                </div>
+            </div>
+
+            <div className="max-w-2xl text-center space-y-4">
+                <p className="text-slate-300 leading-relaxed">
+                    You've mastered the foundations of the NLP pipeline and the challenges of human language. The next step is learning how to turn these tokens into powerful mathematical representations like <strong className="text-indigo-400">TF-IDF</strong> and <strong className="text-indigo-400">Word Embeddings</strong>.
+                </p>
+            </div>
+        </div>
+    );
+};
+
+// ====== MAIN APP ======
+const App = () => {
+    const [slide, setSlide] = useState(0);
+
+    const slides = [
+        {
+            title: 'Welcome to the World of NLP',
+            subtitle: 'Bridging the gap between human chaos and computer logic',
+            badge: 'INTRODUCTION',
+            hue: 'from-blue-700 to-indigo-600',
+            emoji: '🤖',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light"><strong>Natural Language Processing (NLP)</strong> is the intersection of linguistics and AI focused on enabling computers to process and "understand" human language.</p>
+                    <p className="text-slate-400">Unlike rigid programming languages, human language is fluid, evolved, and messy, making it the ultimate challenge for deterministic machines. We are moving from simple <strong>String Processing</strong> to <strong>Semantic Understanding</strong>.</p>
+                </div>
+            ),
+            viz: <Slide1Viz/>
+        },
+        {
+            title: 'How Computers "Read"',
+            subtitle: 'From symbols to numerical features',
+            badge: 'INTUITION',
+            hue: 'from-indigo-700 to-purple-600',
+            emoji: '🔢',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">Computers cannot "read" words; they only process numbers. To bridge this gap, we transform text into <strong>Feature Vectors</strong>.</p>
+                    <p className="text-slate-400">These are essentially coordinates in a multi-dimensional mathematical space. In this geometric world, words with similar meanings are placed close together, while unrelated words are far apart.</p>
+                </div>
+            ),
+            viz: <Slide2Viz/>
+        },
+        {
+            title: 'The NLP Toolkit',
+            subtitle: 'Solving real-world problems with language',
+            badge: 'CASE STUDY',
+            hue: 'from-purple-700 to-pink-600',
+            emoji: '🛠️',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">NLP powers a vast array of tasks, from <strong>Sentiment Analysis</strong> and <strong>Spam Detection</strong> to <strong>Machine Translation</strong>.</p>
+                    <p className="text-slate-400">Each task requires the computer to extract different types of "value" from the same raw text. Whether it's a chatbot or a system generating stories, the goal is to map input text to a useful output.</p>
+                </div>
+            ),
+            viz: <Slide3Viz/>
+        },
+        {
+            title: 'The NLP Pipeline',
+            subtitle: 'The assembly line of understanding',
+            badge: 'ALGORITHM',
+            hue: 'from-pink-700 to-rose-600',
+            emoji: '🏗️',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">Raw text is messy, containing HTML tags, typos, and "noise." We use a <strong>Pipeline</strong> to clean data before it reaches a model.</p>
+                    <p className="text-slate-400">This <strong>"Text Car Wash"</strong> ensures that the model focuses on the most important features of the language, removing distractions that hinder learning.</p>
+                </div>
+            ),
+            viz: <Slide4Viz/>
+        },
+        {
+            title: 'Tokenization & Stopwords',
+            subtitle: 'Breaking it down and filtering the noise',
+            badge: 'VISUALIZATION',
+            hue: 'from-rose-700 to-orange-600',
+            emoji: '✂️',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light"><strong>Tokenization</strong> is the process of splitting a sentence into smaller units called tokens (words or sub-words).</p>
+                    <p className="text-slate-400"><strong>Stopword Removal</strong> then filters out common words like "the," "is," and "at" that carry little unique information. Think of tokens as Lego bricks; you must break the "castle" of a sentence down to understand its structure.</p>
+                </div>
+            ),
+            viz: <Slide5Viz/>
+        },
+        {
+            title: 'Stemming vs. Lemmatization',
+            subtitle: 'Finding the root of the matter',
+            badge: 'COMPARISON',
+            hue: 'from-orange-700 to-amber-600',
+            emoji: '🌱',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">To group related words, we reduce them to their base form. <strong>Stemming</strong> is a crude "chopping" method (e.g., "running" becomes "run").</p>
+                    <p className="text-slate-400"><strong>Lemmatization</strong> uses a dictionary to find the actual linguistic root (e.g., "better" becomes "good"). While stemming is faster, lemmatization is smarter and preserves semantic meaning.</p>
+                </div>
+            ),
+            viz: <Slide6Viz/>
+        },
+        {
+            title: 'The Challenge of Ambiguity',
+            subtitle: 'Why language is hard for machines',
+            badge: 'LIMITATIONS',
+            hue: 'from-emerald-700 to-teal-600',
+            emoji: '🧩',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">Human language is riddled with <strong>Ambiguity</strong>, <strong>Sarcasm</strong>, and <strong>Context</strong>.</p>
+                    <p className="text-slate-400">A single word like "bank" can mean a financial institution or the side of a river depending entirely on the surrounding words. Computers struggle because they lack real-world experience and common sense.</p>
+                </div>
+            ),
+            viz: <Slide7Viz/>
+        },
+        {
+            title: 'NER & POS Tagging',
+            subtitle: "Identifying the 'Who' and 'What'",
+            badge: 'IMPLEMENTATION',
+            hue: 'from-teal-700 to-cyan-600',
+            emoji: '🏷️',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light"><strong>Named Entity Recognition (NER)</strong> identifies real-world objects like people, places, and organizations.</p>
+                    <p className="text-slate-400"><strong>Part-of-Speech (POS) Tagging</strong> labels the grammatical role of each word. These tags act as "fingerprints" that help the computer understand the structure and key players in a story.</p>
+                </div>
+            ),
+            viz: <Slide8Viz/>
+        },
+        {
+            title: 'The Evolution of NLP',
+            subtitle: 'From If-Then rules to Large Language Models',
+            badge: 'SUMMARY',
+            hue: 'from-blue-700 to-indigo-600',
+            emoji: '📈',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">NLP has evolved from <strong>Rule-based systems</strong> to <strong>Statistical ML</strong> and <strong>Deep Learning</strong>.</p>
+                    <p className="text-slate-400">Today, <strong>Transformers</strong> and <strong>LLMs</strong> use "Attention" to understand long-range context. We have shifted from manually engineering features to letting models learn complex representations on their own.</p>
+                </div>
+            ),
+            viz: <Slide9Viz/>
+        },
+        {
+            title: 'Your NLP Roadmap',
+            subtitle: 'Where do we go from here?',
+            badge: 'SUMMARY',
+            hue: 'from-indigo-700 to-purple-600',
+            emoji: '🗺️',
+            body: (
+                <div className="space-y-4">
+                    <p className="text-lg text-slate-300 font-light">You've mastered the foundations of the NLP pipeline and the challenges of human language.</p>
+                    <p className="text-slate-400">The next step is learning how to turn these tokens into powerful mathematical representations like <strong>TF-IDF</strong> and <strong>Word Embeddings</strong>. From there, you will explore RNNs, Attention, and Transformers.</p>
+                </div>
+            ),
+            viz: <Slide10Viz/>
+        }
+    ];
+
+    const s = slides[slide], total = slides.length;
+    const prev = () => setSlide(c => Math.max(c-1, 0));
+    const next = () => setSlide(c => Math.min(c+1, total-1));
+
+    useEffect(() => {
+        const h = e => {
+            if(e.key==='ArrowRight'||e.key==='ArrowDown') next();
+            if(e.key==='ArrowLeft'||e.key==='ArrowUp') prev();
+        };
+        window.addEventListener('keydown', h);
+        return () => window.removeEventListener('keydown', h);
+    }, [slide]);
+
+    return (
+        <div className="w-screen h-screen flex flex-col overflow-hidden bg-[#020617]">
+            <header className={`bg-gradient-to-r ${s.hue} px-8 py-5 flex justify-between items-center border-b border-white/10 flex-shrink-0 z-50 transition-colors duration-700 shadow-lg`}>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-black/20 rounded-xl flex items-center justify-center backdrop-blur shadow-inner border border-white/20 text-2xl">{s.emoji}</div>
+                    <div>
+                        <div className="font-bold text-white uppercase tracking-wider text-base drop-shadow">Introduction to Natural Language Processing (NLP)</div>
+                        <div className="text-xs text-white/80 font-mono font-medium">Interactive Curriculum</div>
+                    </div>
+                </div>
+                <div className="font-mono text-sm font-bold text-white bg-black/20 px-5 py-2 rounded-full backdrop-blur border border-white/10 shadow-inner">Module {slide+1} of {total}</div>
+            </header>
+            <div className="flex-1 flex items-center justify-center p-8 z-10 w-full overflow-hidden">
+                <div className="flex flex-col lg:flex-row gap-12 w-full max-w-[1600px] h-[80vh]">
+                    <div className="flex flex-col justify-center h-full w-full lg:w-[45%] lg:pr-8" key={`t-${slide}`}>
+                        <div className="animate-fade-in-up">
+                            <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-3 py-1.5 rounded border text-white shadow-sm bg-slate-800/80 border-slate-600 mb-6 inline-block">{s.badge}</span>
+                            <h2 className="text-5xl font-extrabold text-white mb-4 tracking-tight leading-tight">{s.title}</h2>
+                            <h3 className="text-2xl text-slate-400 font-light mb-8">{s.subtitle}</h3>
+                        </div>
+                        <div className="h-1 w-24 bg-gradient-to-r from-white to-transparent rounded mb-8 opacity-20"></div>
+                        <div className="text-slate-300 leading-relaxed overflow-y-auto max-h-[38vh] pr-4 custom-scroll pb-4 animate-fade-in-up" style={{animationDelay:'.1s'}}>{s.body}</div>
+                        <div className="flex gap-4 mt-auto pt-6 animate-fade-in-up" style={{animationDelay:'.2s'}}>
+                            <button onClick={prev} disabled={slide===0} className="flex-1 py-4 border border-slate-700 hover:border-slate-500 hover:bg-slate-800 text-slate-300 rounded-xl text-sm font-bold disabled:opacity-30 disabled:hover:bg-transparent disabled:cursor-not-allowed transition-all uppercase tracking-wider cursor-pointer">← Previous</button>
+                            <button onClick={next} disabled={slide===total-1} className={`flex-1 py-4 bg-gradient-to-r ${s.hue} hover:brightness-110 text-white rounded-xl text-sm font-bold disabled:opacity-30 disabled:cursor-not-allowed transition-all uppercase tracking-wider shadow-lg cursor-pointer`}>Next →</button>
+                        </div>
+                    </div>
+                    <div className="h-full w-full lg:w-[55%] bg-slate-900/60 rounded-3xl border border-slate-700/80 backdrop-blur shadow-2xl overflow-hidden relative" key={`v-${slide}`}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none z-0"></div>
+                        {s.viz}
+                    </div>
+                </div>
+            </div>
+            <div className="flex justify-center items-center gap-2 py-3 flex-shrink-0">
+                {slides.map((_,i) => (
+                    <button key={i} onClick={()=>setSlide(i)} className={`rounded-full transition-all duration-300 cursor-pointer ${i===slide?'w-6 h-2 bg-white':'w-2 h-2 bg-white/30 hover:bg-white/60'}`}/>
+                ))}
+            </div>
+        </div>
+    );
+};
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

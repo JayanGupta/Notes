@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>K-Nearest Neighbors: Comprehensive Interactive Masterclass</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #040712;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #0a1124 0%, #02040a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Premium Cinematic Slide Transitions */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 5rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98) translateY(15px);
+            transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.5s;
+            pointer-events: none;
+            z-index: 1;
+            visibility: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+            z-index: 2;
+            visibility: visible;
+        }
+
+        /* Universal HUD Navigation Panel */
+        .controls {
+            position: absolute;
+            bottom: 2.5rem;
+            right: 5rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(10, 17, 32, 0.75);
+            padding: 12px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-indicator {
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 700;
+            margin-right: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f9fafb;
+            border: 1px solid #334155;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #00f2fe;
+            border-color: #00f2fe;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .suite-tag {
+            position: absolute;
+            bottom: 3.2rem;
+            left: 5rem;
+            z-index: 100;
+            font-size: 13px;
+            color: #475569;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Typography Mastery */
+        .header-tag {
+            font-size: 12px;
+            color: #00f2fe;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #00f2fe 0%, #4f46e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            margin-bottom: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            background: rgba(0, 242, 254, 0.08);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 242, 254, 0.15);
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        ul {
+            margin-left: 24px;
+            margin-bottom: 14px;
+        }
+
+        strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* High-End Enterprise Layout Matrix */
+        .split-layout {
+            display: flex;
+            gap: 3.5rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 2rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Advanced Glassmorphic Playground Architecture */
+        .interactive-panel {
+            flex: 1.3;
+            background: rgba(11, 19, 38, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: #030611;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .math-block {
+            background: rgba(2, 4, 10, 0.5);
+            padding: 14px 18px;
+            border-radius: 12px;
+            border-left: 4px solid #00f2fe;
+            margin: 10px 0;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        /* Professional Telemetry HUD Instrumentation */
+        .telemetry-hud {
+            background: #02050e;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 6px;
+            align-items: center;
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .val-cyan {
+            color: #00f2fe;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .val-rose {
+            color: #ff4a6b;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 74, 107, 0.2);
+        }
+
+        .val-emerald {
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .val-purple {
+            color: #a855f7;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Premium Input Elements styling */
+        .playground-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(2, 4, 10, 0.3);
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13.5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00f2fe;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #00f2fe 0%, #3b82f6 100%);
+            color: #020617;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(0, 242, 254, 0.4);
+            color: #ffffff;
+        }
+
+        .dual-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Corporate Workflow Pipeline Component */
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            flex: 1;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pipeline-card {
+            background: rgba(11, 19, 38, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem 1.25rem;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pipeline-card:hover {
+            border-color: #00f2fe;
+            background: rgba(11, 19, 38, 0.8);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 242, 254, 0.1);
+        }
+
+        .pipeline-card.active-step {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+        }
+
+        .pipeline-card::after {
+            content: '→';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.6rem;
+            color: #334155;
+            font-weight: bold;
+        }
+
+        .pipeline-card:last-child::after {
+            display: none;
+        }
+
+        .pipeline-icon {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.2));
+        }
+
+        /* Custom Comparison Matrix Style */
+        .matrix-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .matrix-box {
+            background: rgba(2, 5, 14, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .matrix-box h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .matrix-box h3 span {
+            color: #00f2fe;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="suite-tag">Enterprise Instance-Based Non-Parametric Suite</div>
+
+        <div class="slide active" data-index="1">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 01 // Memory-Based Architecture</div>
+                    <h1>What is <span>KNN?</span></h1>
+                    <p><strong>K-Nearest Neighbors (KNN)</strong> is a non-parametric, lazy supervised learning
+                        algorithm that predicts targets based on topological proximity within an $D$-dimensional vector
+                        space.</p>
+                    <p>Unlike parametric frameworks, KNN skips structural parameter updates entirely during training,
+                        storing raw instances directly. At inference, it looks up local points to map decision
+                        boundaries:</p>
+                    <ul>
+                        <li><strong>Classification:</strong> Uses a majority vote across the nearest $K$ points.</li>
+                        <li><strong>Regression:</strong> Computes the local arithmetic or distance-weighted target mean.
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s1"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Test Query Coordinate:</span><span id="lbl-s1-coord"
+                                class="val-cyan">X: 3.00, Y: 4.00</span></div>
+                        <div class="hud-row"><span>Local Polling State ($K=3$):</span><span id="lbl-s1-vote"
+                                class="val-emerald">Class A Majority</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s1_moveQuery()">Relocate Target Vector
+                        Coordinate</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="2">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 02 // Structural Inductive Bias</div>
+                    <h2><span>02</span> Why Do We Need KNN?</h2>
+                    <p>Parametric options like linear models force raw distributions onto rigid mathematical frameworks,
+                        introducing critical model assumptions.</p>
+                    <p>When data presents intertwined clusters, nested rings, or multi-modal structures, rigid models
+                        suffer from high model bias. KNN provides a highly flexible alternative:</p>
+                    <ul>
+                        <li><strong>No Geometric Presumptions:</strong> Adapts fluidly to highly complex, arbitrary
+                            boundaries without manual feature transformations.</li>
+                        <li><strong>Localized Sensitivity:</strong> Focuses calculations entirely on the immediate
+                            neighborhood instead of trying to fit a single global line.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s2"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Modeling Model:</span><span id="lbl-s2-engine"
+                                class="val-rose">Global Linear Classifier</span></div>
+                        <div class="hud-row"><span>Boundary Generalization Score:</span><span id="lbl-s2-score"
+                                class="val-rose">Underfit (High Error Rate)</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s2-toggle" onclick="playgroundActions.s2_toggleEngine()">Switch
+                        to Non-Parametric Proximity Engine</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="3">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 03 // Proximity Mechanics</div>
+                    <h2><span>03</span> Understanding Neighbors</h2>
+                    <p>The core mechanic of KNN centers around finding proximity: similar things exist in close spatial
+                        alignment within a structured vector space.</p>
+                    <p>By defining neighborhoods as bounded hyperspheres around an unclassified vector, we isolate a
+                        localized pool of known instances to guide our predictions:</p>
+                    <ul>
+                        <li><strong>Feature Space Distance:</strong> Proximity is calculated directly from coordinate
+                            values across all included dimensions.</li>
+                        <li><strong>Hypersphere Radius:</strong> Adjusting $K$ dynamically expands or contracts the
+                            neighborhood radius to balance signal and noise.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s3"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Selected Hyperparameter $K$:</span><span id="lbl-s3-k"
+                                class="val-cyan">3</span></div>
+                        <div class="hud-row"><span>Calculated Radius Boundary:</span><span id="lbl-s3-radius"
+                                class="val-emerald">1.45 Spatial Units</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Scale Neighborhood Population Boundary ($K$)</label></div>
+                            <input type="range" id="slide-s3-k" min="1" max="9" step="2" value="3"
+                                oninput="playgroundActions.s3_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="4">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 04 // Topological Geometry Matrix</div>
+                    <h2><span>04</span> Core Distance Metrics</h2>
+                    <p>The concept of "closeness" depends entirely on your choice of distance metric, which defines the
+                        fundamental geometry of the feature space.</p>
+                    <p>Selecting a metric shapes how the algorithm measures similarity and evaluates neighbor
+                        relationships:</p>
+                    <ul>
+                        <li><strong>Euclidean Geometry:</strong> Measures the shortest straight-line path across a
+                            coordinate system.</li>
+                        <li><strong>Manhattan Topology:</strong> Forces paths along axis-aligned grids, ideal for
+                            discrete or high-dimensional feature spaces.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s4"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Metric Configuration:</span><span id="lbl-s4-metric"
+                                class="val-cyan">Euclidean Straight-Line Path</span></div>
+                        <div class="hud-row"><span>Computed Target Separation:</span><span id="lbl-s4-dist"
+                                class="val-purple">d = 4.24 Units</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s4_toggleMetric()">Toggle Spatial Distance
+                        Geometry Metric</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="5">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 05 // L2 Vector Formulations</div>
+                    <h2><span>05</span> L2 Formulation: Euclidean Distance</h2>
+                    <p>The default standard for geometric proximity is **Euclidean Distance** ($L_2$ Norm), derived
+                        directly from the Pythagorean theorem.</p>
+                    <p>It calculates the straight-line distance through multi-dimensional space between a query vector
+                        $q$ and a reference vector $p$:</p>
+                    <div class="math-block">
+                        $$d(p, q) = \sqrt{\sum_{i=1}^{n} (p_i - q_i)^2}$$
+                    </div>
+                    <p>This metric works best when feature coordinates are continuous, tightly grouped, and directly
+                        comparable without massive scale differences.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s5"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Reference Coordinate Delta ($\Delta
+                                    X$)</label><span id="val-s5-dx" class="val-cyan">3.0</span></div>
+                            <input type="range" id="slide-s5-dx" min="10" max="50" value="30"
+                                oninput="playgroundActions.s5_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Hypotenuse Distance Result ($L_2$):</span><span id="lbl-s5-res"
+                                class="val-emerald">3.6056 Units</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="6">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 06 // Vector Space Generalization</div>
+                    <h2><span>06</span> Generalization: Minkowski Formula</h2>
+                    <p>To support advanced vector operations, we use the **Minkowski Distance** formula to generalize
+                        our metric calculations.</p>
+                    <p>By adjusting the order parameter $p$, we change how individual dimension differences contribute
+                        to the overall distance score:</p>
+                    <div class="math-block">
+                        $$d(p, q) = \left( \sum_{i=1}^{n} |p_i - q_i|^p \right)^{\frac{1}{p}}$$
+                    </div>
+                    <ul>
+                        <li><strong>$p = 1$:</strong> Resolves to the grid-based Manhattan Distance metric ($L_1$ Norm).
+                        </li>
+                        <li><strong>$p = 2$:</strong> Resolves to the straight-line Euclidean Distance metric ($L_2$
+                            Norm).</li>
+                        <li><strong>$p \to \infty$:</strong> Resolves to the Chebyshev Distance metric, which looks only
+                            at the single largest coordinate difference.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s6"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Norm Order Parameter ($p$ Value)</label><span
+                                    id="val-s6-p" class="val-purple">p = 2.00 (Euclidean)</span></div>
+                            <input type="range" id="slide-s6-p" min="10" max="40" value="20"
+                                oninput="playgroundActions.s6_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Iso-Distance Boundary Shape:</span><span id="lbl-s6-shape"
+                                class="val-cyan">Perfect Circular Orbit Shape</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="7">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 07 // Inference Polling Layer</div>
+                    <h2><span>07</span> How KNN Predicts</h2>
+                    <p>The inference workflow follows a deterministic pipeline during local polling:</p>
+                    <ul>
+                        <li><strong>Step 1: Distance Scans:</strong> The model measures the distance from the
+                            unclassified query vector to every single training instance across the dataset.</li>
+                        <li><strong>Step 2: Proximity Sorting:</strong> It ranks all rows by distance score to isolate
+                            the closest $K$ vectors.</li>
+                        <li><strong>Step 3: Target Consensus:</strong> It combines the targets of those neighbors to
+                            generate a prediction (using majority voting for classification or averaging for
+                            regression).</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s7"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Nearest Neighbor Pool Logs:</span><span id="lbl-s7-logs"
+                                class="val-purple">Awaiting Pipeline Trigger...</span></div>
+                        <div class="hud-row"><span>Final Output Consensus:</span><span id="lbl-s7-result"
+                                class="val-emerald">None</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s7_runTrace()">Execute Inference Prediction
+                        Polling</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="8">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 08 // Boundary Topology Bias</div>
+                    <h2><span>08</span> Hyperparameters: The Meaning of K</h2>
+                    <p>The parameter $K$ controls how many neighbors inform your predictions, directly balancing model
+                        bias and variance.</p>
+                    <p>Adjusting $K$ changes the complexity and texture of the decision boundary:</p>
+                    <ul>
+                        <li><strong>Ultra-Low $K$ ($K=1$):</strong> Highly complex, jagged decision boundaries. The
+                            model responds strongly to local data noise and outliers, increasing variance.</li>
+                        <li><strong>Ultra-High $K$ ($K \to N$):</strong> Very smooth, simple boundaries. The model
+                            collapses toward the global majority class, ignoring local patterns and increasing bias.
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s8"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Current $K$ Configuration:</span><span id="lbl-s8-k"
+                                class="val-cyan">K = 1 (Maximum Local Variance)</span></div>
+                        <div class="hud-row"><span>Decision Boundary Shape:</span><span id="lbl-s8-desc"
+                                class="val-rose">Jagged, highly sensitive to noise.</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Scale Core Neighbor Envelope ($K$ Value)</label></div>
+                            <input type="range" id="slide-s8-k" min="1" max="3" step="1" value="1"
+                                oninput="playgroundActions.s8_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="9">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 09 // Structural Optimization Sweep</div>
+                    <h2><span>09</span> Optimization: Choosing the Best K</h2>
+                    <p>We find the optimal value for $K$ by scanning a range of values using Cross-Validation to look
+                        for the lowest generalization error.</p>
+                    <p>This tuning process searches for a sweet spot where the model captures the real underlying signal
+                        without overfitting to training noise:</p>
+                    <ul>
+                        <li><strong>Tie Breaking:</strong> For binary classification, use odd values for $K$ to prevent
+                            deadlocks in majority voting.</li>
+                        <li><strong>The $\sqrt{N}$ Rule:</strong> A common starting heuristic is to set $K \approx
+                            \sqrt{N}$, then adjust based on cross-validation results.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s9"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Scan Hyperparameter Space (Select $K$)</label><span
+                                    id="val-s9-k" class="val-cyan">K = 7</span></div>
+                            <input type="range" id="slide-s9-k" min="1" max="15" step="1" value="7"
+                                oninput="playgroundActions.s9_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Generalization Profile:</span><span id="lbl-s9-status"
+                                class="val-emerald">Optimal Balance: Minimal Error Bound</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="10">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 10 // Data Preparation Anomalies</div>
+                    <h2><span>10</span> The Necessity of Feature Scaling</h2>
+                    <p>Because KNN calculates distance across all features uniformly, features with larger numeric
+                        scales will dominate the distance metric, making other features irrelevant.</p>
+                    <p>Consider a model evaluating Income (\$0 to \$200,000) alongside Age (18 to 80 years). Without
+                        scaling, income variations overwhelm the age variable entirely.</p>
+                    <p>To fix this, we apply transformations before running the algorithm:</p>
+                    <div class="math-block">
+                        $$\text{Standardization (Z-Score): } x' = \frac{x - \mu}{\sigma}$$
+                    </div>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s10"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Feature Scaling Status:</span><span id="lbl-s10-scale"
+                                class="val-rose">RAW UNTRANSFORMED SPACE</span></div>
+                        <div class="hud-row"><span>Distance Vector Breakdown:</span><span id="lbl-s10-break"
+                                class="val-rose">Income dominates 99.9% of calculations.</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s10" onclick="playgroundActions.s10_toggleScale()">Activate
+                        Standardization Preprocessing Pipeline</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="11">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 11 // Categorical Probability Mapping</div>
+                    <h2><span>11</span> Workflow: KNN Classification</h2>
+                    <p>In classification tasks, KNN computes local class probabilities based on neighbor proportions:
+                    </p>
+                    <div class="math-block">
+                        $$P(Y = c \,|\, X = x_0) = \frac{1}{K} \sum_{i \in \mathcal{N}_0} I(y_i = c)$$
+                    </div>
+                    <p>The model can use standard majority voting, or apply distance weights ($w_i = \frac{1}{d_i}$) so
+                        that closer neighbors have a larger influence on the predicted class.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s11"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Neighbor Proportions Vector:</span><span id="lbl-s11-prob"
+                                class="val-cyan">Class A: 66.7%, Class B: 33.3%</span></div>
+                        <div class="hud-row"><span>Assigned Classification Output:</span><span class="val-emerald">Class
+                                A</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s11_mutateClass()">Inject Local Sample Class
+                        Variations</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="12">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 12 // Continuous Space Interpolation</div>
+                    <h2><span>12</span> Workflow: KNN Regression</h2>
+                    <p>KNN handles continuous targets by switching from voting to averaging value distributions within
+                        the neighborhood.</p>
+                    <p>Instead of continuous curves, it creates localized, non-parametric step patterns across the
+                        target landscape:</p>
+                    <div class="math-block">
+                        $$\hat{f}(x_0) = \frac{1}{K} \sum_{i \in \mathcal{N}_0} y_i$$
+                    </div>
+                    <p>This approach allows the model to capture non-linear trends fluidly without needing to define
+                        complex global equations.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s12"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Smoothing Kernel Output:</span><span id="lbl-s12-smooth"
+                                class="val-cyan">Step Function Realized</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s12_toggleSmoothing()">Toggle Inverse-Distance
+                        Weight Smoothing</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="13">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 13 // Zero Parameter Lazy Evaluation</div>
+                    <h2><span>13</span> The "Lazy Learning" Training Profile</h2>
+                    <p>KNN uses a **lazy learning** strategy, meaning its training phase has a computational complexity
+                        of $\mathcal{O}(1)$.</p>
+                    <p>The training step requires no coefficient updates or gradient descent calculations. Instead, the
+                        model simply saves the raw data vectors directly into memory:</p>
+                    <ul>
+                        <li><strong>No Parameter Derivation:</strong> Skips long backpropagation training loops
+                            completely.</li>
+                        <li><strong>Instant Ingestion:</strong> Adding new training samples is as simple as saving them
+                            to memory, making the ingestion phase incredibly fast.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s13"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Training Floating Point Operations (FLOPs):</span><span
+                                class="val-emerald">0 Operations (Instant Storage)</span></div>
+                        <div class="hud-row"><span>Memory Footprint Allocation Profile:</span><span id="lbl-s13-mem"
+                                class="val-cyan">Linear Growth Space [O(N)]</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s13_expandDataset()">Stream New Training
+                        Vectors to Memory</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="14">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 14 // Runtime Scalability Bottlenecks</div>
+                    <h2><span>14</span> Inference Latency & Scalability Challenges</h2>
+                    <p>While training is instant, KNN shifts its entire computational burden to the inference phase,
+                        leading to an operational bottleneck.</p>
+                    <p>To predict a single query point, a standard brute-force lookup must calculate distances across
+                        every single instance ($N$) and feature ($D$) in the dataset:</p>
+                    <div class="math-block">
+                        $$\text{Inference Complexity: } \mathcal{O}(N \cdot D)$$
+                    </div>
+                    <p>As your dataset grows into millions of rows, inference times can slow down dramatically, which
+                        can limit live real-time deployments.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s14"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Dataset Row Scale ($N$ Elements):</span><span id="lbl-s14-rows"
+                                class="val-cyan">10,000 Records Loaded</span></div>
+                        <div class="hud-row"><span>Required Distance Calculations per Query:</span><span
+                                id="lbl-s14-calc" class="val-rose">10,000 Scans</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s14_scaleComplexity()">Scale Production Data
+                        Volume (10x Ingestion)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="15">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 15 // Validation Parameters</div>
+                    <h2><span>15</span> Evaluation & Performance Tuning</h2>
+                    <p>Because neighborhood boundaries are highly sensitive to data distributions, evaluating
+                        performance requires careful multi-metric analysis.</p>
+                    <p>Relying on raw accuracy alone can be misleading, especially when working with imbalanced
+                        datasets:</p>
+                    <ul>
+                        <li><strong>Confusion Matrix Auditing:</strong> Tracks false positives and false negatives to
+                            monitor how local boundaries behave.</li>
+                        <li><strong>F1-Score Metrics:</strong> Balances precision and recall to ensure stable, reliable
+                            performance across all target classes.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s15"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Precision Core Metric:</span><span class="val-cyan">0.882</span>
+                        </div>
+                        <div class="hud-row"><span>Recall Core Metric:</span><span class="val-purple">0.814</span></div>
+                        <div class="hud-row"><span>Harmonic Mean Vector (F1-Score):</span><span id="lbl-s15-f1"
+                                class="val-emerald">0.847</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s15_optimizeBoundary()">Tune Classification
+                        Threshold Filter</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="16">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 16 // Architectural Trade-off Ledger</div>
+                    <h2><span>16</span> Advantages & Disadvantages</h2>
+                    <p>Understanding when to deploy KNN requires evaluating its distinct benefits alongside its core
+                        limitations:</p>
+                    <p><strong>Core Strengths:</strong> Simple architecture, zero assumptions about data distributions,
+                        single hyperparameter design ($K$), and natural support for multi-class targets.</p>
+                    <p><strong>Vulnerabilities:</strong> High memory consumption, sensitivity to noisy data or outliers,
+                        and the **Curse of Dimensionality**—where high feature counts dilute distance metrics and cause
+                        neighbors to look equally far away.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s16"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Vector Dimension Count ($D$):</span><span id="lbl-s16-dim"
+                                class="val-cyan">2 Dimensional Coordinates</span></div>
+                        <div class="hud-row"><span>Proximity Degradation Index:</span><span id="lbl-s16-curse"
+                                class="val-emerald">Healthy Proximity Signals</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s16_triggerCurse()">Dilute Space (Inject 50
+                        Empty Dimensions)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="17">
+            <div class="header-tag">Module 17 // Comparative Competitive Selection Matrix</div>
+            <h1>Algorithmic <span>Architectural Analysis</span></h1>
+            <p style="margin-bottom: 1.5rem; max-width: 900px;">Choosing between KNN and alternative models depends on
+                your data size, complexity, and operational constraints:</p>
+
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>Instance-Based <span>KNN</span></h3>
+                    <p><strong>Model Formulation:</strong> Fully non-parametric. Learns localized step boundaries
+                        directly from raw instances without mathematical presuppositions.</p>
+                    <p><strong>Resource Allocation Profile:</strong> $\mathcal{O}(1)$ training footprint, but heavy
+                        $\mathcal{O}(N \cdot D)$ inference latency and storage requirements.</p>
+                    <p><strong>Handling Complex Structures:</strong> Adapts fluidly to highly complex, multi-modal
+                        spaces without needing manual feature transformations.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>Parametric / Tree <span>Alternatives</span></h3>
+                    <p><strong>Model Formulation:</strong> Strict mathematical boundaries. Linear frameworks build flat
+                        continuous hyperplanes, while Trees build orthogonal partitions.</p>
+                    <p><strong>Resource Allocation Profile:</strong> Heavy upfront training costs ($\mathcal{O}(N \cdot
+                        D)$ or worse), but ultra-fast, low-latency inference updates.</p>
+                    <p><strong>Handling Complex Structures:</strong> Linear models require manual transformation for
+                        non-linear data; trees handle non-linear data well but require structural constraints to prevent
+                        overfitting.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="18">
+            <div class="header-tag">Module 18 // Production Systems Engineering</div>
+            <h1>Production <span>Enterprise Lifecycle Pipeline</span></h1>
+            <p style="max-width: 950px; margin-bottom: 1.5rem;">To deploy instance-based architectures effectively at
+                scale, engineering teams build multi-stage production lifecycles:</p>
+
+            <div class="pipeline-grid">
+                <div class="pipeline-card active-step" id="card-step-1" onclick="playgroundActions.s18_selectStep(1)">
+                    <div class="pipeline-icon">📐</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.1rem;">1. Scaled Prep</h3>
+                    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5;">Apply robust standardization
+                        transforms across all continuous input features to prevent metric dominance.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-2" onclick="playgroundActions.s18_selectStep(2)">
+                    <div class="pipeline-icon">⚡</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.1rem;">2. ANN Indexing</h3>
+                    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5;">Construct high-speed **HNSW Graphs**
+                        or KD-Trees to bypass standard brute-force distance sweeps.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-3" onclick="playgroundActions.s18_selectStep(3)">
+                    <div class="pipeline-icon">🔍</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.1rem;">3. Sweep Tuning</h3>
+                    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5;">Run parallelized cross-validation
+                        sweeps across neighborhood sizes to find the optimal hyperparameter $K$.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-4" onclick="playgroundActions.s18_selectStep(4)">
+                    <div class="pipeline-icon">📦</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.1rem;">4. Live API Serve</h3>
+                    <p style="font-size:0.85rem; color:#94a3b8; line-height:1.5;">Deploy vectorized memory spaces into
+                        high-throughput containerized engines for sub-millisecond lookups.</p>
+                </div>
+            </div>
+
+            <div class="telemetry-hud" style="margin-top:1.5rem; border-left:4px solid #10b981;" id="box-s18-details">
+                <span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: PREPROCESSING &
+                    DATA STANDARDIZATION</span>
+                <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Executing Z-score
+                    scaling across multi-dimensional arrays... Equalized variance distributions to 1.0 across all
+                    columns. Spatial integrity verified successfully.</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-counter">1 / 17</span>
+            <button class="btn-nav" id="btn-prev" onclick="navigationEngine.navigate(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="navigationEngine.navigate(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL DATA SYSTEMS
+        const MOCK_CLUSTER_A = [
+            { x: 1.5, y: 4.5, c: 'cyan' }, { x: 2.0, y: 5.5, c: 'cyan' }, { x: 2.2, y: 3.8, c: 'cyan' },
+            { x: 1.8, y: 4.8, c: 'cyan' }, { x: 2.5, y: 5.0, c: 'cyan' }
+        ];
+        const MOCK_CLUSTER_B = [
+            { x: 4.0, y: 2.0, c: 'rose' }, { x: 4.5, y: 2.8, c: 'rose' }, { x: 3.8, y: 1.5, c: 'rose' },
+            { x: 5.0, y: 2.3, c: 'rose' }, { x: 4.2, y: 3.2, c: 'rose' }
+        ];
+
+        // Chart default configs
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.font.size = 13;
+        Chart.defaults.plugins.legend.display = false;
+
+        const spaceScales = {
+            grid: { color: 'rgba(255,255,255,0.035)' },
+            xScale: { type: 'linear', min: 0, max: 6, grid: { color: 'rgba(255,255,255,0.035)' } },
+            yScale: { min: 0, max: 7, grid: { color: 'rgba(255,255,255,0.035)' } }
+        };
+
+        let activeCharts = {};
+
+        // RUNTIME INTERACTIVE ACTIONS CONTROLLER
+        const playgroundActions = {
+            // Slide 1
+            s1_chart: null,
+            s1_state: 0,
+            s1_moveQuery: function () {
+                this.s1_state = (this.s1_state + 1) % 3;
+                let targetX = 3.0, targetY = 4.0;
+                const lblCoord = document.getElementById('lbl-s1-coord');
+                const lblVote = document.getElementById('lbl-s1-vote');
+
+                if (this.s1_state === 1) {
+                    targetX = 2.1; targetY = 4.6;
+                    lblCoord.innerText = `X: ${targetX.toFixed(2)}, Y: ${targetY.toFixed(2)}`;
+                    lblVote.innerText = "Class A Consensus (100% Purity)";
+                    lblVote.className = "val-cyan";
+                } else if (this.s1_state === 2) {
+                    targetX = 4.4; targetY = 2.4;
+                    lblCoord.innerText = `X: ${targetX.toFixed(2)}, Y: ${targetY.toFixed(2)}`;
+                    lblVote.innerText = "Class B Consensus (100% Purity)";
+                    lblVote.className = "val-rose";
+                } else {
+                    lblCoord.innerText = `X: ${targetX.toFixed(2)}, Y: ${targetY.toFixed(2)}`;
+                    lblVote.innerText = "Class A Majority Vote (Split Neighborhood)";
+                    lblVote.className = "val-emerald";
+                }
+                this.s1_chart.data.datasets[2].data = [{ x: targetX, y: targetY }];
+                this.s1_chart.update();
+            },
+
+            // Slide 2
+            s2_chart: null,
+            s2_mode: 'linear',
+            s2_toggleEngine: function () {
+                const btn = document.getElementById('btn-s2-toggle');
+                const lblEngine = document.getElementById('lbl-s2-engine');
+                const lblScore = document.getElementById('lbl-s2-score');
+
+                if (this.s2_mode === 'linear') {
+                    this.s2_mode = 'knn';
+                    btn.innerText = "Revert to Parametric Hyperplane Modeling";
+                    lblEngine.innerText = "Instance-Based Non-Parametric Proximity Engine";
+                    lblEngine.className = "val-cyan";
+                    lblScore.innerText = "98.4% Generalization Accuracy Matrix";
+                    lblScore.className = "val-emerald";
+
+                    // Update visualization dataset elements to illustrate localized interpolation boundaries
+                    this.s2_chart.data.datasets[2].data = [
+                        { x: 0, y: 3.5 }, { x: 2.8, y: 3.5 }, { x: 2.8, y: 0.5 }, { x: 6, y: 0.5 }
+                    ];
+                    this.s2_chart.data.datasets[2].borderColor = '#00f2fe';
+                } else {
+                    this.s2_mode = 'linear';
+                    btn.innerText = "Switch to Non-Parametric Proximity Engine";
+                    lblEngine.innerText = "Global Linear Classifier";
+                    lblEngine.className = "val-rose";
+                    lblScore.innerText = "Underfit (High Error Rate: 64.1%)";
+                    lblScore.className = "val-rose";
+
+                    this.s2_chart.data.datasets[2].data = [{ x: 0, y: 1.0 }, { x: 6, y: 6.0 }];
+                    this.s2_chart.data.datasets[2].borderColor = '#ff4a6b';
+                }
+                this.s2_chart.update();
+            },
+
+            // Slide 3
+            s3_chart: null,
+            s3_update: function () {
+                let kVal = parseInt(document.getElementById('slide-s3-k').value);
+                document.getElementById('lbl-s3-k').innerText = kVal;
+
+                let radius = kVal === 1 ? 0.65 : (kVal === 3 ? 1.45 : (kVal === 5 ? 2.15 : (kVal === 7 ? 2.85 : 3.45)));
+                document.getElementById('lbl-s3-radius').innerText = `${radius.toFixed(2)} Spatial Units`;
+
+                // Recompute and render hypersphere overlay circle segments template configurations
+                let points = [];
+                for (let a = 0; a <= 2 * Math.PI + 0.1; a += 0.1) {
+                    points.push({ x: 3.0 + Math.cos(a) * radius, y: 3.5 + Math.sin(a) * radius });
+                }
+                this.s3_chart.data.datasets[2].data = points;
+                this.s3_chart.update();
+            },
+
+            // Slide 4
+            s4_chart: null,
+            s4_mode: 'euclidean',
+            s4_toggleMetric: function () {
+                const lbl = document.getElementById('lbl-s4-metric');
+                const dist = document.getElementById('lbl-s4-dist');
+
+                if (this.s4_mode === 'euclidean') {
+                    this.s4_mode = 'manhattan';
+                    lbl.innerText = "Manhattan Grid Metric (L1 Norm Path)";
+                    dist.innerText = "d = 6.00 Coordinate Blocks";
+                    this.s4_chart.data.datasets[1].data = [
+                        { x: 1.5, y: 2.0 }, { x: 4.5, y: 2.0 }, { x: 4.5, y: 5.0 }
+                    ];
+                    this.s4_chart.data.datasets[1].borderColor = '#a855f7';
+                } else {
+                    this.s4_mode = 'euclidean';
+                    lbl.innerText = "Euclidean Straight-Line Path (L2 Norm)";
+                    dist.innerText = "d = 4.24 Spatial Units";
+                    this.s4_chart.data.datasets[1].data = [{ x: 1.5, y: 2.0 }, { x: 4.5, y: 5.0 }];
+                    this.s4_chart.data.datasets[1].borderColor = '#00f2fe';
+                }
+                this.s4_chart.update();
+            },
+
+            // Slide 5
+            s5_chart: null,
+            s5_update: function () {
+                let dx = parseFloat(document.getElementById('slide-s5-dx').value) / 10;
+                document.getElementById('val-s5-dx').innerText = dx.toFixed(1);
+
+                let distance = Math.sqrt(dx * dx + 2.0 * 2.0);
+                document.getElementById('lbl-s5-res').innerText = `${distance.toFixed(4)} Units`;
+
+                this.s5_chart.data.datasets[0].data = [{ x: 1.0, y: 1.5 }, { x: 1.0 + dx, y: 3.5 }];
+                this.s5_chart.data.datasets[1].data = [
+                    { x: 1.0, y: 1.5 }, { x: 1.0 + dx, y: 1.5 }, { x: 1.0 + dx, y: 3.5 }
+                ];
+                this.s5_chart.update();
+            },
+
+            // Slide 6
+            s6_chart: null,
+            s6_update: function () {
+                let p = parseFloat(document.getElementById('slide-s6-p').value) / 10;
+                document.getElementById('val-s6-p').innerText = `p = ${p.toFixed(2)}`;
+
+                const shape = document.getElementById('lbl-s6-shape');
+                if (p < 1.4) shape.innerText = "L1 Diamond Rhombus Mesh";
+                else if (p >= 1.8 && p <= 2.2) shape.innerText = "Perfect Circular L2 Orbit Topology";
+                else if (p > 2.8) shape.innerText = "Box Hypercube Boundary Space (Approaching Infinite Chebyshev)";
+                else shape.innerText = "Intermediate Lamé Superellipse Curve Structural Grid";
+
+                // Generate Minkowski unit circle map traces arrays natively
+                let borderPoints = [];
+                let step = 0.05;
+                for (let theta = 0; theta <= 2 * Math.PI + step; theta += step) {
+                    let cosT = Math.cos(theta);
+                    let sinT = Math.sin(theta);
+                    let r = 1.0 / Math.pow(Math.pow(Math.abs(cosT), p) + Math.pow(Math.abs(sinT), p), 1 / p);
+                    borderPoints.push({ x: 3.0 + r * cosT * 1.5, y: 3.5 + r * sinT * 1.5 });
+                }
+                this.s6_chart.data.datasets[0].data = borderPoints;
+                this.s6_chart.update();
+            },
+
+            // Slide 7
+            s7_chart: null,
+            s7_runTrace: function () {
+                document.getElementById('lbl-s7-logs').innerText = "Scanning distances... Sorting proximity vectors... Done.";
+                document.getElementById('lbl-s7-result').innerText = "Class A Confirmed [Distance Weights Applied]";
+
+                // Visual trace mapping links vectors directly inside dataset layers
+                this.s7_chart.data.datasets[2].data = [
+                    { x: 3.0, y: 3.5 }, { x: 2.5, y: 5.0 },
+                    { x: 3.0, y: 3.5 }, { x: 2.2, y: 3.8 },
+                    { x: 3.0, y: 3.5 }, { x: 3.8, y: 1.5 }
+                ];
+                this.s7_chart.update();
+            },
+
+            // Slide 8
+            s8_chart: null,
+            s8_update: function () {
+                let index = parseInt(document.getElementById('slide-s8-k').value);
+                const lblK = document.getElementById('lbl-s8-k');
+                const lblDesc = document.getElementById('lbl-s8-desc');
+
+                // Dynamic decision boundary rendering simulation based on selection indices values
+                if (index === 1) {
+                    lblK.innerText = "K = 1 (Maximum Local Variance)";
+                    lblDesc.innerText = "Jagged, high-variance boundary that captures local noise.";
+                    this.s8_chart.data.datasets[1].data = [
+                        { x: 0, y: 4.2 }, { x: 2.4, y: 4.2 }, { x: 2.4, y: 2.0 }, { x: 3.4, y: 2.0 }, { x: 3.4, y: 4.5 }, { x: 6, y: 4.5 }
+                    ];
+                } else if (index === 2) {
+                    lblK.innerText = "K = 5 (Optimal Tuning Balance)";
+                    lblDesc.innerText = "Smooth, generalized boundary that balances signal and noise.";
+                    this.s8_chart.data.datasets[1].data = [
+                        { x: 0, y: 3.8 }, { x: 3.0, y: 3.8 }, { x: 3.0, y: 2.8 }, { x: 6, y: 2.8 }
+                    ];
+                } else {
+                    lblK.innerText = "K = 15 (High Model Bias)";
+                    lblDesc.innerText = "Underfit boundary that oversmoothes the data and drops accuracy.";
+                    this.s8_chart.data.datasets[1].data = [{ x: 0, y: 3.3 }, { x: 6, y: 3.3 }];
+                }
+                this.s8_chart.update();
+            },
+
+            // Slide 9
+            s9_chart: null,
+            s9_update: function () {
+                let kVal = parseInt(document.getElementById('slide-s9-k').value);
+                document.getElementById('val-s9-k').innerText = `K = ${kVal}`;
+
+                const status = document.getElementById('lbl-s9-status');
+                if (kVal >= 5 && kVal <= 8) {
+                    status.innerText = "Optimal Sweet Spot: Minimal Error Bound achieved."; status.className = "val-emerald";
+                } else if (kVal < 5) {
+                    status.innerText = "High Variance Risk: Overfitting to training data noise."; status.className = "val-rose";
+                } else {
+                    status.innerText = "High Bias Risk: Underfitting with an overly smooth boundary."; status.className = "val-rose";
+                }
+                this.s9_chart.data.datasets[1].data = [{ x: kVal, y: 0.10 + Math.pow(kVal - 6, 2) * 0.005 }];
+                this.s9_chart.update();
+            },
+
+            // Slide 10
+            s10_chart: null,
+            s10_mode: 'raw',
+            s10_toggleScale: function () {
+                const btn = document.getElementById('btn-s10');
+                const lblScale = document.getElementById('lbl-s10-scale');
+                const lblBreak = document.getElementById('lbl-s10-break');
+
+                if (this.s10_mode === 'raw') {
+                    this.s10_mode = 'scaled';
+                    btn.innerText = "Reset to Raw Variable Coordinates";
+                    lblScale.innerText = "STANDARDIZED EQUAL-VARIANCE METRIC SPACE";
+                    lblScale.className = "val-emerald";
+                    lblBreak.innerText = "Features share equal weights. Geometric balance achieved.";
+                    lblBreak.className = "val-emerald";
+
+                    this.s10_chart.data.datasets[0].data = [
+                        { x: 1.5, y: 2.0 }, { x: 2.0, y: 4.5 }, { x: 4.5, y: 5.0 }, { x: 5.0, y: 1.5 }
+                    ];
+                    this.s10_chart.options.scales.y.max = 6;
+                } else {
+                    this.s10_mode = 'raw';
+                    btn.innerText = "Activate Standardization Preprocessing Pipeline";
+                    lblScale.innerText = "RAW UNTRANSFORMED SPACE";
+                    lblScale.className = "val-rose";
+                    lblBreak.innerText = "Income scale dominates 99.9% of proximity calculation vectors.";
+                    lblBreak.className = "val-rose";
+
+                    this.s10_chart.data.datasets[0].data = [
+                        { x: 1.5, y: 120 }, { x: 2.0, y: 450 }, { x: 4.5, y: 520 }, { x: 5.0, y: 110 }
+                    ];
+                    this.s10_chart.options.scales.y.max = 600;
+                }
+                this.s10_chart.update();
+            },
+
+            // Slide 11
+            s11_chart: null,
+            s11_mutateClass: function () {
+                let current = this.s11_chart.data.datasets[0].data;
+                current.forEach(pt => {
+                    pt.y = pt.y + (Math.random() - 0.5) * 0.8;
+                });
+                this.s11_chart.update();
+            },
+
+            // Slide 12
+            s12_chart: null,
+            s12_smooth: false,
+            s12_toggleSmoothing: function () {
+                this.s12_smooth = !this.s12_smooth;
+                const status = document.getElementById('lbl-s12-smooth');
+
+                if (this.s12_smooth) {
+                    status.innerText = "Distance-Weighted Kernel Interpolation Active";
+                    status.className = "val-emerald";
+                    // Generate smooth sinusoidal step function representations parameters mapping properties
+                    let points = [];
+                    for (let x = 0; x <= 6; x += 0.2) {
+                        points.push({ x: x, y: 3.5 + Math.tanh(x - 3.0) * 2.0 });
+                    }
+                    this.s12_chart.data.datasets[1].data = points;
+                } else {
+                    status.innerText = "Standard Step Function Active";
+                    status.className = "val-cyan";
+                    this.s12_chart.data.datasets[1].data = [
+                        { x: 0, y: 1.5 }, { x: 3, y: 1.5 }, { x: 3, y: 5.5 }, { x: 6, y: 5.5 }
+                    ];
+                }
+                this.s12_chart.update();
+            },
+
+            // Slide 13
+            s13_chart: null,
+            s13_scale: 1,
+            s13_expandDataset: function () {
+                this.s13_scale += 1;
+                document.getElementById('lbl-s13-mem').innerText = `Allocated Memory Matrix: O(N) Space [Scale Factor: ${this.s13_scale}]`;
+
+                let baseData = this.s13_chart.data.datasets[0].data;
+                for (let i = 0; i < 5; i++) {
+                    baseData.push({ x: Math.random() * 6, y: Math.random() * 6 });
+                }
+                this.s13_chart.update();
+            },
+
+            // Slide 14
+            s14_scaleComplexity: function () {
+                const rows = document.getElementById('lbl-s14-rows');
+                const calc = document.getElementById('lbl-s14-calc');
+
+                if (rows.innerText.includes("10,000")) {
+                    rows.innerText = "100,000 Production Arrays Embedded";
+                    calc.innerText = "100,000 Matrix Scalar Distance Checks";
+                    rows.className = "val-rose"; calc.className = "val-rose";
+                } else {
+                    rows.innerText = "10,000 Records Loaded";
+                    calc.innerText = "10,000 Scans";
+                    rows.className = "val-cyan"; calc.className = "val-cyan";
+                }
+            },
+
+            // Slide 15
+            s15_chart: null,
+            s15_optimizeBoundary: function () {
+                const f1 = document.getElementById('lbl-s15-f1');
+                f1.innerText = "0.914 (Peak Optimization Window Yielded)";
+                f1.className = "val-emerald";
+                this.s15_chart.data.datasets[0].data = [0.1, 0.25, 0.55, 0.85, 0.95, 0.99];
+                this.s15_chart.update();
+            },
+
+            // Slide 16
+            s16_chart: null,
+            s16_triggerCurse: function () {
+                const dim = document.getElementById('lbl-s16-dim');
+                const curse = document.getElementById('lbl-s16-curse');
+
+                dim.innerText = "52 Structural Vector Coordinates Found";
+                dim.className = "val-rose";
+                curse.innerText = "CURSE OF DIMENSIONALITY CRITICAL: Distance metrics diluted.";
+                curse.className = "val-rose";
+
+                // Collapse point distributions on visual display map parameters matrices
+                this.s16_chart.data.datasets[0].data = [{ x: 3, y: 3.1 }, { x: 3.1, y: 3.2 }, { x: 2.9, y: 3.0 }];
+                this.s16_chart.update();
+            },
+
+            // Slide 18
+            s18_selectStep: function (stepId) {
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`card-step-${i}`).classList.remove('active-step');
+                }
+                document.getElementById(`card-step-${stepId}`).classList.add('active-step');
+
+                const logBox = document.getElementById('box-s18-details');
+                if (stepId === 1) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: PREPROCESSING & DATA STANDARDIZATION</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Executing Z-score scaling across multi-dimensional arrays... Equalized variance distributions to 1.0 across all columns. Spatial integrity verified successfully.</p>`;
+                } else if (stepId === 2) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 2: APPROXIMATE NEAREST NEIGHBOR STRUCTURE GENERATION</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#00f2fe;">Constructing hierarchical Navigable Small World (HNSW) link graphs... Built spatial path networks. Lookup latency cut from O(N) to O(log N).</p>`;
+                } else if (stepId === 3) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 3: K-FOLD STRUCTURAL CROSS VALIDATION SWEEP</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#f59e0b;">Running parallel validation grid sweeps across neighbor parameters (K=1 to K=31)... Found optimal score at K=7. Tied elements resolved successfully.</p>`;
+                } else {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 4: PRODUCTION MICROSERVICE API INTERACTION</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#a855f7;">Vectorized memory buffers loaded into fast inference engine... Production micro-endpoint initialized active. Real-time inference latency monitored at 0.42ms.</p>`;
+                }
+            }
+        };
+
+        // LAZY RUNTIME CHART FACTORIES INTERFACES
+        const lazyChartInitializers = {
+            init_1: function () {
+                let ctx = document.getElementById('chart-s1').getContext('2d');
+                playgroundActions.s1_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...MOCK_CLUSTER_A], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { data: [...MOCK_CLUSTER_B], backgroundColor: '#ff4a6b', pointRadius: 8 },
+                            { data: [{ x: 3.0, y: 4.0 }], backgroundColor: '#ffffff', borderColor: '#ffffff', pointRadius: 11, borderWidth: 3 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_2: function () {
+                let ctx = document.getElementById('chart-s2').getContext('2d');
+                playgroundActions.s2_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 5 }, { x: 1.5, y: 4.2 }, { x: 2.5, y: 6.1 }, { x: 2, y: 3.8 }], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { data: [{ x: 3.5, y: 1.2 }, { x: 4.2, y: 2.5 }, { x: 5, y: 0.8 }, { x: 5.5, y: 2.1 }], backgroundColor: '#ff4a6b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 1.0 }, { x: 6, y: 6.0 }], borderColor: '#ff4a6b', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_3: function () {
+                let ctx = document.getElementById('chart-s3').getContext('2d');
+                playgroundActions.s3_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...MOCK_CLUSTER_A], backgroundColor: '#00f2fe', pointRadius: 7 },
+                            { data: [...MOCK_CLUSTER_B], backgroundColor: '#ff4a6b', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#10b981', borderDash: [5, 5], borderWidth: 2, pointRadius: 0 },
+                            { data: [{ x: 3.0, y: 3.5 }], backgroundColor: '#fff', pointRadius: 9 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s3_update();
+            },
+            init_4: function () {
+                let ctx = document.getElementById('chart-s4').getContext('2d');
+                playgroundActions.s4_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1.5, y: 2.0 }, { x: 4.5, y: 5.0 }], backgroundColor: '#fff', pointRadius: 9 },
+                            { type: 'line', data: [{ x: 1.5, y: 2.0 }, { x: 4.5, y: 5.0 }], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_5: function () {
+                let ctx = document.getElementById('chart-s5').getContext('2d');
+                playgroundActions.s5_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1.0, y: 1.5 }, { x: 4.0, y: 3.5 }], backgroundColor: '#fff', pointRadius: 9 },
+                            { type: 'line', data: [{ x: 1.0, y: 1.5 }, { x: 4.0, y: 1.5 }, { x: 4.0, y: 3.5 }], borderColor: 'rgba(255,255,255,0.2)', borderWidth: 2, borderDash: [4, 4], pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s5_update();
+            },
+            init_6: function () {
+                let ctx = document.getElementById('chart-s6').getContext('2d');
+                playgroundActions.s6_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: { datasets: [{ data: [], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 }] },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s6_update();
+            },
+            init_7: function () {
+                let ctx = document.getElementById('chart-s7').getContext('2d');
+                playgroundActions.s7_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 2.5, y: 5.0 }, { x: 2.2, y: 3.8 }], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { data: [{ x: 3.8, y: 1.5 }], backgroundColor: '#ff4a6b', pointRadius: 8 },
+                            { type: 'line', data: [], borderColor: '#ffffff', borderWidth: 2, pointRadius: 0 },
+                            { data: [{ x: 3.0, y: 3.5 }], backgroundColor: '#fff', pointRadius: 10 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_8: function () {
+                let ctx = document.getElementById('chart-s8').getContext('2d');
+                playgroundActions.s8_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...MOCK_CLUSTER_A], backgroundColor: '#00f2fe', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#a855f7', borderWidth: 3, pointRadius: 0 },
+                            { data: [...MOCK_CLUSTER_B], backgroundColor: '#ff4a6b', pointRadius: 7 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s8_update();
+            },
+            init_9: function () {
+                let ctx = document.getElementById('chart-s9').getContext('2d');
+                let errCurve = []; for (let k = 1; k <= 15; k++) errCurve.push({ x: k, y: 0.10 + Math.pow(k - 6, 2) * 0.005 });
+                playgroundActions.s9_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: errCurve, borderColor: '#64748b', borderWidth: 2, pointRadius: 3 },
+                            { data: [{ x: 7, y: 0.105 }], backgroundColor: '#00f2fe', pointRadius: 9 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: 1, max: 15, grid: spaceScales.grid }, y: { min: 0, max: 0.3, grid: spaceScales.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_10: function () {
+                let ctx = document.getElementById('chart-s10').getContext('2d');
+                playgroundActions.s10_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets: [{ data: [{ x: 1.5, y: 120 }, { x: 2.0, y: 450 }, { x: 4.5, y: 520 }, { x: 5.0, y: 110 }], backgroundColor: '#00f2fe', pointRadius: 9 }] },
+                    options: { scales: { x: spaceScales.xScale, y: { min: 0, max: 600, grid: spaceScales.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_11: function () {
+                let ctx = document.getElementById('chart-s11').getContext('2d');
+                playgroundActions.s11_chart = new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: ['Neighbor A', 'Neighbor B', 'Neighbor C'], datasets: [{ data: [1.2, 2.5, 4.1], backgroundColor: '#8b5cf6', borderRadius: 6 }] },
+                    options: { scales: { y: { min: 0, max: 5, grid: spaceScales.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_12: function () {
+                let ctx = document.getElementById('chart-s12').getContext('2d');
+                playgroundActions.s12_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 0.8, y: 1.2 }, { x: 2.1, y: 1.8 }, { x: 3.5, y: 5.2 }, { x: 4.8, y: 5.8 }], backgroundColor: '#ffffff', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 1.5 }, { x: 3, y: 1.5 }, { x: 3, y: 5.5 }, { x: 6, y: 5.5 }], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_13: function () {
+                let ctx = document.getElementById('chart-s13').getContext('2d');
+                playgroundActions.s13_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets: [{ data: [{ x: 2, y: 3 }, { x: 4, y: 1 }, { x: 5, y: 5 }], backgroundColor: '#10b981', pointRadius: 8 }] },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_15: function () {
+                let ctx = document.getElementById('chart-s15').getContext('2d');
+                playgroundActions.s15_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: ['K=1', 'K=3', 'K=5', 'K=7', 'K=9', 'K=11'],
+                        datasets: [{ data: [0.2, 0.4, 0.7, 0.85, 0.75, 0.6], borderColor: '#a855f7', borderWidth: 4, fill: false }]
+                    },
+                    options: { scales: { y: { min: 0, max: 1, grid: spaceScales.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_16: function () {
+                let ctx = document.getElementById('chart-s16').getContext('2d');
+                playgroundActions.s16_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets: [{ data: [{ x: 1, y: 2 }, { x: 4, y: 5 }, { x: 2, y: 4 }], backgroundColor: '#ff4a6b', pointRadius: 8 }] },
+                    options: { scales: { x: spaceScales.xScale, y: spaceScales.yScale }, maintainAspectRatio: false }
+                });
+            }
+        };
+
+        // NAVIGATION LOGIC INTERFACES
+        const navigationEngine = {
+            currentSlideIndex: 1,
+            totalSlidesCount: 18,
+
+            navigate: function (direction) {
+                let currentDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                currentDOM.classList.remove('active');
+
+                this.currentSlideIndex += direction;
+
+                let targetDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                targetDOM.classList.add('active');
+
+                document.getElementById('btn-prev').disabled = (this.currentSlideIndex === 1);
+                document.getElementById('btn-next').disabled = (this.currentSlideIndex === this.totalSlidesCount);
+                document.getElementById('nav-counter').innerText = `${this.currentSlideIndex} / ${this.totalSlidesCount}`;
+
+                let key = `init_${this.currentSlideIndex}`;
+                if (lazyChartInitializers[key] && !activeCharts[key]) {
+                    setTimeout(() => {
+                        lazyChartInitializers[key]();
+                        activeCharts[key] = true;
+                    }, 40);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lazyChartInitializers.init_1();
+            activeCharts['init_1'] = true;
+        });
+    </script>
+</body>
+
+</html>

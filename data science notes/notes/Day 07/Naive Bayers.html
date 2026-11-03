@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Naive Bayes: Interactive Probabilistic Masterclass</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #02040a;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #0c0822 0%, #010206 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Premium Cinematic Slide Transitions */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98) translateY(15px);
+            transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.5s;
+            pointer-events: none;
+            z-index: 1;
+            visibility: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+            z-index: 2;
+            visibility: visible;
+        }
+
+        /* Universal HUD Navigation Panel */
+        .controls {
+            position: absolute;
+            bottom: 1.5rem;
+            right: 4rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(12, 8, 34, 0.85);
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .slide-indicator {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f9fafb;
+            border: 1px solid #334155;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #00f2fe;
+            border-color: #00f2fe;
+            color: #02040a;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Subtle Branding & Credit Watermark */
+        .suite-tag {
+            position: absolute;
+            bottom: 2rem;
+            left: 4rem;
+            z-index: 100;
+            font-size: 12px;
+            color: #475569;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .signature-tag {
+            color: #a855f7;
+            font-weight: 700;
+            text-shadow: 0 0 8px rgba(168, 85, 247, 0.3);
+        }
+
+        /* Typography Mastery */
+        .header-tag {
+            font-size: 12px;
+            color: #00f2fe;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #00f2fe 0%, #a855f7 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #ffffff;
+            margin-bottom: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1rem;
+            background: rgba(0, 242, 254, 0.08);
+            padding: 4px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        p,
+        li {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: #94a3b8;
+            margin-bottom: 10px;
+            font-weight: 400;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* High-End Enterprise Layout Matrix */
+        .split-layout {
+            display: flex;
+            gap: 3rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Advanced Glassmorphic Playground Architecture */
+        .interactive-panel {
+            flex: 1.2;
+            background: rgba(10, 8, 28, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: #020308;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .math-block {
+            background: rgba(2, 3, 8, 0.6);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border-left: 4px solid #00f2fe;
+            margin: 8px 0;
+            color: #e2e8f0;
+            font-size: 1.05rem;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Professional Telemetry HUD Instrumentation */
+        .telemetry-hud {
+            background: #010205;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 10px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 4px;
+            align-items: center;
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .val-purple {
+            color: #a855f7;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        .val-cyan {
+            color: #00f2fe;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .val-rose {
+            color: #ff4a6b;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 74, 107, 0.2);
+        }
+
+        .val-emerald {
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Premium Input Elements styling */
+        .playground-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(2, 3, 8, 0.4);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #00f2fe;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #00f2fe 0%, #a855f7 100%);
+            color: #010206;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(0, 242, 254, 0.3);
+            color: #ffffff;
+        }
+
+        /* Custom Matrices & Grids */
+        .matrix-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .matrix-box {
+            background: rgba(3, 5, 12, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .matrix-box h3 {
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .matrix-box h3 span {
+            color: #00f2fe;
+        }
+
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            flex: 1;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pipeline-card {
+            background: rgba(10, 8, 28, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.25rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-card:hover {
+            border-color: #00f2fe;
+            background: rgba(10, 8, 28, 0.8);
+            transform: translateY(-3px);
+        }
+
+        .pipeline-card.active-step {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+        }
+
+        .pipeline-icon {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 8px rgba(0, 242, 254, 0.2));
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="suite-tag">Probabilistic Inference Engine Framework // <span class="signature-tag">Created by Jayan
+                Gupta</span></div>
+
+        <div class="slide active" data-index="1">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 01 // Probabilistic Paradigms</div>
+                    <h1>What is <span>Naive Bayes?</span></h1>
+                    <p><strong>Naive Bayes</strong> is a family of highly scalable, probabilistic supervised learning
+                        algorithms founded entirely on Bayes' Theorem.</p>
+                    <p>Unlike geometric models (like SVM) that draw hard boundary lines, Naive Bayes models uncertainty.
+                        It calculates the mathematical probability of a target class occurring based on the historical
+                        frequency of independent features.</p>
+                    <ul>
+                        <li><strong>Blazing Fast:</strong> Calculates likelihoods using simple arithmetic counting,
+                            bypassing heavy gradient descent loops.</li>
+                        <li><strong>High Dimensionality:</strong> The industry standard for massive text classification
+                            networks (like spam detection or sentiment analysis).</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s1"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Algorithmic Foundation:</span><span class="val-cyan">Bayesian
+                                Probability Theory</span></div>
+                        <div class="hud-row"><span>Inference Mode:</span><span class="val-emerald">Maximum A Posteriori
+                                (MAP)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="2">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 02 // Modeling Uncertainty</div>
+                    <h2><span>02</span> Why Probability Matters</h2>
+                    <p>Real-world data is inherently noisy and uncertain. A patient with a cough might have a cold, or
+                        they might have pneumonia. There is no absolute certainty, only likelihoods.</p>
+                    <p>Deterministic models output rigid predictions ($Y=1$). Probabilistic models output a **Confidence
+                        Distribution**:</p>
+                    <ul>
+                        <li><strong>Risk Management:</strong> Knowing the model is "99% confident" vs "51% confident"
+                            dictates whether an autonomous system acts or requests human intervention.</li>
+                        <li><strong>Adaptability:</strong> Handles missing data gracefully by simply updating
+                            probabilities based on whatever evidence is available.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s2"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Confidence Output (Class A):</span><span id="lbl-s2-confA"
+                                class="val-cyan">85.0%</span></div>
+                        <div class="hud-row"><span>Confidence Output (Class B):</span><span id="lbl-s2-confB"
+                                class="val-rose">15.0%</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s2_toggleCertainty()">Simulate High
+                        Uncertainty Data</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="3">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 03 // Statistical Foundations</div>
+                    <h2><span>03</span> Probability Basics</h2>
+                    <p>Before diving into Bayes, we must establish the core statistical vocabulary that powers the
+                        inference engine:</p>
+                    <ul>
+                        <li><strong>Marginal Probability $P(A)$:</strong> The baseline likelihood of an event occurring,
+                            regardless of anything else. (e.g., The probability of drawing a Queen from a deck).</li>
+                        <li><strong>Joint Probability $P(A \cap B)$:</strong> The probability of two events occurring
+                            exactly at the same time. (e.g., Drawing a card that is both a Queen AND a Heart).</li>
+                    </ul>
+                    <div class="math-block">
+                        $$P(A \cap B) = P(A|B) \times P(B)$$
+                    </div>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s3"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Marginal $P(Spam)$:</span><span class="val-rose">30%</span></div>
+                        <div class="hud-row"><span>Marginal $P(Word='Free')$:</span><span class="val-cyan">20%</span>
+                        </div>
+                        <div class="hud-row"><span>Joint $P(Spam \cap 'Free')$:</span><span
+                                class="val-emerald">Overlapping Space</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="4">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 04 // Evidence-Based Logic</div>
+                    <h2><span>04</span> Conditional Probability</h2>
+                    <p><strong>Conditional Probability $P(A|B)$</strong> measures the likelihood of Event A occurring,
+                        <em>given the absolute fact</em> that Event B has already happened.</p>
+                    <p>It shrinks our universe of possibilities down to only the scenarios where the evidence ($B$) is
+                        true.</p>
+                    <div class="math-block">
+                        $$P(A|B) = \frac{P(A \cap B)}{P(B)}$$
+                    </div>
+                    <p>Example: The baseline probability of raining is 10%. But the probability of raining <em>given
+                            that the sky is dark grey</em> might be 80%. Evidence updates our prior beliefs.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s4"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Evidence Strength $P(B)$</label><span
+                                    id="val-s4-ev" class="val-cyan">Low Evidence</span></div>
+                            <input type="range" id="slide-s4-ev" min="1" max="100" value="20"
+                                oninput="playgroundActions.s4_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Updated Conditional Probability $P(A|B)$:</span><span id="lbl-s4-res"
+                                class="val-emerald">Calculating...</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="5">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 05 // The Core Engine</div>
+                    <h2><span>05</span> Bayes' Theorem</h2>
+                    <p>Bayes' Theorem provides a mathematical bridge to reverse conditional probabilities. It lets us
+                        calculate $P(A|B)$ when we only know $P(B|A)$.</p>
+                    <div class="math-block">
+                        $$P(A|B) = \frac{P(B|A) \cdot P(A)}{P(B)}$$
+                    </div>
+                    <ul>
+                        <li><strong>Prior $P(A)$:</strong> Our initial belief before seeing new evidence.</li>
+                        <li><strong>Likelihood $P(B|A)$:</strong> How probable the evidence is, given our belief is
+                            true.</li>
+                        <li><strong>Marginal $P(B)$:</strong> The total baseline probability of the evidence existing.
+                        </li>
+                        <li><strong>Posterior $P(A|B)$:</strong> Our newly updated belief after factoring in the
+                            evidence.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"
+                        style="display: flex; justify-content: center; align-items: center; background: transparent; border: none;">
+                        <div
+                            style="text-align: center; color: #e2e8f0; font-family: 'JetBrains Mono'; font-size: 1.5rem; line-height: 2;">
+                            <span style="color:#10b981;">Posterior</span> =
+                            <frac style="display:inline-block; vertical-align:middle; text-align:center;">
+                                <div style="border-bottom: 2px solid #fff; padding-bottom: 4px;"><span
+                                        style="color:#00f2fe;">Likelihood</span> &times; <span
+                                        style="color:#a855f7;">Prior</span></div>
+                                <div style="padding-top: 4px;"><span style="color:#ff4a6b;">Evidence Base</span></div>
+                            </frac>
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Mechanism:</span><span class="val-cyan">Belief Updating
+                                Protocol</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="6">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 06 // The Base Rate Fallacy</div>
+                    <h2><span>06</span> The False Positive Paradox</h2>
+                    <p>Assume a rare disease affects 1% of the population. A test for it is 99% accurate (True Positive)
+                        and has a 5% False Positive rate.</p>
+                    <p>If you test positive, what is the actual probability you have the disease? It is NOT 99%.</p>
+                    <div class="math-block" style="font-size: 0.95rem;">
+                        $$P(D|+) = \frac{P(+|D)P(D)}{P(+|D)P(D) + P(+|\neg D)P(\neg D)}$$
+                    </div>
+                    <p>Because the disease is extremely rare (Prior = 1%), the massive pool of healthy people generates
+                        many False Positives, diluting the test's reliability.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s6"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Base Disease Prevalence (Prior)</label><span
+                                    id="val-s6-prior" class="val-cyan">1%</span></div>
+                            <input type="range" id="slide-s6-prior" min="1" max="20" value="1"
+                                oninput="playgroundActions.s6_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Actual Probability of Illness $P(D|+)$:</span><span id="lbl-s6-res"
+                                class="val-rose">16.67%</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="7">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 07 // Maximum A Posteriori</div>
+                    <h2><span>07</span> Classification Using Bayes</h2>
+                    <p>In Machine Learning, we don't just calculate one probability. We calculate the posterior
+                        probability for <em>every possible class</em> $y$, given a set of input features $X$.</p>
+                    <div class="math-block">
+                        $$\hat{y} = \underset{y}{\text{argmax}} \ P(y|X)$$
+                    </div>
+                    <p>The model evaluates $P(\text{Spam}|X)$ and $P(\text{Not Spam}|X)$. The class that generates the
+                        highest mathematical score wins. Because the denominator $P(X)$ is identical for all classes, it
+                        is ignored during the argmax comparison to save compute cycles.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s7"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Calculated $P(Class A | Data)$:</span><span
+                                class="val-cyan">0.0452</span></div>
+                        <div class="hud-row"><span>Calculated $P(Class B | Data)$:</span><span
+                                class="val-rose">0.0125</span></div>
+                        <div class="hud-row"><span>Argmax Resolution:</span><span class="val-emerald">Class A
+                                Selected</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="8">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 08 // The Core Assumption</div>
+                    <h2><span>08</span> Why Is It Called "Naive"?</h2>
+                    <p>Calculating the exact joint probability of multiple features $P(x_1, x_2, ... x_n | y)$ is
+                        computationally impossible for large datasets, as it requires tracking every single permutation
+                        and cross-interaction.</p>
+                    <p>The algorithm makes a **"Naive" Assumption**: It assumes that every feature is completely
+                        conditionally independent of every other feature.</p>
+                    <ul>
+                        <li><strong>The Flaw:</strong> In an email, the word "Free" and "Money" are obviously
+                            correlated. Naive Bayes assumes they are unrelated.</li>
+                        <li><strong>The Magic:</strong> Despite this mathematically incorrect assumption, the algorithm
+                            still performs exceptionally well in practice.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s8"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Real Joint Complexity:</span><span class="val-rose">O(2^N) -
+                                Incalculable</span></div>
+                        <div class="hud-row"><span>Naive Factorized Complexity:</span><span class="val-emerald">O(N) -
+                                Linear Scaling</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s8_toggleAssumption()">Toggle Naive
+                        Factorization</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="9">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 09 // The Factorized Equation</div>
+                    <h2><span>09</span> The Naive Bayes Formula</h2>
+                    <p>By applying the naive independence assumption, the complex joint likelihood shatters into a
+                        clean, simple string of multiplications:</p>
+                    <div class="math-block">
+                        $$P(y|x_1, x_2, ... x_n) \propto P(y) \prod_{i=1}^{n} P(x_i|y)$$
+                    </div>
+                    <p>To predict if an email is spam, we simply take the prior probability of spam, and multiply it by
+                        the individual probability of each word occurring in a spam email.</p>
+                    <p><strong>Log-Transform:</strong> Because multiplying many tiny decimals causes floating-point
+                        underflow (the computer rounds to 0), production systems take the logarithm, turning
+                        multiplication into stable addition.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s9"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Raw Multiplication:</span><span class="val-rose">0.0000000045
+                                (Underflow Risk)</span></div>
+                        <div class="hud-row"><span>Logarithmic Summation:</span><span class="val-emerald">-19.21 (Highly
+                                Stable)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="10">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 10 // O(1) Lazy Compilation</div>
+                    <h2><span>10</span> The Training Process</h2>
+                    <p>Unlike Neural Networks that run thousands of epochs to tune weights, Naive Bayes "trains" in a
+                        single pass over the dataset.</p>
+                    <p>The training phase is simply building a massive frequency lookup table:</p>
+                    <ol>
+                        <li><strong>Calculate Priors $P(y)$:</strong> Count the total ratio of each class (e.g., 30%
+                            Spam, 70% Ham).</li>
+                        <li><strong>Calculate Likelihoods $P(x_i|y)$:</strong> Count how many times each specific
+                            feature appears within each class, divided by the total features in that class.</li>
+                    </ol>
+                    <p>This $\mathcal{O}(N)$ counting process makes it one of the fastest algorithms in existence to
+                        train.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s10"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Vocabulary Lookup Table:</span><span class="val-cyan">Aggregating
+                                Frequencies...</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s10_runTraining()">Execute Frequency
+                        Aggregation Pass</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="11">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 11 // Real-time Inference</div>
+                    <h2><span>11</span> The Prediction Process</h2>
+                    <p>During inference, the model takes a new, unseen record (e.g., an email with 5 words) and
+                        calculates scores by querying the pre-computed frequency tables.</p>
+                    <div class="math-block" style="font-size:0.9rem;">
+                        Score(Spam) = $\log(P(\text{Spam})) + \log(P(w_1|\text{Spam})) + ...$
+                    </div>
+                    <p>It computes this additive score for every possible class. The class that generates the highest
+                        scalar value is output as the final prediction.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s11"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Incoming Query Vector:</span><span class="val-purple">["urgent",
+                                "meeting"]</span></div>
+                        <div class="hud-row"><span>Log Score (Spam):</span><span id="lbl-s11-spam"
+                                class="val-rose">-8.4</span></div>
+                        <div class="hud-row"><span>Log Score (Ham):</span><span id="lbl-s11-ham"
+                                class="val-cyan">-5.2</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s11_predict()">Evaluate Query Tokens</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="12">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 12 // The Multiplication Hazard</div>
+                    <h2><span>12</span> The Zero Probability Problem</h2>
+                    <p>Because Naive Bayes relies on multiplying probabilities, it holds a fatal structural flaw: what
+                        happens if an incoming test record contains a feature the model has never seen during training?
+                    </p>
+                    <p>If $P(\text{"crypto"}|\text{Ham}) = 0$, the entire mathematical chain shatters:</p>
+                    <div class="math-block">
+                        $$P(\text{Ham}) \times 0.2 \times 0 \times 0.5 = 0$$
+                    </div>
+                    <p>A single unseen feature will veto all other evidence, dragging the entire class probability down
+                        to absolute zero instantly.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s12"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Token "crypto" Count in Ham:</span><span class="val-rose">0
+                                Occurrences</span></div>
+                        <div class="hud-row"><span>Total Posterior Probability:</span><span class="val-rose">0.0000
+                                (Vetoed)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="13">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 13 // Zero-Frequency Corrections</div>
+                    <h2><span>13</span> Laplace (Additive) Smoothing</h2>
+                    <p>To fix the Zero Probability flaw, we apply **Laplace Smoothing**. We artificially add a tiny
+                        pseudo-count ($\alpha$) to every feature frequency.</p>
+                    <div class="math-block">
+                        $$P(x_i|y) = \frac{\text{count}(x_i, y) + \alpha}{\text{total\_count}(y) + \alpha \cdot |V|}$$
+                    </div>
+                    <ul>
+                        <li><strong>$\alpha$ (Alpha):</strong> Usually set to 1. Ensures no probability is ever exactly
+                            zero.</li>
+                        <li><strong>$|V|$ (Vocabulary Size):</strong> Added to the denominator to keep the total
+                            mathematical probability distribution summing perfectly to 1.0.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s13"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Alpha Smoothing ($\alpha$)</label><span
+                                    id="val-s13-a" class="val-cyan">1.0</span></div>
+                            <input type="range" id="slide-s13-a" min="0" max="50" value="10"
+                                oninput="playgroundActions.s13_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Smoothed Probability of Unseen Token:</span><span id="lbl-s13-prob"
+                                class="val-emerald">0.005</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="14">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 14 // Variant Architectures</div>
+                    <h2><span>14</span> Variants of Naive Bayes</h2>
+                    <p>The core algorithm adapts to different data structures by modifying how it models the Likelihood
+                        $P(x_i|y)$ distribution:</p>
+                    <ul>
+                        <li><strong>Gaussian NB:</strong> Assumes continuous numerical features (like height or weight)
+                            are distributed across a normal bell curve. Uses mean and variance.</li>
+                        <li><strong>Multinomial NB:</strong> Assumes features represent discrete frequency counts (e.g.,
+                            how many times "discount" appears in an email). Standard for NLP.</li>
+                        <li><strong>Bernoulli NB:</strong> Assumes features are strictly binary booleans (0 or 1). Did
+                            the word appear? Yes or No.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s14"></canvas></div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action" style="flex:1; font-size:12px; padding:10px;"
+                            onclick="playgroundActions.s14_setMode('gaussian')">Gaussian</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:12px; padding:10px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                            onclick="playgroundActions.s14_setMode('multinomial')">Multinomial</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="15">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 15 // High-Dimensional Text Analysis</div>
+                    <h2><span>15</span> Naive Bayes in NLP</h2>
+                    <p>Naive Bayes remains the undisputed baseline king for Natural Language Processing (NLP) because it
+                        scales effortlessly to massive text dictionaries.</p>
+                    <p><strong>Bag of Words (BoW) Representation:</strong></p>
+                    <p>Text is stripped of grammar, sequence, and structure. An entire document is compressed into a
+                        simple sparse vector mapping how many times each dictionary token appears.</p>
+                    <p>Because the "Naive" assumption ignores sequence, the sentence "Free money now" is mathematically
+                        treated identically to "now Free money".</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s15"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Tokenization Engine:</span><span class="val-cyan">Bag of Words Sparse
+                                Matrix</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="16">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 16 // Validation Parameters</div>
+                    <h2><span>16</span> Evaluation Metrics</h2>
+                    <p>Since Naive Bayes is primarily used for classification, we rely on rigid validation matrices to
+                        gauge performance, especially in highly imbalanced sets like Spam filtering.</p>
+                    <ul>
+                        <li><strong>Precision:</strong> Out of all emails flagged as Spam, how many were actually Spam?
+                            (Crucial: minimizes blocking important emails).</li>
+                        <li><strong>Recall:</strong> Out of all actual Spam emails, how many did the filter successfully
+                            catch?</li>
+                        <li><strong>F1-Score:</strong> The harmonic mean balancing Precision and Recall constraints.
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s16"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Precision Core Metric:</span><span class="val-cyan">0.962 (Low False
+                                Positives)</span></div>
+                        <div class="hud-row"><span>Recall Core Metric:</span><span class="val-purple">0.814</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="17">
+            <div class="header-tag">Module 17 // Architectural Constraints</div>
+            <h2><span>17</span> Advantages & Disadvantages</h2>
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>System <span>Strengths</span></h3>
+                    <p><strong>• Blazing Velocity:</strong> Training is instantaneous ($\mathcal{O}(N)$) via frequency
+                        counting. Inference is microseconds.</p>
+                    <p><strong>• High Dimensionality:</strong> Excels in matrices with millions of features (like NLP
+                        dictionaries) without crashing memory.</p>
+                    <p><strong>• Data Frugal:</strong> Performs surprisingly well on extremely small, limited training
+                        datasets compared to Neural Nets.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>System <span>Weaknesses</span></h3>
+                    <p><strong>• The Naive Flaw:</strong> The absolute assumption of feature independence degrades
+                        accuracy when evaluating highly correlated variables.</p>
+                    <p><strong>• Bad Probabilities:</strong> While its final Argmax predictions are excellent, its raw
+                        probability outputs are notoriously overconfident and badly calibrated.</p>
+                    <p><strong>• Zero-Freq Hassles:</strong> Requires mandatory Laplace smoothing interventions.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="18">
+            <div class="header-tag">Module 18 // Algorithm Selection Matrix</div>
+            <h2><span>18</span> Naive Bayes vs. Alternatives</h2>
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>Naive Bayes vs. <span>Logistic Regression</span></h3>
+                    <p>• Naive Bayes is a <strong>Generative</strong> model. It models the joint probability $P(X,Y)$.
+                        Converges incredibly fast on small data.</p>
+                    <p>• Logistic Regression is a <strong>Discriminative</strong> model. It models $P(Y|X)$ directly.
+                        Slower to train, but handles correlated features beautifully.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>Naive Bayes vs. <span>Random Forests</span></h3>
+                    <p>• Naive Bayes calculates independent feature probabilities linearly.</p>
+                    <p>• Random Forests map non-linear conditional interactions via branching decision grids. Trees are
+                        more accurate but far more computationally heavy on text.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="19">
+            <div class="header-tag">Module 19 // Operational Pipeline Steps</div>
+            <h2><span>19</span> Real-World NLP Workflow</h2>
+            <p style="margin-bottom: 1.5rem;">Deploying Naive Bayes text classifiers requires strict data transformation
+                pipelines:</p>
+
+            <div class="pipeline-grid" style="margin-bottom: 1.5rem;">
+                <div class="pipeline-card active-step" id="card-step-1" onclick="playgroundActions.s19_selectStep(1)">
+                    <div class="pipeline-icon">🧹</div>
+                    <h3 style="color:#ffffff; margin-bottom:4px; font-size:0.95rem;">1. NLP Prep</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-2" onclick="playgroundActions.s19_selectStep(2)">
+                    <div class="pipeline-icon">📊</div>
+                    <h3 style="color:#ffffff; margin-bottom:4px; font-size:0.95rem;">2. Vectorization</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-3" onclick="playgroundActions.s19_selectStep(3)">
+                    <div class="pipeline-icon">⚙️</div>
+                    <h3 style="color:#ffffff; margin-bottom:4px; font-size:0.95rem;">4. Fit Model</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-4" onclick="playgroundActions.s19_selectStep(4)">
+                    <div class="pipeline-icon">🚀</div>
+                    <h3 style="color:#ffffff; margin-bottom:4px; font-size:0.95rem;">4. Log Inference</h3>
+                </div>
+            </div>
+
+            <div class="telemetry-hud" style="border-left: 4px solid #10b981;" id="box-s19-details">
+                <span style="font-weight:700; color:#ffffff;">PIPELINE STATUS LOG // STEP 1: PREPROCESSING AND
+                    TOKENIZATION</span>
+                <p style="font-size:0.85rem; margin:0; color:#34d399;">Removing stop-words, applying stemming
+                    algorithms, and lowercasing strings to normalize the incoming vocabulary.</p>
+            </div>
+        </div>
+
+        <div class="slide" data-index="20">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 20 // Interactive Inference Gateway</div>
+                    <h2><span>20</span> End-to-End Spam Filter</h2>
+                    <p>This is a live, functional Multinomial Naive Bayes engine evaluating query strings in real time.
+                    </p>
+                    <p>The backend holds a pre-trained frequency dictionary. Words like "free" and "win" carry massive
+                        Spam likelihood modifiers, while words like "meeting" pull the scale toward Ham.</p>
+                    <ul>
+                        <li><strong>Operation:</strong> The engine strips the text, looks up log-probabilities for each
+                            token, and aggregates the scores.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div
+                        style="background:rgba(2,3,8,0.5); padding:15px; border-radius:12px; border:1px solid rgba(255,255,255,0.05); margin-bottom:10px;">
+                        <input type="text" id="txt-spam-input" placeholder="Type a message (e.g., 'Win free cash now')"
+                            style="width:100%; padding:12px; background:#1e293b; color:#fff; border:1px solid #334155; border-radius:8px; font-family:'Outfit'; font-size:15px;"
+                            oninput="playgroundActions.s20_evaluate()">
+                    </div>
+                    <div class="chart-container"><canvas id="chart-s20"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Log Score (Spam):</span><span id="lbl-s20-spam"
+                                class="val-rose">-2.40</span></div>
+                        <div class="hud-row"><span>Log Score (Ham):</span><span id="lbl-s20-ham"
+                                class="val-cyan">-0.50</span></div>
+                        <div class="hud-row"
+                            style="margin-top:5px; border-top:1px solid rgba(255,255,255,0.05); padding-top:8px;">
+                            <span>Final Argmax Classification:</span><span id="lbl-s20-res" class="val-emerald">Normal
+                                Message (Ham)</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-counter">1 / 20</span>
+            <button class="btn-nav" id="btn-prev" onclick="navigationEngine.navigate(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="navigationEngine.navigate(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Chart defaults customization
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.font.size = 13;
+        Chart.defaults.plugins.legend.display = false;
+
+        const defaultScales = {
+            grid: { color: 'rgba(255,255,255,0.035)' },
+            yScale: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.035)' }, ticks: { color: '#64748b' } },
+            xScale: { grid: { color: 'rgba(255,255,255,0.035)' }, ticks: { color: '#64748b' } }
+        };
+
+        let activeCharts = {};
+
+        // RUNTIME INTERACTIVE ACTIONS CONTROLLER
+        const playgroundActions = {
+            s2_chart: null, s2_state: 0,
+            s2_toggleCertainty: function () {
+                this.s2_state = (this.s2_state + 1) % 3;
+                const cA = document.getElementById('lbl-s2-confA');
+                const cB = document.getElementById('lbl-s2-confB');
+
+                if (this.s2_state === 1) {
+                    cA.innerText = "51.2%"; cB.innerText = "48.8%";
+                    this.s2_chart.data.datasets[0].data = [51.2, 48.8];
+                } else if (this.s2_state === 2) {
+                    cA.innerText = "5.0%"; cB.innerText = "95.0%";
+                    this.s2_chart.data.datasets[0].data = [5.0, 95.0];
+                } else {
+                    cA.innerText = "85.0%"; cB.innerText = "15.0%";
+                    this.s2_chart.data.datasets[0].data = [85.0, 15.0];
+                }
+                this.s2_chart.update();
+            },
+
+            s4_chart: null,
+            s4_update: function () {
+                let ev = parseInt(document.getElementById('slide-s4-ev').value);
+                document.getElementById('val-s4-ev').innerText = `P(Evidence) = ${ev}%`;
+
+                // Mock calculation: P(A|B) = P(B|A)*P(A) / P(B)
+                // Assume P(B|A)*P(A) is fixed at 15
+                let res = Math.min(100, (15 / (ev / 100)));
+                document.getElementById('lbl-s4-res').innerText = `${res.toFixed(1)}%`;
+
+                this.s4_chart.data.datasets[0].data = [res, 100 - res];
+                this.s4_chart.update();
+            },
+
+            s6_chart: null,
+            s6_update: function () {
+                let prior = parseInt(document.getElementById('slide-s6-prior').value) / 100;
+                document.getElementById('val-s6-prior').innerText = `${(prior * 100).toFixed(1)}%`;
+
+                let tpr = 0.99; // True positive rate
+                let fpr = 0.05; // False positive rate
+
+                // Bayes rule for False Positive paradox
+                let probDGivenPos = (tpr * prior) / ((tpr * prior) + (fpr * (1 - prior)));
+
+                document.getElementById('lbl-s6-res').innerText = `${(probDGivenPos * 100).toFixed(2)}%`;
+                this.s6_chart.data.datasets[0].data = [probDGivenPos * 100, (1 - probDGivenPos) * 100];
+                this.s6_chart.update();
+            },
+
+            s8_chart: null, s8_state: 0,
+            s8_toggleAssumption: function () {
+                this.s8_state = (this.s8_state + 1) % 2;
+                if (this.s8_state === 1) {
+                    // Show Naive (Independent)
+                    this.s8_chart.data.datasets[0].data = [30, 30, 30];
+                    this.s8_chart.data.labels = ['P(x1)', 'P(x2)', 'P(x3)'];
+                } else {
+                    // Show Joint (Complex)
+                    this.s8_chart.data.datasets[0].data = [90];
+                    this.s8_chart.data.labels = ['P(x1, x2, x3)'];
+                }
+                this.s8_chart.update();
+            },
+
+            s10_chart: null,
+            s10_runTraining: function () {
+                this.s10_chart.data.datasets[0].data = [120, 45, 80, 200, 15];
+                this.s10_chart.update();
+            },
+
+            s11_chart: null,
+            s11_predict: function () {
+                this.s11_chart.data.datasets[0].data = [-8.4, -5.2];
+                this.s11_chart.update();
+            },
+
+            s13_chart: null,
+            s13_update: function () {
+                let alpha = parseFloat(document.getElementById('slide-s13-a').value) / 10;
+                document.getElementById('val-s13-a').innerText = alpha.toFixed(1);
+
+                // P = (0 + alpha) / (100 + alpha*1000)
+                let prob = (0 + alpha) / (100 + alpha * 1000);
+                document.getElementById('lbl-s13-prob').innerText = prob.toFixed(5);
+
+                this.s13_chart.data.datasets[0].data = [prob * 1000]; // Scaled for visual
+                this.s13_chart.update();
+            },
+
+            s14_chart: null,
+            s14_setMode: function (mode) {
+                if (mode === 'gaussian') {
+                    let curve = [];
+                    for (let x = -3; x <= 3; x += 0.2) curve.push({ x: x, y: Math.exp(-0.5 * x * x) });
+                    this.s14_chart.config.type = 'line';
+                    this.s14_chart.data.datasets[0] = { data: curve, borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 };
+                } else {
+                    this.s14_chart.config.type = 'bar';
+                    this.s14_chart.data.datasets[0] = { data: [5, 12, 3, 8], backgroundColor: '#10b981', borderRadius: 4 };
+                    this.s14_chart.data.labels = ['Word1', 'Word2', 'Word3', 'Word4'];
+                }
+                this.s14_chart.update();
+            },
+
+            s19_selectStep: function (idx) {
+                for (let i = 1; i <= 4; i++) document.getElementById(`card-step-${i}`).classList.remove('active-step');
+                document.getElementById(`card-step-${idx}`).classList.add('active-step');
+                const box = document.getElementById('box-s19-details');
+
+                if (idx === 1) {
+                    box.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE STATUS LOG // STEP 1: PREPROCESSING AND TOKENIZATION</span>
+                    <p style="font-size:0.85rem; margin:0; color:#34d399;">Removing stop-words, applying stemming algorithms, and lowercasing strings to normalize the incoming vocabulary.</p>`;
+                } else if (idx === 2) {
+                    box.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE STATUS LOG // STEP 2: SPARSE VECTORIZATION</span>
+                    <p style="font-size:0.85rem; margin:0; color:#00f2fe;">Converting text corpus into CountVectorizer or TF-IDF sparse matrices. Generating 15,000 token dimension array.</p>`;
+                } else if (idx === 3) {
+                    box.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE STATUS LOG // STEP 3: O(N) LAZY MODEL FITTING</span>
+                    <p style="font-size:0.85rem; margin:0; color:#f59e0b;">Executing single-pass iteration... Extracting P(y) priors and P(x_i|y) likelihoods with Alpha=1.0 Laplace constraint.</p>`;
+                } else {
+                    box.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE STATUS LOG // STEP 4: LOG-SUM INFERENCE API</span>
+                    <p style="font-size:0.85rem; margin:0; color:#a855f7;">Deploying lookup dictionaries to memory. Resolving incoming text requests via additive log-likelihood scoring.</p>`;
+                }
+            },
+
+            s20_chart: null,
+            s20_dict: { 'free': { spam: 2.5, ham: -1.0 }, 'win': { spam: 2.0, ham: -0.5 }, 'money': { spam: 1.5, ham: -0.2 }, 'meeting': { spam: -2.0, ham: 1.5 }, 'hello': { spam: -0.1, ham: 0.5 }, 'urgent': { spam: 1.0, ham: 0.2 } },
+            s20_evaluate: function () {
+                let txt = document.getElementById('txt-spam-input').value.toLowerCase();
+                let words = txt.split(' ');
+
+                let scoreSpam = -2.0; // Base Prior Log
+                let scoreHam = -0.5;
+
+                words.forEach(w => {
+                    if (this.s20_dict[w]) {
+                        scoreSpam += this.s20_dict[w].spam;
+                        scoreHam += this.s20_dict[w].ham;
+                    }
+                });
+
+                document.getElementById('lbl-s20-spam').innerText = scoreSpam.toFixed(2);
+                document.getElementById('lbl-s20-ham').innerText = scoreHam.toFixed(2);
+
+                const res = document.getElementById('lbl-s20-res');
+                if (scoreSpam > scoreHam) {
+                    res.innerText = "MALICIOUS MESSAGE (SPAM)"; res.className = "val-rose";
+                } else {
+                    res.innerText = "NORMAL MESSAGE (HAM)"; res.className = "val-emerald";
+                }
+
+                this.s20_chart.data.datasets[0].data = [scoreSpam, scoreHam];
+                this.s20_chart.update();
+            }
+        };
+
+        // Slide Chart Initialization Core Registry
+        const lazyChartInitializers = {
+            init_1: function () {
+                let ctx = document.getElementById('chart-s1').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['P(Feature|Class A)', 'P(Feature|Class B)'], datasets: [{ data: [0.8, 0.2], backgroundColor: ['#00f2fe', '#ff4a6b'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale, x: defaultScales.xScale }, plugins: { legend: { display: false } } } });
+            },
+            init_2: function () {
+                let ctx = document.getElementById('chart-s2').getContext('2d');
+                playgroundActions.s2_chart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Class A', 'Class B'], datasets: [{ data: [85, 15], backgroundColor: ['#00f2fe', '#ff4a6b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '75%' } });
+            },
+            init_3: function () {
+                let ctx = document.getElementById('chart-s3').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['P(A)', 'P(B)', 'P(A ∩ B)'], datasets: [{ data: [0.3, 0.2, 0.05], backgroundColor: ['#ff4a6b', '#00f2fe', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 0.5, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_4: function () {
+                let ctx = document.getElementById('chart-s4').getContext('2d');
+                playgroundActions.s4_chart = new Chart(ctx, { type: 'bar', data: { labels: ['P(A|B)', 'P(¬A|B)'], datasets: [{ data: [75, 25], backgroundColor: ['#10b981', '#64748b'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_6: function () {
+                let ctx = document.getElementById('chart-s6').getContext('2d');
+                playgroundActions.s6_chart = new Chart(ctx, { type: 'doughnut', data: { labels: ['Sick', 'Healthy'], datasets: [{ data: [16.67, 83.33], backgroundColor: ['#ff4a6b', '#64748b'], borderWidth: 0 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, cutout: '70%' } });
+            },
+            init_7: function () {
+                let ctx = document.getElementById('chart-s7').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['Class A Score', 'Class B Score'], datasets: [{ data: [0.0452, 0.0125], backgroundColor: ['#00f2fe', '#ff4a6b'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale }, plugins: { legend: { display: false } } } });
+            },
+            init_8: function () {
+                let ctx = document.getElementById('chart-s8').getContext('2d');
+                playgroundActions.s8_chart = new Chart(ctx, { type: 'bar', data: { labels: ['P(x1, x2, x3)'], datasets: [{ data: [90], backgroundColor: '#a855f7', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 100, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_9: function () {
+                let ctx = document.getElementById('chart-s9').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['Multiplication (Tiny)', 'Log Sum (Stable)'], datasets: [{ data: [0.01, -19.2], backgroundColor: ['#ff4a6b', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale }, plugins: { legend: { display: false } } } });
+            },
+            init_10: function () {
+                let ctx = document.getElementById('chart-s10').getContext('2d');
+                playgroundActions.s10_chart = new Chart(ctx, { type: 'bar', data: { labels: ['Free', 'Win', 'Meeting', 'Money', 'Hi'], datasets: [{ data: [0, 0, 0, 0, 0], backgroundColor: '#00f2fe', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale }, plugins: { legend: { display: false } } } });
+            },
+            init_11: function () {
+                let ctx = document.getElementById('chart-s11').getContext('2d');
+                playgroundActions.s11_chart = new Chart(ctx, { type: 'bar', data: { labels: ['Spam Log-Score', 'Ham Log-Score'], datasets: [{ data: [0, 0], backgroundColor: ['#ff4a6b', '#00f2fe'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale }, plugins: { legend: { display: false } } } });
+            },
+            init_12: function () {
+                let ctx = document.getElementById('chart-s12').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['P(Free)', 'P(Money)', 'P(Crypto)'], datasets: [{ data: [0.2, 0.5, 0.0], backgroundColor: ['#00f2fe', '#00f2fe', '#ff4a6b'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 0.6, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_13: function () {
+                let ctx = document.getElementById('chart-s13').getContext('2d');
+                playgroundActions.s13_chart = new Chart(ctx, { type: 'bar', data: { labels: ['Smoothed P(Crypto)'], datasets: [{ data: [5], backgroundColor: '#10b981', borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 50, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_14: function () {
+                let ctx = document.getElementById('chart-s14').getContext('2d');
+                playgroundActions.s14_chart = new Chart(ctx, { type: 'line', data: { datasets: [{ data: [], borderColor: '#00f2fe', borderWidth: 3 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale, x: { type: 'linear', min: -3, max: 3, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+                playgroundActions.s14_setMode('gaussian');
+            },
+            init_15: function () {
+                let ctx = document.getElementById('chart-s15').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['buy', 'now', 'discount', 'today'], datasets: [{ data: [2, 1, 3, 1], backgroundColor: '#a855f7', borderRadius: 4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: defaultScales.yScale }, plugins: { legend: { display: false } } } });
+            },
+            init_16: function () {
+                let ctx = document.getElementById('chart-s16').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['Precision', 'Recall', 'F1-Score'], datasets: [{ data: [0.96, 0.81, 0.88], backgroundColor: ['#00f2fe', '#a855f7', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 1, grid: defaultScales.grid } }, plugins: { legend: { display: false } } } });
+            },
+            init_20: function () {
+                let ctx = document.getElementById('chart-s20').getContext('2d');
+                playgroundActions.s20_chart = new Chart(ctx, { type: 'bar', indexAxis: 'y', data: { labels: ['Spam', 'Ham'], datasets: [{ data: [-2.4, -0.5], backgroundColor: ['#ff4a6b', '#10b981'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { x: defaultScales.xScale, y: defaultScales.xScale }, plugins: { legend: { display: false } } } });
+            }
+        };
+
+        // Linear Flow Navigation Controls Engine
+        const navigationEngine = {
+            currentIdx: 1,
+            maxIdx: 20,
+
+            navigate: function (dir) {
+                let curr = document.querySelector(`.slide[data-index="${this.currentIdx}"]`);
+                curr.classList.remove('active');
+
+                this.currentIdx += dir;
+
+                let target = document.querySelector(`.slide[data-index="${this.currentIdx}"]`);
+                target.classList.add('active');
+
+                document.getElementById('btn-prev').disabled = (this.currentIdx === 1);
+                document.getElementById('btn-next').disabled = (this.currentIdx === this.maxIdx);
+                document.getElementById('nav-counter').innerText = `${this.currentIdx} / ${this.maxIdx}`;
+
+                let key = `init_${this.currentIdx}`;
+                if (lazyChartInitializers[key] && !activeCharts[key]) {
+                    setTimeout(() => {
+                        lazyChartInitializers[key]();
+                        activeCharts[key] = true;
+                        if (window.MathJax) MathJax.typeset();
+                    }, 50);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lazyChartInitializers.init_1();
+            activeCharts['init_1'] = true;
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Decision Trees: Enterprise Interactive Masterclass</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #040712;
+            color: #f3f4f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #0a1124 0%, #02040a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Premium Cinematic Slide Transitions */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 5rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: scale(0.98) translateY(15px);
+            transition: opacity 0.5s cubic-bezier(0.25, 1, 0.5, 1), transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.5s;
+            pointer-events: none;
+            z-index: 1;
+            visibility: hidden;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+            z-index: 2;
+            visibility: visible;
+        }
+
+        /* Universal HUD Navigation Panel */
+        .controls {
+            position: absolute;
+            bottom: 2.5rem;
+            right: 5rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(10, 17, 32, 0.75);
+            padding: 12px 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .slide-indicator {
+            color: #64748b;
+            font-size: 15px;
+            font-weight: 700;
+            margin-right: 16px;
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f9fafb;
+            border: 1px solid #334155;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #00f2fe;
+            border-color: #00f2fe;
+            color: #020617;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .suite-tag {
+            position: absolute;
+            bottom: 3.2rem;
+            left: 5rem;
+            z-index: 100;
+            font-size: 13px;
+            color: #475569;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Typography Mastery */
+        .header-tag {
+            font-size: 12px;
+            color: #00f2fe;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: 3.8rem;
+            color: #ffffff;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #00f2fe 0%, #4f46e5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #ffffff;
+            margin-bottom: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            background: rgba(0, 242, 254, 0.08);
+            padding: 4px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 242, 254, 0.15);
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            font-weight: 400;
+        }
+
+        ul {
+            margin-left: 24px;
+            margin-bottom: 14px;
+        }
+
+        strong {
+            color: #f1f5f9;
+            font-weight: 600;
+        }
+
+        /* High-End Enterprise Layout Matrix */
+        .split-layout {
+            display: flex;
+            gap: 3.5rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 2rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Advanced Glassmorphic Playground Architecture */
+        .interactive-panel {
+            flex: 1.3;
+            background: rgba(11, 19, 38, 0.45);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 16px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: #030611;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .math-block {
+            background: rgba(2, 4, 10, 0.5);
+            padding: 14px 18px;
+            border-radius: 12px;
+            border-left: 4px solid #00f2fe;
+            margin: 10px 0;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        /* Professional Telemetry HUD Instrumentation */
+        .telemetry-hud {
+            background: #02050e;
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 6px;
+            align-items: center;
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .val-cyan {
+            color: #00f2fe;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.2);
+        }
+
+        .val-rose {
+            color: #ff4a6b;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(255, 74, 107, 0.2);
+        }
+
+        .val-emerald {
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        .val-purple {
+            color: #a855f7;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(168, 85, 247, 0.2);
+        }
+
+        /* Premium Input Elements styling */
+        .playground-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: rgba(2, 4, 10, 0.3);
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13.5px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #00f2fe;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.15s;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #38bdf8;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #00f2fe 0%, #3b82f6 100%);
+            color: #020617;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 22px rgba(0, 242, 254, 0.4);
+            color: #ffffff;
+        }
+
+        .dual-chart-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Corporate Workflow Pipeline Pipeline Component */
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            flex: 1;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pipeline-card {
+            background: rgba(11, 19, 38, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem 1.25rem;
+            border-radius: 16px;
+            text-align: center;
+            position: relative;
+            height: 90%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .pipeline-card:hover {
+            border-color: #00f2fe;
+            background: rgba(11, 19, 38, 0.8);
+            transform: translateY(-4px);
+            box-shadow: 0 15px 35px rgba(0, 242, 254, 0.1);
+        }
+
+        .pipeline-card.active-step {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            box-shadow: 0 0 25px rgba(16, 185, 129, 0.15);
+        }
+
+        .pipeline-card::after {
+            content: '→';
+            position: absolute;
+            right: -16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.6rem;
+            color: #334155;
+            font-weight: bold;
+        }
+
+        .pipeline-card:last-child::after {
+            display: none;
+        }
+
+        .pipeline-icon {
+            font-size: 2.2rem;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 0 10px rgba(0, 242, 254, 0.2));
+        }
+
+        /* Custom Comparison Matrix Style */
+        .matrix-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .matrix-box {
+            background: rgba(2, 5, 14, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .matrix-box h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .matrix-box h3 span {
+            color: #00f2fe;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="suite-tag">Enterprise Non-Parametric Model Lifecycle Suite</div>
+
+        <div class="slide active" data-index="1">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 01 // Non-Parametric Modeling Foundations</div>
+                    <h1>What is a <span>Decision Tree?</span></h1>
+                    <p>A <strong>Decision Tree</strong> is a non-parametric supervised learning architecture that
+                        segments a multi-dimensional feature space into nested, axis-aligned rectangular regions via
+                        hierarchical conditioning rules.</p>
+                    <p>Unlike algorithms that compute global weights, trees break complex decision spaces down into a
+                        series of simple binary splits ($X_j \le t$). Predictions are determined by evaluating local
+                        consensus within terminal segments:</p>
+                    <ul>
+                        <li><strong>Classification:</strong> Outputs the majority vote/mode class of leaf training
+                            samples.</li>
+                        <li><strong>Regression:</strong> Outputs the scalar arithmetic mean target of the bounded
+                            cluster.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s1"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Feature Segment Topology:</span><span class="val-cyan">Axis-Aligned
+                                Step Envelopes</span></div>
+                        <div class="hud-row"><span>Current Root Split Location:</span><span id="lbl-s1-split"
+                                class="val-emerald">X = 3.00</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s1_mutateSplit()">Mutate Feature Partition
+                        Plane</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="2">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 02 // Architectural Limitations</div>
+                    <h2><span>02</span> Why Not Linear Models?</h2>
+                    <p>Linear models are bound to a strict assumption: features must act independently and scale
+                        monotonically across a flat, continuous hyperplane.</p>
+                    <p>Real-world datasets regularly present non-linear anomalies, localized clusters, and conditional
+                        feature interactions that violate these assumptions:</p>
+                    <ul>
+                        <li><strong>Crossed Feature Synergies:</strong> High-value targets exist ONLY if Feature A AND
+                            Feature B are concurrently extreme (e.g., XOR spaces).</li>
+                        <li><strong>Multi-Modal Topographies:</strong> Targets fluctuate in waves or steps across
+                            coordinate windows, causing linear coefficients to collapse.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s2"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Selected Mathematical Engine:</span><span id="lbl-s2-engine"
+                                class="val-rose">Global Linear Hyperplane</span></div>
+                        <div class="hud-row"><span>Structural Optimization Score ($R^2$):</span><span id="lbl-s2-score"
+                                class="val-rose">0.114 (Severe Underfit)</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s2-toggle" onclick="playgroundActions.s2_toggleEngine()">Switch
+                        to Non-Parametric Tree Topology</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="3">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 03 // Structural Taxonomy</div>
+                    <h2><span>03</span> Tree Topology Terminology</h2>
+                    <p>Navigating structural optimization requires establishing clear definitions for the elements of an
+                        inverted network hierarchy:</p>
+                    <ul>
+                        <li><strong>Root Node:</strong> The initial coordinate window encompassing 100% of the sample
+                            domain. Initiates the global partition loop.</li>
+                        <li><strong>Internal / Split Node:</strong> An conditional node that executes an isolated
+                            conditional logic test ($X_i \le \theta$) to split inputs into left and right branches.</li>
+                        <li><strong>Leaf / Terminal Node:</strong> A final boundary bucket containing no child paths.
+                            Houses the final predictive distribution vectors.</li>
+                        <li><strong>Branch / Edge:</strong> The directional vector mapping a specific path down the
+                            condition matrix based on the node outcome.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s3"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Node Category Highlight:</span><span id="lbl-s3-node-type"
+                                class="val-cyan">Root Node [Depth 0]</span></div>
+                        <div class="hud-row"><span>Target Sample Envelope Volume:</span><span id="lbl-s3-node-samples"
+                                class="val-emerald">N = 150 Instances</span></div>
+                        <div class="hud-row"><span>Node Functional Responsibility:</span><span
+                                id="lbl-s3-node-desc">Evaluates the primary maximum variance feature feature coordinate
+                                to kick off downstream partitioning.</span></div>
+                    </div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action" style="flex:1; font-size:12px; padding:10px;"
+                            onclick="playgroundActions.s3_selectNode('root')">Root Node</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:12px; padding:10px; background:linear-gradient(135deg, #a855f7 0%, #4f46e5 100%);"
+                            onclick="playgroundActions.s3_selectNode('split')">Split Node</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:12px; padding:10px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                            onclick="playgroundActions.s3_selectNode('leaf')">Leaf Node</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="4">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 04 // Exhaustive Threshold Hunting</div>
+                    <h2><span>04</span> How Trees Partition Feature Spaces</h2>
+                    <p>Decision trees use an **exhaustive greedy search** strategy known as Recursive Binary Splitting
+                        to sort incoming records.</p>
+                    <p>The solver loops through every individual column feature ($X_j$) and every unique value index
+                        thresholds ($t$) within that column, calculating the exact spatial alignment that separates
+                        target behaviors into maximum purity zones.</p>
+                    <p><em>Interactive Workspace: Slide the candidate boundary threshold to find where Class A (Cyan)
+                            separates cleanly from Class B (Rose).</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s4"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Evaluated Splitting Line ($t$):</span><span id="lbl-s4-t"
+                                class="val-cyan">X = 2.50</span></div>
+                        <div class="hud-row"><span>Left Child Array Mixture:</span><span id="lbl-s4-left"
+                                class="val-emerald">Pure Clusters</span></div>
+                        <div class="hud-row"><span>Right Child Array Mixture:</span><span id="lbl-s4-right"
+                                class="val-rose">Mixed Clusters</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Scan Column Threshold Interval ($t$)</label></div>
+                            <input type="range" id="slide-s4-threshold" min="5" max="55" value="25"
+                                oninput="playgroundActions.s4_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="5">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 05 // Objective Functions</div>
+                    <h2><span>05</span> Purity Metrics: Gini Impurity</h2>
+                    <p>To evaluate potential splits, classification trees require a mathematical measure of label chaos.
+                        The **Gini Impurity** measures the likelihood that a randomly selected node instance would be
+                        misclassified if labeled according to the distribution of that node:</p>
+                    <div class="math-block">
+                        $$I_G(p) = 1 - \sum_{i=1}^{C} p_i^2$$
+                    </div>
+                    <p>For a binary class problem, Gini expands to $1 - (p^2 + (1-p)^2) = 2p(1-p)$. A perfectly pure
+                        node containing only one class has an impurity score of **0.0**, while an evenly split node has
+                        a maximum impurity score of **0.5**.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s5"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Modify Node Class Ratio Distribution ($p$)</label><span
+                                    id="val-s5-p" class="val-cyan">50% Class A</span></div>
+                            <input type="range" id="slide-s5-p" min="0" max="100" value="50"
+                                oninput="playgroundActions.s5_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Calculated Mathematical Equation Gini Output:</span><span
+                                id="lbl-s5-gini" class="val-rose">0.5000</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="6">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 06 // Information Systems Theory</div>
+                    <h2><span>06</span> Purity Metrics: Entropy</h2>
+                    <p>An alternative objective optimization framework drawn from thermodynamics and information systems
+                        theory is **Entropy**.</p>
+                    <p>Entropy calculates the absolute aggregate logarithmic information uncertainty contained within a
+                        localized cluster variance footprint:</p>
+                    <div class="math-block">
+                        $$H(T) = - \sum_{i=1}^{C} p_i \log_2(p_i)$$
+                    </div>
+                    <p>Because it operates on a base-2 log scale, binary entropy peaks at **1.0 bit** for evenly split
+                        distributions. It applies a heavier mathematical penalty to high-impurity configurations than
+                        the Gini metric.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s6"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Modify Node Class Ratio Distribution ($p$)</label><span
+                                    id="val-s6-p" class="val-purple">50% Class A</span></div>
+                            <input type="range" id="slide-s6-p" min="0" max="100" value="50"
+                                oninput="playgroundActions.s6_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Logarithmic Bit Uncertainty Level ($H$):</span><span
+                                id="lbl-s6-entropy" class="val-rose">1.0000 bits</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="7">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 07 // Maximizing Optimization Gain</div>
+                    <h2><span>07</span> Calculating Information Gain</h2>
+                    <p>The system evaluates candidate splits by measuring **Information Gain (IG)**—the net reduction in
+                        impurity achieved by separating samples into child paths:</p>
+                    <div class="math-block">
+                        $$IG = I(\text{Parent}) - \left[ \frac{N_{\text{Left}}}{N} I(\text{Left}) +
+                        \frac{N_{\text{Right}}}{N} I(\text{Right}) \right]$$
+                    </div>
+                    <p>The tree optimization layer calculates this score across every candidate coordinate window. It
+                        selects the exact split threshold that yields the largest drop in overall impurity.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="dual-chart-grid">
+                        <div class="chart-container"><canvas id="chart-s7-parent"></canvas></div>
+                        <div class="chart-container"><canvas id="chart-s7-children"></canvas></div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Parent Node Baseline Impurity:</span><span class="val-purple">0.500
+                                (Mixed)</span></div>
+                        <div class="hud-row"><span>Weighted Combined Children Impurity:</span><span
+                                id="lbl-s7-child-imp" class="val-cyan">0.200</span></div>
+                        <div class="hud-row"><span>Net Information Gain Vector Score:</span><span id="lbl-s7-ig"
+                                class="val-emerald">+0.300</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Split Quality Alignment</label></div>
+                            <input type="range" id="slide-s7-quality" min="0" max="100" value="60"
+                                oninput="playgroundActions.s7_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="8">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 08 // Greedy Recursion Protocols</div>
+                    <h2><span>08</span> Recursive Binary Growth Lifecycle</h2>
+                    <p>Decision trees use a top-down, greedy approach to construct their logic networks, growing layer
+                        by layer:</p>
+                    <ul>
+                        <li><strong>Step 1: Universal Scanning:</strong> Evaluates all historical sample records within
+                            the current node space to locate the highest Information Gain split point.</li>
+                        <li><strong>Step 2: Vector Bifurcation:</strong> Splits the data array into two new child paths
+                            based on the winning condition.</li>
+                        <li><strong>Step 3: Localized Recursion:</strong> Repeats this process independently on each
+                            child path, continually dividing the feature space.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s8"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Pipeline Processing Depth:</span><span id="lbl-s8-depth"
+                                class="val-cyan">Depth 0 (Root State)</span></div>
+                        <div class="hud-row"><span>Total Operational Leaf Buckets Generated:</span><span
+                                id="lbl-s8-leaves" class="val-emerald">1 Unified Region</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s8_growStep()">Advance Tree Growth Iteration
+                        Layer</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="9">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 09 // Boundary Constraints</div>
+                    <h2><span>09</span> Enforcing Boundary Stopping Criteria</h2>
+                    <p>Left unchecked, tree algorithms will split data recursively until every sample resides in its own
+                        isolated leaf node. This produces massive, overly complex model architectures.</p>
+                    <p>To prevent this explosion, we set structural regularization limits to halt node splitting before
+                        overfitting can occur:</p>
+                    <ul>
+                        <li><strong>max_depth:</strong> Restricts how many logical split steps the tree can take from
+                            root to leaf.</li>
+                        <li><strong>min_samples_split:</strong> Requires a node to contain at least this many samples
+                            before it can be split further.</li>
+                        <li><strong>min_samples_leaf:</strong> Requires every resulting leaf node to contain at least
+                            this many samples, preventing the creation of tiny, noise-sensitive leaves.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s9"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Local Node Samples Size:</span><span class="val-cyan">N = 14
+                                Samples Listed</span></div>
+                        <div class="hud-row"><span>Enforced "min_samples_split" Limit:</span><span id="lbl-s9-limit"
+                                class="val-purple">15 Samples Required</span></div>
+                        <div class="hud-row"><span>Engine Evaluation Outcome:</span><span id="lbl-s9-status"
+                                class="val-emerald">HALT OPTIMIZATION (Lock Terminal Leaf)</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Tuning Min Split Constraint Threshold</label></div>
+                            <input type="range" id="slide-s9-limit" min="5" max="30" value="15"
+                                oninput="playgroundActions.s9_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="10">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 10 // Continuous Target Spaces</div>
+                    <h2><span>10</span> Adapting Splitting rules for Regression</h2>
+                    <p>Trees predict continuous scalar targets by switching their optimization logic from class
+                        proportions to numeric values.</p>
+                    <p>Instead of mapping straight regression lines, a **Regression Tree** builds flat horizontal step
+                        functions across the feature space. The model predicts the exact continuous arithmetic mean
+                        value of all samples captured within that specific terminal region.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s10"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Structural Regional Partitions:</span><span
+                                id="lbl-s10-regions" class="val-cyan">2 Active Step Horizons</span></div>
+                        <div class="hud-row"><span>Regression Function Resolution:</span><span
+                                class="val-emerald">Coarse Approximation Curve</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s10_addResolution()">Increase Structural Grid
+                        Split Resolution</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="11">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 11 // Continuous Loss Minimization</div>
+                    <h2><span>11</span> Regression Loss: MSE Reduction</h2>
+                    <p>Regression trees choose split points by minimizing variance rather than using Gini or Entropy.
+                        The objective function seeks splits that maximize the drop in **Mean Squared Error (MSE)**:</p>
+                    <div class="math-block" style="font-size:0.95rem;">
+                        $$\text{Loss} = \sum_{i \in \text{Left}} (y_i - \bar{y}_{\text{Left}})^2 + \sum_{i \in
+                        \text{Right}} (y_i - \bar{y}_{\text{Right}})^2$$
+                    </div>
+                    <p>The solver tests split thresholds across the dataset, calculating the combined internal variance
+                        of both resulting child segments. It selects the partition line where total squared deviation
+                        drops the lowest.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s11"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Current Split Coordinate Line ($t$):</span><span id="lbl-s11-split"
+                                class="val-cyan">X = 3.0</span></div>
+                        <div class="hud-row"><span>Resulting Residual Loss (MSE):</span><span id="lbl-s11-mse"
+                                class="val-rose">Calculating...</span></div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Scan Continuous Feature Space Axis Range ($t$)</label>
+                            </div>
+                            <input type="range" id="slide-s11-split" min="10" max="50" value="30"
+                                oninput="playgroundActions.s11_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="12">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 12 // Generalization Deviations</div>
+                    <h2><span>12</span> The Menace of High-Depth Overfitting</h2>
+                    <p>Decision trees are prone to high **variance error** because they can isolate individual,
+                        non-representative noise anomalies within private leaf segments.</p>
+                    <p>As tree depth increases, the model shifts from learning broad, general trends to memorizing the
+                        exact positions of specific training data points. This drops training error to zero while
+                        causing test error on new data to spike.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s12"></canvas></div>
+                    <div style="display:flex; gap:8px;">
+                        <button class="btn-action" style="flex:1; font-size:12px;"
+                            onclick="playgroundActions.s12_setDepth('shallow')">Shallow Structure (Underfit
+                            Bias)</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:12px; background:linear-gradient(135deg, #10b981 0%, #059669 100%);"
+                            onclick="playgroundActions.s12_setDepth('optimal')">Optimal Depth (Balanced Signal)</button>
+                        <button class="btn-action"
+                            style="flex:1; font-size:12px; background:linear-gradient(135deg, #ff4a6b 0%, #b91c1c 100%);"
+                            onclick="playgroundActions.s12_setDepth('over')">Infinite Depth (Overfit Noise)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="13">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 13 // Post-Growth Rationalization</div>
+                    <h2><span>13</span> Regularization via Cost-Complexity Pruning</h2>
+                    <p>Beyond simple early stopping rules, trees can be regularized using a post-growth process called
+                        **Cost-Complexity Pruning** (Minimal Cost-Complexity Pruning).</p>
+                    <p>This approach lets the tree grow fully to capture complex feature relationships, then trims away
+                        weak branch structures that fail to provide significant information gain relative to their added
+                        architectural cost:</p>
+                    <div class="math-block">
+                        $$R_\alpha(T) = R(T) + \alpha |T|$$
+                    </div>
+                    <p>Where $R(T)$ represents baseline node error variance, $|T|$ specifies the total active leaf
+                        count, and $\alpha$ acts as a penalty parameter that controls the cost of model complexity.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s13"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Complexity Penalty Constraint Multiplier ($\alpha$
+                                    Strength)</label><span id="val-s13-alpha" class="val-cyan">0.00</span></div>
+                            <input type="range" id="slide-s13-alpha" min="0" max="100" value="0"
+                                oninput="playgroundActions.s13_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Pruning Constraint Engine State:</span><span id="lbl-s13-status"
+                                class="val-rose">No Pruning Active</span></div>
+                        <div class="hud-row"><span>Surviving Structural Node Population Count:</span><span
+                                id="lbl-s13-count" class="val-cyan">42 Tree Nodes Bound</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="14">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 14 // Optimization Matrix Grid Tuning</div>
+                    <h2><span>14</span> Tuning the Tree Hyperparameter Matrix</h2>
+                    <p>Finding the right hyperparameter combination requires testing models systematically using
+                        techniques like K-Fold Cross-Validation.</p>
+                    <p>This grid validation process balances structural constraints (like `max_depth` and minimum sample
+                        splitting metrics) to locate the peak generalizable performance window for the model.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s14"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Hyperparameter `max_depth` Target
+                                    Constraint</label><span id="val-s14-depth" class="val-cyan">12</span></div>
+                            <input type="range" id="slide-s14-depth" min="2" max="20" value="12"
+                                oninput="playgroundActions.s14_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Cross-Validation Generalization Matrix Status:</span><span
+                                id="lbl-s14-status" class="val-cyan">Evaluating Target Grid...</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="15">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 15 // Architectural Balance Sheet</div>
+                    <h2><span>15</span> Structural Strengths & Vulnerabilities</h2>
+                    <p>Decision trees offer unique advantages alongside notable architectural vulnerabilities:</p>
+                    <p><strong>Core Structural Strengths:</strong> Immunity to scaling issues (no standardizing
+                        required), native support for multi-category features, and clear step-by-step explainability.
+                    </p>
+                    <p><strong>High Model Variance Vulnerability:</strong> Trees are highly sensitive to small
+                        variations in training data. Minor changes to a dataset can cause the algorithm to choose
+                        completely different initial split paths, reorganizing the entire downstream network
+                        architecture.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s15"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Structural Stability Tracking:</span><span
+                                id="lbl-s15-variance" class="val-emerald">Stable Ingestion Track</span></div>
+                    </div>
+                    <button class="btn-action" onclick="playgroundActions.s15_perturbData()">Inject Training Variant
+                        Noise (Perturb System)</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="16">
+            <div class="header-tag">Module 16 // Comparative Systems Selection</div>
+            <h1>Comparative <span>Architectural Analysis Matrix</span></h1>
+            <p style="margin-bottom: 1.5rem; max-width: 900px;">Selecting the right model architecture depends heavily
+                on the geometry of the feature relationships within your dataset:</p>
+
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>Hierarchical <span>Decision Trees</span></h3>
+                    <p><strong>Decision Geometry:</strong> Creates orthogonal step boundaries ($X_i \le t$). Perfect for
+                        nested, axis-aligned data clusters.</p>
+                    <p><strong>Feature Interactions:</strong> Captures complex, multi-variable interactions naturally
+                        without needing manual feature engineering.</p>
+                    <p><strong>Data Preparation:</strong> Low overhead. Handles raw categorical variables and varied
+                        scaling without transformation.</p>
+                    <p><strong>Operational Vulnerability:</strong> High variance risk. Prone to overfitting on local
+                        noise and unstable across small dataset modifications.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>Parametric <span>Linear Models</span></h3>
+                    <p><strong>Decision Geometry:</strong> Maps continuous hyperplanes. Excel at isolating linear paths
+                        and trends.</p>
+                    <p><strong>Feature Interactions:</strong> Requires manual intervention. Cannot capture interaction
+                        trends unless interaction columns are explicitly created.</p>
+                    <p><strong>Data Preparation:</strong> High overhead. Extremely sensitive to feature scales,
+                        multi-collinearity, and outlier records.</p>
+                    <p><strong>Operational Vulnerability:</strong> High bias risk. Fails to capture non-linear behaviors
+                        or step changes when data patterns change direction.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="17">
+            <div class="header-tag">Module 17 // Production Engineering</div>
+            <h1>Production <span>Enterprise Lifecycle</span></h1>
+            <p style="max-width: 950px; margin-bottom: 1.5rem;">To deploy decision tree architectures in high-throughput
+                enterprise systems, engineering groups run an automated four-stage operational lifecycle.</p>
+
+            <div class="pipeline-grid">
+                <div class="pipeline-card active-step" id="card-step-1" onclick="playgroundActions.s17_selectStep(1)">
+                    <div class="pipeline-icon">🌿</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.2rem;">1. Data Encoding</h3>
+                    <p style="font-size:0.9rem; color:#94a3b8; line-height:1.5;">Map high-cardinality categorical arrays
+                        into numerical vectors; handle missing fields through surrogate split selection loops.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-2" onclick="playgroundActions.s17_selectStep(2)">
+                    <div class="pipeline-icon">✂️</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.2rem;">2. Grid Regularization</h3>
+                    <p style="font-size:0.9rem; color:#94a3b8; line-height:1.5;">Execute Cost-Complexity Pruning sweeps
+                        across cross-validation validation sets to optimize leaf depth allocations.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-3" onclick="playgroundActions.s17_selectStep(3)">
+                    <div class="pipeline-icon">🔎</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.2rem;">3. Feature Auditing</h3>
+                    <p style="font-size:0.9rem; color:#94a3b8; line-height:1.5;">Extract Gini feature importance ratings
+                        to verify generalizability and drop columns that provide no information gain.</p>
+                </div>
+                <div class="pipeline-card" id="card-step-4" onclick="playgroundActions.s17_selectStep(4)">
+                    <div class="pipeline-icon">⚡</div>
+                    <h3 style="color:#ffffff; margin-bottom:10px; font-size:1.2rem;">4. ONNX Serialized API</h3>
+                    <p style="font-size:0.9rem; color:#94a3b8; line-height:1.5;">Compile nested condition arrays into
+                        optimized C++ binaries to serve low-latency microsecond inference requests.</p>
+                </div>
+            </div>
+
+            <div class="telemetry-hud" style="margin-top:1.5rem; border-left:4px solid #10b981;" id="box-s17-details">
+                <span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: CATEGORICAL
+                    STRUCTURAL ENCODING</span>
+                <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Running automated
+                    feature preprocessing... Transformed categorical columns into ordered integers... Ingestion engine
+                    configured to utilize native surrogate split algorithms for missing values.</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-counter">1 / 17</span>
+            <button class="btn-nav" id="btn-prev" onclick="navigationEngine.navigate(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="navigationEngine.navigate(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // GLOBAL DATA DOMAINS
+        const CLASSIFICATION_DATA_1 = [
+            { x: 1.2, y: 1.5, c: 'cyan' }, { x: 1.7, y: 2.8, c: 'cyan' }, { x: 2.2, y: 1.9, c: 'cyan' },
+            { x: 3.5, y: 5.2, c: 'rose' }, { x: 4.1, y: 4.1, c: 'rose' }, { x: 4.8, y: 5.9, c: 'rose' }
+        ];
+
+        // Chart styling templates
+        Chart.defaults.color = '#64748b';
+        Chart.defaults.font.family = 'Outfit';
+        Chart.defaults.font.size = 13;
+        Chart.defaults.plugins.legend.display = false;
+
+        const baseAxisConfig = {
+            grid: { color: 'rgba(255,255,255,0.035)' },
+            xScale: { type: 'linear', min: 0, max: 6, grid: { color: 'rgba(255,255,255,0.035)' } },
+            yScale: { min: 0, max: 8, grid: { color: 'rgba(255,255,255,0.035)' } }
+        };
+
+        let activeCharts = {};
+
+        // RUNTIME PLAYGROUND ACTIONS STORAGE
+        const playgroundActions = {
+            // Slide 1
+            s1_chart: null,
+            s1_split: 3.0,
+            s1_mutateSplit: function () {
+                this.s1_split = this.s1_split === 3.0 ? 2.2 : 3.0;
+                document.getElementById('lbl-s1-split').innerText = `X = ${this.s1_split.toFixed(2)}`;
+                this.s1_chart.data.datasets[1].data = [{ x: this.s1_split, y: 0 }, { x: this.s1_split, y: 8 }];
+                this.s1_chart.update();
+            },
+
+            // Slide 2
+            s2_chart: null,
+            s2_mode: 'linear',
+            s2_toggleEngine: function () {
+                const btn = document.getElementById('btn-s2-toggle');
+                const lblEngine = document.getElementById('lbl-s2-engine');
+                const lblScore = document.getElementById('lbl-s2-score');
+
+                if (this.s2_mode === 'linear') {
+                    this.s2_mode = 'tree';
+                    btn.innerText = "Revert to Global Linear Formulation";
+                    lblEngine.innerText = "Non-Parametric Tree Topology";
+                    lblEngine.className = "val-cyan";
+                    lblScore.innerText = "0.942 (Highly Accurate Generalization)";
+                    lblScore.className = "val-emerald";
+
+                    // Step function interpolation representation mapping
+                    this.s2_chart.data.datasets[1].data = [
+                        { x: 0, y: 1.5 }, { x: 2.5, y: 1.5 },
+                        { x: 2.5, y: 5.5 }, { x: 6, y: 5.5 }
+                    ];
+                    this.s2_chart.data.datasets[1].borderColor = '#00f2fe';
+                } else {
+                    this.s2_mode = 'linear';
+                    btn.innerText = "Switch to Non-Parametric Tree Topology";
+                    lblEngine.innerText = "Global Linear Hyperplane";
+                    lblEngine.className = "val-rose";
+                    lblScore.innerText = "0.114 (Severe Underfit)";
+                    lblScore.className = "val-rose";
+
+                    this.s2_chart.data.datasets[1].data = [{ x: 0, y: 2.2 }, { x: 6, y: 4.8 }];
+                    this.s2_chart.data.datasets[1].borderColor = '#ff4a6b';
+                }
+                this.s2_chart.update();
+            },
+
+            // Slide 3
+            s3_selectNode: function (type) {
+                const lblType = document.getElementById('lbl-s3-node-type');
+                const lblSamples = document.getElementById('lbl-s3-node-samples');
+                const lblDesc = document.getElementById('lbl-s3-node-desc');
+
+                if (type === 'root') {
+                    lblType.innerText = "Root Node [Depth 0]"; lblType.className = "val-cyan";
+                    lblSamples.innerText = "N = 150 Instances"; lblSamples.className = "val-emerald";
+                    lblDesc.innerText = "Evaluates the primary maximum variance feature feature coordinate to kick off downstream partitioning.";
+                } else if (type === 'split') {
+                    lblType.innerText = "Internal Split Node [Depth 2]"; lblType.className = "val-purple";
+                    lblSamples.innerText = "N = 64 Instances Remaining"; lblSamples.className = "val-cyan";
+                    lblDesc.innerText = "Executes secondary sub-conditional evaluation layers ($Y \\le 4.2$) to split remaining mixed sample pools.";
+                } else {
+                    lblType.innerText = "Leaf Terminal Node [Depth 3]"; lblType.className = "val-emerald";
+                    lblSamples.innerText = "N = 41 Instances Pure"; lblSamples.className = "val-purple";
+                    lblDesc.innerText = "Final classification bucket. Halts splitting because class distribution achieves maximum purity thresholds.";
+                }
+            },
+
+            // Slide 4
+            s4_chart: null,
+            s4_update: function () {
+                let val = parseFloat(document.getElementById('slide-s4-threshold').value) / 10;
+                document.getElementById('lbl-s4-t').innerText = `X = ${val.toFixed(2)}`;
+                this.s4_chart.data.datasets[2].data = [{ x: val, y: 0 }, { x: val, y: 8 }];
+
+                const leftLabel = document.getElementById('lbl-s4-left');
+                const rightLabel = document.getElementById('lbl-s4-right');
+
+                if (val >= 2.4 && val <= 3.2) {
+                    leftLabel.innerText = "100% Pure Class A"; leftLabel.className = "val-emerald";
+                    rightLabel.innerText = "100% Pure Class B"; rightLabel.className = "val-emerald";
+                } else {
+                    leftLabel.innerText = "Mixed Elements Data Cloud"; leftLabel.className = "val-rose";
+                    rightLabel.innerText = "Mixed Elements Data Cloud"; rightLabel.className = "val-rose";
+                }
+                this.s4_chart.update();
+            },
+
+            // Slide 5
+            s5_chart: null,
+            s5_update: function () {
+                let p = parseFloat(document.getElementById('slide-s5-p').value) / 100;
+                document.getElementById('val-s5-p').innerText = `${Math.round(p * 100)}% Class A`;
+
+                let gini = 2 * p * (1 - p);
+                document.getElementById('lbl-s5-gini').innerText = gini.toFixed(4);
+
+                this.s5_chart.data.datasets[1].data = [{ x: p, y: gini }];
+                this.s5_chart.update();
+            },
+
+            // Slide 6
+            s6_chart: null,
+            s6_update: function () {
+                let p = parseFloat(document.getElementById('slide-s6-p').value) / 100;
+                document.getElementById('val-s6-p').innerText = `${Math.round(p * 100)}% Class A`;
+
+                let entropy = 0;
+                if (p > 0 && p < 1) {
+                    entropy = - (p * Math.log2(p) + (1 - p) * Math.log2(1 - p));
+                }
+                document.getElementById('lbl-s6-entropy').innerText = `${entropy.toFixed(4)} bits`;
+
+                this.s6_chart.data.datasets[1].data = [{ x: p, y: entropy }];
+                this.s6_chart.update();
+            },
+
+            // Slide 7
+            s7_parent: null,
+            s7_children: null,
+            s7_update: function () {
+                let quality = parseFloat(document.getElementById('slide-s7-quality').value) / 100;
+                let childImp = 0.5 * (1 - quality);
+                let ig = 0.5 - childImp;
+
+                document.getElementById('lbl-s7-child-imp').innerText = childImp.toFixed(3);
+                document.getElementById('lbl-s7-ig').innerText = (ig >= 0 ? '+' : '') + ig.toFixed(3);
+
+                this.s7_children.data.datasets[0].data = [childImp * 0.9, childImp * 1.1];
+                this.s7_children.update();
+            },
+
+            // Slide 8
+            s8_chart: null,
+            s8_step: 0,
+            s8_growStep: function () {
+                this.s8_step = (this.s8_step + 1) % 4;
+                const d = document.getElementById('lbl-s8-depth');
+                const l = document.getElementById('lbl-s8-leaves');
+
+                this.s8_chart.data.datasets = this.s8_chart.data.datasets.slice(0, 1); // Keep scatter dots
+
+                if (this.s8_step === 0) {
+                    d.innerText = "Depth 0 (Root State)"; l.innerText = "1 Unified Region";
+                } else if (this.s8_step === 1) {
+                    d.innerText = "Depth 1 (Primary Split)"; l.innerText = "2 Feature Segments";
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 });
+                } else if (this.s8_step === 2) {
+                    d.innerText = "Depth 2 (Sub-Conditioning Layers)"; l.innerText = "3 Feature Segments";
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 });
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 2.5, y: 3.5 }, { x: 6, y: 3.5 }], borderColor: '#a855f7', borderWidth: 3, pointRadius: 0 });
+                } else {
+                    d.innerText = "Depth 3 (Max Purity Grid Reached)"; l.innerText = "4 Fully Homogeneous Leaves";
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 });
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 2.5, y: 3.5 }, { x: 6, y: 3.5 }], borderColor: '#a855f7', borderWidth: 3, pointRadius: 0 });
+                    this.s8_chart.data.datasets.push({ type: 'line', data: [{ x: 1.0, y: 0 }, { x: 1.0, y: 3.5 }], borderColor: '#10b981', borderWidth: 2, pointRadius: 0 });
+                }
+                this.s8_chart.update();
+            },
+
+            // Slide 9
+            s9_update: function () {
+                let limit = parseInt(document.getElementById('slide-s9-limit').value);
+                document.getElementById('lbl-s9-limit').innerText = `${limit} Samples Required`;
+
+                const status = document.getElementById('lbl-s9-status');
+                if (limit > 14) {
+                    status.innerText = "HALT OPTIMIZATION (Enforce Regularized Leaf)";
+                    status.className = "val-emerald";
+                } else {
+                    status.innerText = "PERMIT SUB-SPLIT ITERATION LOOP";
+                    status.className = "val-rose";
+                }
+            },
+
+            // Slide 10
+            s10_chart: null,
+            s10_res: 2,
+            s10_addResolution: function () {
+                this.s10_res = this.s10_res === 2 ? 5 : (this.s10_res === 5 ? 9 : 2);
+                document.getElementById('lbl-s10-regions').innerText = `${this.s10_res} Active Step Horizons`;
+
+                let stepPoints = [];
+                if (this.s10_res === 2) {
+                    stepPoints = [{ x: 0, y: 2 }, { x: 3, y: 2 }, { x: 3, y: 6 }, { x: 6, y: 6 }];
+                } else if (this.s10_res === 5) {
+                    stepPoints = [{ x: 0, y: 1.5 }, { x: 1.5, y: 1.5 }, { x: 1.5, y: 3 }, { x: 3.2, y: 3 }, { x: 3.2, y: 5 }, { x: 4.8, y: 5 }, { x: 4.8, y: 6.8 }, { x: 6, y: 6.8 }];
+                } else {
+                    // High resolution curve reconstruction function
+                    for (let x = 0; x <= 6; x += 0.6) {
+                        let yEval = 4 + Math.sin(x * 2) * 2.2;
+                        stepPoints.push({ x: x, y: yEval });
+                        stepPoints.push({ x: x + 0.6, y: yEval });
+                    }
+                }
+                this.s10_chart.data.datasets[1].data = stepPoints;
+                this.s10_chart.update();
+            },
+
+            // Slide 11
+            s11_chart: null,
+            s11_update: function () {
+                let splitX = parseFloat(document.getElementById('slide-s11-split').value) / 10;
+                document.getElementById('lbl-s11-split').innerText = `X = ${splitX.toFixed(2)}`;
+
+                this.s11_chart.data.datasets[1].data = [{ x: splitX, y: 0 }, { x: splitX, y: 8 }];
+
+                // Mathematical minimum quadratic calculation optimization model curves
+                let baseMse = Math.pow(splitX - 3.2, 2) * 0.4 + 0.18;
+                document.getElementById('lbl-s11-mse').innerText = baseMse.toFixed(4);
+                this.s11_chart.update();
+            },
+
+            // Slide 12
+            s12_chart: null,
+            s12_setDepth: function (mode) {
+                let curveData = [];
+                if (mode === 'shallow') {
+                    curveData = [{ x: 0, y: 3 }, { x: 6, y: 3 }];
+                    this.s12_chart.data.datasets[1].borderColor = '#ff4a6b';
+                } else if (mode === 'optimal') {
+                    curveData = [{ x: 0, y: 1.5 }, { x: 2.8, y: 1.5 }, { x: 2.8, y: 6.2 }, { x: 6, y: 6.2 }];
+                    this.s12_chart.data.datasets[1].borderColor = '#10b981';
+                } else {
+                    curveData = [
+                        { x: 0, y: 1.2 }, { x: 1.2, y: 1.2 }, { x: 1.2, y: 1.8 }, { x: 2.0, y: 1.8 },
+                        { x: 2.0, y: 6.9 }, { x: 3.8, y: 6.9 }, { x: 3.8, y: 5.1 }, { x: 4.5, y: 5.1 },
+                        { x: 4.5, y: 6.0 }, { x: 6, y: 6.0 }
+                    ];
+                    this.s12_chart.data.datasets[1].borderColor = '#a855f7';
+                }
+                this.s12_chart.data.datasets[1].data = curveData;
+                this.s12_chart.update();
+            },
+
+            // Slide 13
+            s13_chart: null,
+            s13_update: function () {
+                let alpha = parseFloat(document.getElementById('slide-s13-alpha').value) / 100;
+                document.getElementById('val-s13-alpha').innerText = alpha.toFixed(2);
+
+                const status = document.getElementById('lbl-s13-status');
+                const count = document.getElementById('lbl-s13-count');
+
+                let nodesCount = Math.max(3, Math.round(42 * Math.exp(-alpha * 4.5)));
+                count.innerText = `${nodesCount} Operational Nodes Bound`;
+
+                if (alpha === 0) {
+                    status.innerText = "No Pruning Active (Overfit Envelope)"; status.className = "val-rose";
+                } else if (alpha > 0.01 && alpha < 0.4) {
+                    status.innerText = "Cost-Complexity Pruning Engaged: Optimal Fit"; status.className = "val-emerald";
+                } else {
+                    status.innerText = "Over-Pruning Hazard: Structural Collapse Cascade"; status.className = "val-rose";
+                }
+
+                // Update complexity indicator traces points datasets
+                let trace = [];
+                for (let a = 0; a <= 1; a += 0.05) {
+                    trace.push({ x: a, y: Math.max(3, Math.round(42 * Math.exp(-a * 4.5))) + a * 8 });
+                }
+                this.s13_chart.data.datasets[1].data = [{ x: alpha, y: nodesCount + alpha * 8 }];
+                this.s13_chart.update();
+            },
+
+            // Slide 14
+            s14_chart: null,
+            s14_update: function () {
+                let depth = parseInt(document.getElementById('slide-s14-depth').value);
+                document.getElementById('val-s14-depth').innerText = depth;
+
+                // Emulated validation performance indicators mapping curves
+                let trErr = Math.max(0.01, 0.45 * Math.exp(-depth * 0.35));
+                let valErr = 0.12 + Math.pow(depth - 6, 2) * 0.012 + (depth > 6 ? (depth - 6) * 0.01 : 0);
+
+                this.s14_chart.data.datasets[0].data = [];
+                this.s14_chart.data.datasets[1].data = [];
+
+                for (let d = 2; d <= 20; d++) {
+                    this.s14_chart.data.datasets[0].data.push({ x: d, y: Math.max(0.01, 0.45 * Math.exp(-d * 0.35)) });
+                    this.s14_chart.data.datasets[1].data.push({ x: d, y: 0.12 + Math.pow(d - 6, 2) * 0.012 });
+                }
+
+                const status = document.getElementById('lbl-s14-status');
+                if (depth >= 5 && depth <= 8) {
+                    status.innerText = "Validation Sweep Match: Minimum Loss Bound Reached"; status.className = "val-emerald";
+                } else if (depth < 5) {
+                    status.innerText = "Underfitting Area Bias Configuration Pattern"; status.className = "val-rose";
+                } else {
+                    status.innerText = "High Depth Overfit Tracking Exception Found"; status.className = "val-rose";
+                }
+                this.s14_chart.update();
+            },
+
+            // Slide 15
+            s15_chart: null,
+            s15_perturbed: false,
+            s15_perturbData: function () {
+                const status = document.getElementById('lbl-s15-variance');
+                let baselinePoints = [...CLASSIFICATION_DATA_1];
+
+                if (!this.s15_perturbed) {
+                    this.s15_perturbed = true;
+                    status.innerText = "Data Shifted: Restructuring Partition Matrix"; status.className = "val-rose";
+                    // Tweak single node boundary trigger point vector parameters
+                    baselinePoints[2] = { x: 2.8, y: 3.9, c: 'cyan' };
+                    this.s15_chart.data.datasets[1].data = [{ x: 2.8, y: 0 }, { x: 2.8, y: 8 }];
+                    this.s15_chart.data.datasets[1].borderColor = '#ff4a6b';
+                } else {
+                    this.s15_perturbed = false;
+                    status.innerText = "Stable Ingestion Track"; status.className = "val-emerald";
+                    this.s15_chart.data.datasets[1].data = [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }];
+                    this.s15_chart.data.datasets[1].borderColor = '#00f2fe';
+                }
+                this.s15_chart.data.datasets[0].data = baselinePoints;
+                this.s15_chart.update();
+            },
+
+            // Slide 17
+            s17_selectStep: function (stepId) {
+                for (let i = 1; i <= 4; i++) {
+                    document.getElementById(`card-step-${i}`).classList.remove('active-step');
+                }
+                document.getElementById(`card-step-${stepId}`).classList.add('active-step');
+
+                const logBox = document.getElementById('box-s17-details');
+                if (stepId === 1) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 1: CATEGORICAL STRUCTURAL ENCODING</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#34d399;">Running automated feature preprocessing... Transformed categorical columns into ordered integers... Ingestion engine configured to utilize native surrogate split algorithms for missing values.</p>`;
+                } else if (stepId === 2) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 2: COST COMPLEXITY GRID SWEEP</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#00f2fe;">Initializing Minimal Cost-Complexity Pruning regularizer execution loop... Scanned Alpha boundaries from 0.001 to 0.500... Pruned 14 weak child nodes with zero validation loss escalation parameters.</p>`;
+                } else if (stepId === 3) {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 3: FEATURE ARCHITECTURE AUDITING</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#f59e0b;">Computing Mean Decrease Impurity scaling scores... Ranked Feature 04 [Transaction Target Amplitude] at 68.2% global split utility footprint. Column variance audited successfully.</p>`;
+                } else {
+                    logBox.innerHTML = `<span style="font-weight:700; color:#ffffff;">PIPELINE TELEMETRY INPUT LOGS // STEP 4: PRODUCTION API COMPILATION</span>
+                    <p style="font-size:0.95rem; margin:0; font-family:'JetBrains Mono'; color:#a855f7;">Serializing decision tree topology blocks into portable ONNX graph formatting... Linear condition arrays flattened into optimal binary assembly structures. Production micro-endpoint initialized active.</p>`;
+                }
+            }
+        };
+
+        // LAZY LAZY RUNTIME INITIALIZATION MAPS PROTOCOLS
+        const lazyChartInitializers = {
+            init_1: function () {
+                let ctx = document.getElementById('chart-s1').getContext('2d');
+                playgroundActions.s1_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...CLASSIFICATION_DATA_1], backgroundColor: d => d.raw.c === 'cyan' ? '#00f2fe' : '#ff4a6b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 3.0, y: 0 }, { x: 3.0, y: 8 }], borderColor: '#10b981', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_2: function () {
+                let ctx = document.getElementById('chart-s2').getContext('2d');
+                playgroundActions.s2_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 1.5 }, { x: 2, y: 1.2 }, { x: 1.5, y: 2 }, { x: 4, y: 5 }, { x: 5, y: 5.8 }, { x: 4.5, y: 5.2 }], backgroundColor: '#f59e0b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 0, y: 2.2 }, { x: 6, y: 4.8 }], borderColor: '#ff4a6b', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_4: function () {
+                let ctx = document.getElementById('chart-s4').getContext('2d');
+                playgroundActions.s4_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 2 }, { x: 1.5, y: 4 }, { x: 2, y: 3 }], backgroundColor: '#00f2fe', pointRadius: 8 },
+                            { data: [{ x: 3.5, y: 5 }, { x: 4.5, y: 4 }, { x: 5, y: 6 }], backgroundColor: '#ff4a6b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }], borderColor: 'rgba(255,255,255,0.4)', borderDash: [4, 4], borderWidth: 2, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_5: function () {
+                let ctx = document.getElementById('chart-s5').getContext('2d');
+                let curve = []; for (let p = 0; p <= 1; p += 0.02) curve.push({ x: p, y: 2 * p * (1 - p) });
+                playgroundActions.s5_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: curve, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 3, pointRadius: 0 },
+                            { data: [{ x: 0.5, y: 0.5 }], backgroundColor: '#00f2fe', pointRadius: 10 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: 0, max: 1, grid: baseAxisConfig.grid }, y: { min: 0, max: 0.6, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_6: function () {
+                let ctx = document.getElementById('chart-s6').getContext('2d');
+                let curve = []; for (let p = 0.01; p < 1; p += 0.02) curve.push({ x: p, y: -(p * Math.log2(p) + (1 - p) * Math.log2(1 - p)) });
+                playgroundActions.s6_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: curve, borderColor: '#a855f7', borderWidth: 3, pointRadius: 0 },
+                            { data: [{ x: 0.5, y: 1.0 }], backgroundColor: '#ffffff', pointRadius: 10 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: 0, max: 1, grid: baseAxisConfig.grid }, y: { min: 0, max: 1.1, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_7: function () {
+                let ctxP = document.getElementById('chart-s7-parent').getContext('2d');
+                playgroundActions.s7_parent = new Chart(ctxP, {
+                    type: 'bar',
+                    data: { labels: ['Parent Node Pool Chaos'], datasets: [{ data: [0.5], backgroundColor: '#a855f7', borderRadius: 8 }] },
+                    options: { scales: { y: { min: 0, max: 0.6, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+
+                let ctxC = document.getElementById('chart-s7-children').getContext('2d');
+                playgroundActions.s7_children = new Chart(ctxC, {
+                    type: 'bar',
+                    data: { labels: ['Left Child', 'Right Child'], datasets: [{ data: [0.2, 0.2], backgroundColor: '#00f2fe', borderRadius: 8 }] },
+                    options: { scales: { y: { min: 0, max: 0.6, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s7_update();
+            },
+            init_8: function () {
+                let ctx = document.getElementById('chart-s8').getContext('2d');
+                playgroundActions.s8_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets: [{ data: [...CLASSIFICATION_DATA_1], backgroundColor: d => d.raw.c === 'cyan' ? '#00f2fe' : '#ff4a6b', pointRadius: 7 }] },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_9: function () {
+                let ctx = document.getElementById('chart-s9').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: { labels: ['Instances Left in Node Window'], datasets: [{ data: [14], backgroundColor: '#8b5cf6', borderRadius: 8 }] },
+                    options: { scales: { y: { min: 0, max: 25, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+            },
+            init_10: function () {
+                let ctx = document.getElementById('chart-s10').getContext('2d');
+                playgroundActions.s10_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 0.5, y: 2 }, { x: 1.8, y: 1.5 }, { x: 2.8, y: 3.5 }, { x: 4.2, y: 5.8 }, { x: 5.5, y: 6.5 }], backgroundColor: '#ffffff', pointRadius: 7 },
+                            { type: 'line', data: [{ x: 0, y: 2 }, { x: 3, y: 2 }, { x: 3, y: 6 }, { x: 6, y: 6 }], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            },
+            init_11: function () {
+                let ctx = document.getElementById('chart-s11').getContext('2d');
+                playgroundActions.s11_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1.5, y: 2 }, { x: 2, y: 1.8 }, { x: 4, y: 5.5 }, { x: 5, y: 6 }], backgroundColor: '#f59e0b', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#ff4a6b', borderWidth: 2, borderDash: [4, 4], pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s11_update();
+            },
+            init_12: function () {
+                let ctx = document.getElementById('chart-s12').getContext('2d');
+                playgroundActions.s12_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [{ x: 1, y: 1.5 }, { x: 2, y: 1.4 }, { x: 2.5, y: 5.8 }, { x: 4, y: 6.2 }, { x: 5, y: 5.9 }], backgroundColor: '#fff', pointRadius: 7 },
+                            { type: 'line', data: [], borderColor: '#10b981', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+                playgroundActions.s12_setDepth('optimal');
+            },
+            init_13: function () {
+                let ctx = document.getElementById('chart-s13').getContext('2d');
+                let baseCurve = []; for (let a = 0; a <= 1; a += 0.05) baseCurve.push({ x: a, y: Math.max(3, Math.round(42 * Math.exp(-a * 4.5))) + a * 8 });
+                playgroundActions.s13_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { data: baseCurve, borderColor: 'rgba(255,255,255,0.15)', borderWidth: 3, pointRadius: 0 },
+                            { data: [], backgroundColor: '#ff4a6b', pointRadius: 8 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: 0, max: 1, grid: baseAxisConfig.grid }, y: { min: 0, max: 45, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s13_update();
+            },
+            init_14: function () {
+                let ctx = document.getElementById('chart-s14').getContext('2d');
+                playgroundActions.s14_chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        datasets: [
+                            { label: 'Training Error', data: [], borderColor: '#64748b', borderWidth: 2, pointRadius: 0 },
+                            { label: 'Validation Generalization Error', data: [], borderColor: '#00f2fe', borderWidth: 4, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: { type: 'linear', min: 2, max: 20, grid: baseAxisConfig.grid }, y: { min: 0, max: 0.6, grid: baseAxisConfig.grid } }, maintainAspectRatio: false }
+                });
+                playgroundActions.s14_update();
+            },
+            init_15: function () {
+                let ctx = document.getElementById('chart-s15').getContext('2d');
+                playgroundActions.s15_chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { data: [...CLASSIFICATION_DATA_1], backgroundColor: d => d.raw.c === 'cyan' ? '#00f2fe' : '#ff4a6b', pointRadius: 8 },
+                            { type: 'line', data: [{ x: 2.5, y: 0 }, { x: 2.5, y: 8 }], borderColor: '#00f2fe', borderWidth: 3, pointRadius: 0 }
+                        ]
+                    },
+                    options: { scales: { x: baseAxisConfig.xScale, y: baseAxisConfig.yScale }, maintainAspectRatio: false }
+                });
+            }
+        };
+
+        // CENTRAL MODULE ENGINE ROUTER SLIDES CONTROLLER
+        const navigationEngine = {
+            currentSlideIndex: 1,
+            totalSlidesCount: 17,
+
+            navigate: function (direction) {
+                let currentSlideDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                currentSlideDOM.classList.remove('active');
+
+                this.currentSlideIndex += direction;
+
+                let targetSlideDOM = document.querySelector(`.slide[data-index="${this.currentSlideIndex}"]`);
+                targetSlideDOM.classList.add('active');
+
+                document.getElementById('btn-prev').disabled = (this.currentSlideIndex === 1);
+                document.getElementById('btn-next').disabled = (this.currentSlideIndex === this.totalSlidesCount);
+                document.getElementById('nav-counter').innerText = `${this.currentSlideIndex} / ${this.totalSlidesCount}`;
+
+                let initKey = `init_${this.currentSlideIndex}`;
+                if (lazyChartInitializers[initKey] && !activeCharts[initKey]) {
+                    setTimeout(() => {
+                        lazyChartInitializers[initKey]();
+                        activeCharts[initKey] = true;
+                    }, 40);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lazyChartInitializers.init_1();
+            activeCharts['init_1'] = true;
+        });
+    </script>
+</body>
+
+</html>

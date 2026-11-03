@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistic Regression: Mathematical Tracing Suite</title>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #03050a;
+            color: #e2e8f0;
+            font-family: 'Space Grotesk', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #070d1a 0%, #020306 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Slide Layering Architecture */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.99);
+            transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1);
+            pointer-events: all;
+            z-index: 2;
+        }
+
+        /* Navigation HUD */
+        .controls {
+            position: absolute;
+            bottom: 2rem;
+            right: 4rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(7, 12, 26, 0.85);
+            padding: 12px 24px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .slide-indicator {
+            color: #64748b;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f9fafb;
+            border: 1px solid #475569;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #00f2fe;
+            border-color: #00f2fe;
+            color: #03050a;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.3);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+        }
+
+        .header-tag {
+            font-size: 11px;
+            color: #00f2fe;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        h1 {
+            font-size: 4rem;
+            color: #f9fafb;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        h1 span {
+            color: #00f2fe;
+            text-shadow: 0 0 30px rgba(0, 242, 254, 0.2);
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #f9fafb;
+            margin-bottom: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 span {
+            color: #00f2fe;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            background: rgba(0, 242, 254, 0.08);
+            padding: 2px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 242, 254, 0.15);
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #94a3b8;
+            margin-bottom: 10px;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        strong {
+            color: #f1f5f9;
+        }
+
+        /* Structural Grids */
+        .split-layout {
+            display: flex;
+            gap: 2.5rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 1.5rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        /* Interactive Panel & Math HUD Wrapper */
+        .interactive-panel {
+            flex: 1.2;
+            background: rgba(10, 17, 36, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 14px;
+        }
+
+        .chart-container {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            width: 100%;
+            background: #040812;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .math-block {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-left: 4px solid #00f2fe;
+            margin: 8px 0;
+            color: #e2e8f0;
+            font-size: 1.05rem;
+        }
+
+        /* Real-time Math Diagnostics Logger Terminal */
+        .math-telemetry-hud {
+            background: #02040a;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #a1a1aa;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .telemetry-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 4px;
+        }
+
+        .telemetry-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .telemetry-highlight {
+            color: #00f2fe;
+            font-weight: 500;
+        }
+
+        .telemetry-warn {
+            color: #f43f5e;
+        }
+
+        .telemetry-success {
+            color: #10b981;
+        }
+
+        /* Dataset Sample Indicator Chips */
+        .dataset-legend {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 10px;
+            font-size: 13px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .legend-chip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Confusion Matrix Grid styling */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .matrix-cell {
+            background: rgba(2, 4, 10, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .matrix-label {
+            font-size: 11px;
+            color: #52525b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .matrix-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: #f4f4f5;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <div class="header-tag">Algorithmic Math Verification Suite</div>
+            <h1>Logistic <span>Regression</span> Tracing</h1>
+            <p style="font-size: 1.25rem; max-width: 750px; color: #94a3b8; line-height: 1.7; margin-top: 10px;">
+                A transparent, step-by-step mathematical demonstration tracking continuous weights shifting onto
+                discrete decision bounds.
+            </p>
+            <div
+                style="margin-top: 30px; width: 100px; height: 3px; background: #00f2fe; border-radius: 2px; box-shadow: 0 0 20px rgba(0,242,254,0.5);">
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>01</span> The Tracing Sample Dataset</h2>
+                    <p>To explicitly see the calculations behind the model, we use a clear, manageable 4-point
+                        coordinate tracking space:</p>
+                    <div class="math-block">
+                        <strong>Negative Instances ($y=0$):</strong><br>
+                        Point A: $(-2, 0)$ &nbsp;|&nbsp; Point B: $(-1, 0)$
+                    </div>
+                    <div class="math-block" style="border-left-color: #f43f5e;">
+                        <strong>Positive Instances ($y=1$):</strong><br>
+                        Point C: $(1, 1)$ &nbsp;|&nbsp; Point D: $(2, 1)$
+                    </div>
+                    <p>Our objective is to calculate the precise line parameters ($w$ and $b$) that separate these data
+                        clusters.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="dataset-legend">
+                        <div class="legend-chip"><span
+                                style="width:8px; height:8px; background:#f43f5e; border-radius:50%;"></span> Class 0
+                            (Negative)</div>
+                        <div class="legend-chip"><span
+                                style="width:8px; height:8px; background:#00f2fe; border-radius:50%;"></span> Class 1
+                            (Positive)</div>
+                    </div>
+                    <div class="chart-container"><canvas id="canvas-s2"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>02</span> Linear Failure Framework</h2>
+                    <p>Fitting a standard linear prediction equation ($y = w \cdot x + b$) directly over binary markers
+                        causes issues:</p>
+                    <ul>
+                        <li><strong>Extrapolated Bounds:</strong> Calculating scores past the training parameters scales
+                            predictions beyond logical limits ($\hat{y} > 1$ or $\hat{y} < 0$).</li>
+                        <li><strong>Vulnerable Centers:</strong> Modulating extreme inputs alters the regression pitch,
+                            causing errors on internal points.</li>
+                    </ul>
+                    <p>Watch how the regression line struggles to map binary coordinates accurately on the grid graph.
+                    </p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="canvas-s3"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>03</span> Sigmoid Transformation</h2>
+                    <p>To contain predictions within probability limits, we route the linear formula through the
+                        **Sigmoid Activation function**:</p>
+                    <div class="math-block">
+                        $$\sigma(z) = \frac{1}{1 + e^{-z}} \quad \text{where} \quad z = w \cdot x + b$$
+                    </div>
+                    <p>This mathematical operation compresses the linear equation's infinite scale into a clean
+                        probability profile bounded between $0$ and $1$.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="canvas-s4"></canvas></div>
+                    <div class="math-telemetry-hud">
+                        <div class="telemetry-row"><span>Formula Evaluation:</span><span class="telemetry-highlight">p =
+                                1 / (1 + e^-(w·x + b))</span></div>
+                        <div class="telemetry-row"><span>Active Weights Configuration:</span><span>w = 1.50, b =
+                                0.00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>04</span> Binary Cross-Entropy Cost</h2>
+                    <p>We measure error by calculating the logarithm of our predictions relative to their true
+                        coordinates:</p>
+                    <div class="math-block">
+                        $$\text{Loss} = - [y \ln(p) + (1-y)\ln(1-p)]$$
+                    </div>
+                    <ul>
+                        <li>If target $y = 1$, the penalty scales up exponentially as $p \to 0$.</li>
+                        <li>If target $y = 0$, the penalty scales up exponentially as $p \to 1$.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="canvas-s5"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>05</span> Parameter Gradient Mechanics</h2>
+                    <p>To optimize our model, we take partial derivatives of the cost function to determine how changes
+                        to weights ($w$) or bias ($b$) impact overall error:</p>
+                    <div class="math-block">
+                        $$\frac{\partial J}{\partial w} = \frac{1}{m}\sum_{i=1}^{m}(p^{(i)} - y^{(i)})x^{(i)}$$
+                    </div>
+                    <p>This tells us exactly how much a point's error, multiplied by its input coordinate, pulls our
+                        model parameters out of alignment.</p>
+                </div>
+                <div class="interactive-panel" style="justify-content: center;">
+                    <div class="math-telemetry-hud" style="font-size: 13px; gap: 12px; padding: 24px;">
+                        <div style="color:#fff; font-weight:600; border-bottom:1px solid #222; padding-bottom:6px;">
+                            Sample Derivative Computation Block:</div>
+                        <div>Given a single test point at $x = 1.0, y = 1.0$</div>
+                        <div>Current Model Probability Output: <span class="telemetry-highlight">p = 0.731</span></div>
+                        <div>Coordinate Prediction Variance: $(p - y) = 0.731 - 1.0 = \mathbf{-0.269}$</div>
+                        <div>Weight Gradient Contribution: $(p - y) \cdot x = -0.269 \cdot 1.0 = \mathbf{-0.269}$</div>
+                        <div style="color:#10b981; font-size:11px;">Result: A negative gradient directs the model to
+                            increase weight 'w', sharpening the curve to fit the data points.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>06</span> Live Model Fitting Tracing</h2>
+                    <p>Watch the model optimize at a human-readable pace. You can track how changing parameters directly
+                        adjust the shape of the sigmoid curve over our 4 sample data points.</p>
+                    <p>The system computes predictions across all coordinates, measures the error penalties, and uses
+                        gradient descent to step toward the optimal configuration.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container" style="flex: 1.1;"><canvas id="canvas-s7"></canvas></div>
+                    <div class="math-telemetry-hud">
+                        <div class="telemetry-row"><span>Iterative Cycle Parameter (w):</span><span id="lbl-s7-w"
+                                class="telemetry-highlight">0.1000</span></div>
+                        <div class="telemetry-row"><span>Intercept Param Intersect (b):</span><span id="lbl-s7-b"
+                                class="telemetry-highlight">0.0000</span></div>
+                        <div class="telemetry-row"><span>Total Core Batch Loss Index:</span><span id="lbl-s7-loss"
+                                class="telemetry-warn">0.6931</span></div>
+                        <div class="telemetry-row"><span>Calculated Gradient (dJ/dw):</span><span
+                                id="lbl-s7-dw">0.0000</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>07</span> Decision Boundary Sweeping</h2>
+                    <p>Models produce continuous probabilities. We apply an explicit threshold cutoff ($\tau$) to
+                        convert these probabilities into final classifications:</p>
+                    <div class="math-block">
+                        $$\hat{y} = 1 \quad \text{if} \quad p \geq \tau \quad \text{else} \quad 0$$
+                    </div>
+                    <p>Watch the cutoff line sweep across our sample dataset. You can see the classification counts in
+                        the **Confusion Matrix** update instantly as points shift categories.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container" style="flex:0.9;"><canvas id="canvas-s8"></canvas></div>
+                    <div class="matrix-grid">
+                        <div class="matrix-cell">
+                            <div class="matrix-label">True Positive (TP)</div>
+                            <div class="matrix-value" id="m-tp" style="color:#00f2fe;">0</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-label">False Positive (FP)</div>
+                            <div class="matrix-value" id="m-fp" style="color:#f43f5e;">0</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-label">False Negative (FN)</div>
+                            <div class="matrix-value" id="m-fn" style="color:#f43f5e;">0</div>
+                        </div>
+                        <div class="matrix-cell">
+                            <div class="matrix-label">True Negative (TN)</div>
+                            <div class="matrix-value" id="m-tn" style="color:#10b981;">0</div>
+                        </div>
+                    </div>
+                    <div class="math-telemetry-hud">
+                        <div class="telemetry-row"><span>Active Sweep Threshold Line (&tau;):</span><span
+                                id="lbl-s8-tau" class="telemetry-highlight">0.50</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2><span>08</span> Performance Metrics Tracing</h2>
+                    <p>Changing our classification threshold creates a natural trade-off between core evaluation
+                        metrics:</p>
+                    <ul>
+                        <li><strong>Precision ($\frac{\text{TP}}{\text{TP}+\text{FP}}$):</strong> Measures the accuracy
+                            of positive predictions.</li>
+                        <li><strong>Recall ($\frac{\text{TP}}{\text{TP}+\text{FN}}$):</strong> Measures the percentage
+                            of actual positive cases captured.</li>
+                    </ul>
+                    <p>The graph tracks these changing values over time, showing how the model's overall performance
+                        balance shifts across different threshold levels.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="canvas-s9"></canvas></div>
+                    <div class="math-telemetry-hud">
+                        <div class="telemetry-row"><span>Calculated Precision Rate:</span><span id="lbl-s9-p"
+                                style="color:#00f2fe; font-weight:bold;">0.00</span></div>
+                        <div class="telemetry-row"><span>Calculated Recall Coverage:</span><span id="lbl-s9-r"
+                                style="color:#38bdf8; font-weight:bold;">0.00</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-indicator">1 / 9</span>
+            <button class="btn-nav" id="btn-prev" onclick="stepSlide(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="stepSlide(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        let activeSlideIndex = 0;
+        const slidesList = document.querySelectorAll('.slide');
+        const deckNavDisplay = document.getElementById('nav-indicator');
+        let activeAnimationFrameRef = null;
+        let globalLoopTimerTracker = null;
+
+        // FIXED DETERMINISTIC 4-POINT SAMPLE DATASET
+        const sampleDataset = [
+            { id: 'A', x: -2.0, y: 0 },
+            { id: 'B', x: -1.0, y: 0 },
+            { id: 'C', x: 1.0, y: 1 },
+            { id: 'D', x: 2.0, y: 1 }
+        ];
+
+        function stepSlide(vector) {
+            if (activeAnimationFrameRef) { cancelAnimationFrame(activeAnimationFrameRef); activeAnimationFrameRef = null; }
+            if (globalLoopTimerTracker) { clearInterval(globalLoopTimerTracker); globalLoopTimerTracker = null; }
+
+            slidesList[activeSlideIndex].classList.remove('active');
+            activeSlideIndex += vector;
+            slidesList[activeSlideIndex].classList.add('active');
+
+            document.getElementById('btn-prev').disabled = activeSlideIndex === 0;
+            document.getElementById('btn-next').disabled = activeSlideIndex === slidesList.length - 1;
+            deckNavDisplay.innerText = (activeSlideIndex + 1) + " / " + slidesList.length;
+
+            setTimeout(() => {
+                initCanvasDimensions();
+                if (activeSlideIndex === 1) renderSlide2();
+                if (activeSlideIndex === 2) renderSlide3();
+                if (activeSlideIndex === 3) renderSlide4();
+                if (activeSlideIndex === 4) renderSlide5();
+                if (activeSlideIndex === 6) runSlowMotionOptimization();
+                if (activeSlideIndex === 7 || activeSlideIndex === 8) runThresholdSweeperSuite();
+            }, 60);
+        }
+
+        function initCanvasDimensions() {
+            const canvases = document.querySelectorAll('canvas');
+            canvases.forEach(canv => {
+                const parentBox = canv.parentElement;
+                if (!parentBox) return;
+                const dpr = window.devicePixelRatio || 1;
+                canv.width = parentBox.clientWidth * dpr;
+                canv.height = parentBox.clientHeight * dpr;
+                const ctx = canv.getContext('2d');
+                if (ctx) ctx.scale(dpr, dpr);
+                canv.style.width = parentBox.clientWidth + "px";
+                canv.style.height = parentBox.clientHeight + "px";
+            });
+        }
+        window.addEventListener('resize', initCanvasDimensions);
+
+        // HELPER: Renders a clean grid background on a canvas
+        function drawGraphPaperBackground(ctx, w, h) {
+            ctx.fillStyle = "#040812";
+            ctx.fillRect(0, 0, w, h);
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            ctx.lineWidth = 1;
+
+            // Draw grid lines every 25 pixels
+            for (let x = 0; x < w; x += 25) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+            for (let y = 0; y < h; y += 25) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
+
+            // Draw center coordinate axes
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.moveTo(w / 2, 0); ctx.lineTo(w / 2, h); ctx.stroke(); // Y Axis
+            ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke(); // X Axis
+        }
+
+        // Mapping helpers: Converts coordinates (-4 to +4) to screen pixels
+        function getScreenX(valX, w) { return w / 2 + (valX / 4) * (w - 60); }
+        function getScreenY(valY, h) { return h / 2 - (valY * 0.35 * h); }
+
+        function drawDatasetPoints(ctx, w, h) {
+            sampleDataset.forEach(pt => {
+                let cx = getScreenX(pt.x, w);
+                let cy = getScreenY(pt.y, h);
+
+                ctx.fillStyle = pt.y === 1 ? '#00f2fe' : '#f43f5e';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Draw coordinate label text
+                ctx.fillStyle = '#64748b';
+                ctx.font = '10px JetBrains Mono';
+                ctx.fillText(`${pt.id}(${pt.x},${pt.y})`, cx - 18, cy - 14);
+            });
+        }
+
+        // ==========================================
+        // SLIDE 2: SAMPLE DATASET RENDER
+        // ==========================================
+        function renderSlide2() {
+            const canvas = document.getElementById('canvas-s2');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            function frame() {
+                drawGraphPaperBackground(ctx, w, h);
+                drawDatasetPoints(ctx, w, h);
+                activeAnimationFrameRef = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        // ==========================================
+        // SLIDE 3: LINEAR FRAMEWORK FAILURE MODULATOR
+        // ==========================================
+        function renderSlide3() {
+            const canvas = document.getElementById('canvas-s3');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            function frame() {
+                drawGraphPaperBackground(ctx, w, h);
+                drawDatasetPoints(ctx, w, h);
+
+                // Draw standard linear prediction line path: y = 0.25x + 0.5
+                ctx.strokeStyle = 'rgba(244, 63, 94, 0.6)';
+                ctx.lineWidth = 2.5;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(getScreenX(-3.5, w), getScreenY(0.25 * -3.5 + 0.5, h));
+                ctx.lineTo(getScreenX(3.5, w), getScreenY(0.25 * 3.5 + 0.5, h));
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                activeAnimationFrameRef = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        // ==========================================
+        // SLIDE 4: STATIC SIGMOID ACTIVATION WAVE
+        // ==========================================
+        function renderSlide4() {
+            const canvas = document.getElementById('canvas-s4');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            function frame() {
+                drawGraphPaperBackground(ctx, w, h);
+                drawDatasetPoints(ctx, w, h);
+
+                // Plot a sample Sigmoid Curve with parameters: w = 1.5, b = 0
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let px = 0; px < w; px++) {
+                    let nx = ((px - w / 2) / (w - 60)) * 8; // Convert pixels to coordinate space
+                    let z = 1.5 * nx + 0.0;
+                    let sig = 1 / (1 + Math.exp(-z));
+                    let py = getScreenY(sig, h);
+                    if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                activeAnimationFrameRef = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        // ==========================================
+        // SLIDE 5: RECTILINEAR LOG LOSS SURFACE
+        // ==========================================
+        function renderSlide5() {
+            const canvas = document.getElementById('canvas-s5');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            let timeOffset = 0;
+            function frame() {
+                timeOffset += 0.015;
+                drawGraphPaperBackground(ctx, w, h);
+
+                // Plot standard Log Loss shape curve for target y = 1
+                ctx.strokeStyle = '#f43f5e';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let px = 40; px < w - 40; px++) {
+                    let pVal = (px - 40) / (w - 80);
+                    if (pVal < 0.01) pVal = 0.01;
+                    let lossY = -Math.log(pVal) * 0.25; // Scale to fit screen height
+                    let screenY = h - 50 - (lossY * h);
+                    if (px === 40) ctx.moveTo(px, screenY); else ctx.lineTo(px, screenY);
+                }
+                ctx.stroke();
+
+                // Plot a moving tracking circle along the curve profile
+                let simP = 0.5 + Math.sin(timeOffset) * 0.45;
+                let simLoss = -Math.log(simP) * 0.25;
+                let ballX = 40 + simP * (w - 80);
+                let ballY = h - 50 - (simLoss * h);
+
+                ctx.fillStyle = '#00f2fe';
+                ctx.beginPath(); ctx.arc(ballX, ballY, 8, 0, Math.PI * 2); ctx.fill();
+
+                ctx.fillStyle = '#64748b'; ctx.font = '11px JetBrains Mono';
+                ctx.fillText(`p: ${simP.toFixed(2)}, Loss: ${(-Math.log(simP)).toFixed(2)}`, ballX - 40, ballY - 15);
+
+                activeAnimationFrameRef = requestAnimationFrame(frame);
+            }
+            frame();
+        }
+
+        // ==========================================
+        // SLIDE 7: SLOW MOTION GRADIENT TRAINING DESCENT
+        // ==========================================
+        function runSlowMotionOptimization() {
+            const canvas = document.getElementById('canvas-s7');
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            let modelW = 0.1;
+            let modelB = 0.0;
+            // Dialed back training step speed to make calculations readable
+            let learningRate = 0.08;
+
+            globalLoopTimerTracker = setInterval(() => {
+                let dJw = 0;
+                let dJb = 0;
+                let totalLoss = 0;
+
+                // Calculate predictions and errors over our 4 points
+                sampleDataset.forEach(pt => {
+                    let z = modelW * pt.x + modelB;
+                    let p = 1 / (1 + Math.exp(-z));
+
+                    let error = p - pt.y;
+                    dJw += error * pt.x;
+                    dJb += error;
+
+                    let safeP = Math.max(0.0001, Math.min(0.9999, p));
+                    totalLoss += -pt.y * Math.log(safeP) - (1 - pt.y) * Math.log(1 - safeP);
+                });
+
+                dJw /= sampleDataset.length;
+                dJb /= sampleDataset.length;
+                totalLoss /= sampleDataset.length;
+
+                // Update model parameters
+                modelW -= learningRate * dJw;
+                modelB -= learningRate * dJb;
+
+                // Update text displays
+                document.getElementById('lbl-s7-w').innerText = modelW.toFixed(4);
+                document.getElementById('lbl-s7-b').innerText = modelB.toFixed(4);
+                document.getElementById('lbl-s7-loss').innerText = totalLoss.toFixed(4);
+                document.getElementById('lbl-s7-dw').innerText = dJw.toFixed(4);
+
+                // Render updated curve position on graph
+                drawGraphPaperBackground(ctx, w, h);
+                drawDatasetPoints(ctx, w, h);
+
+                ctx.strokeStyle = '#00f2fe';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                for (let px = 0; px < w; px++) {
+                    let nx = ((px - w / 2) / (w - 60)) * 8;
+                    let z = modelW * nx + modelB;
+                    let sig = 1 / (1 + Math.exp(-z));
+                    let py = getScreenY(sig, h);
+                    if (px === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+                }
+                ctx.stroke();
+
+                // Reset training loop once model converges
+                if (totalLoss < 0.25) { modelW = 0.1; modelB = 0.0; }
+
+            }, 130); // 130ms step updates
+        }
+
+        // ==========================================
+        // SLIDE 8 & 9: THRESHOLD SCANNING & PERFORMANCE METRICS
+        // ==========================================
+        let sweepThreshold = 0.15;
+        let sweepDirection = 0.004;
+        const metricsHistory = [];
+
+        function runThresholdSweeperSuite() {
+            globalLoopTimerTracker = setInterval(() => {
+                sweepThreshold += sweepDirection;
+                if (sweepThreshold >= 0.85 || sweepThreshold <= 0.15) sweepDirection *= -1;
+
+                // Compute Confusion Matrix parameters
+                let tp = 0, fp = 0, fn = 0, tn = 0;
+                sampleDataset.forEach(pt => {
+                    // Predictions are derived assuming an operational parameter model: w=1.8, b=0
+                    let z = 1.8 * pt.x + 0.0;
+                    let p = 1 / (1 + Math.exp(-z));
+                    let prediction = p >= sweepThreshold ? 1 : 0;
+
+                    if (pt.y === 1 && prediction === 1) tp++;
+                    else if (pt.y === 0 && prediction === 1) fp++;
+                    else if (pt.y === 1 && prediction === 0) fn++;
+                    else if (pt.y === 0 && prediction === 0) tn++;
+                });
+
+                let precision = (tp + fp) > 0 ? (tp / (tp + fp)) : 0;
+                let recall = (tp + fn) > 0 ? (tp / (tp + fn)) : 0;
+
+                if (activeSlideIndex === 7) {
+                    document.getElementById('lbl-s8-tau').innerText = sweepThreshold.toFixed(3);
+                    document.getElementById('m-tp').innerText = tp;
+                    document.getElementById('m-fp').innerText = fp;
+                    document.getElementById('m-fn').innerText = fn;
+                    document.getElementById('m-tn').innerText = tn;
+                    renderSlide8Plot(sweepThreshold);
+                }
+
+                if (activeSlideIndex === 8) {
+                    document.getElementById('lbl-s9-p').innerText = precision.toFixed(2);
+                    document.getElementById('lbl-s9-r').innerText = recall.toFixed(2);
+
+                    if (metricsHistory.length > 60) metricsHistory.shift();
+                    metricsHistory.push({ t: sweepThreshold, p: precision, r: recall });
+                    renderSlide9Plot();
+                }
+
+            }, 50);
+        }
+
+        function renderSlide8Plot(threshold) {
+            const canvas = document.getElementById('canvas-s8');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            drawGraphPaperBackground(ctx, w, h);
+            drawDatasetPoints(ctx, w, h);
+
+            // Draw a constant reference sigmoid model curve line
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            for (let px = 0; px < w; px++) {
+                let nx = ((px - w / 2) / (w - 60)) * 8;
+                let sig = 1 / (1 + Math.exp(-(1.8 * nx)));
+                if (px === 0) ctx.moveTo(px, getScreenY(sig, h)); else ctx.lineTo(px, getScreenY(sig, h));
+            }
+            ctx.stroke();
+
+            // Draw the active threshold horizontal boundary cutoff line
+            let targetY = getScreenY(threshold, h);
+            ctx.strokeStyle = '#eab308';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.beginPath(); ctx.moveTo(40, targetY); ctx.lineTo(w - 40, targetY); ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function renderSlide9Plot() {
+            const canvas = document.getElementById('canvas-s9');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width / (window.devicePixelRatio || 1);
+            const h = canvas.height / (window.devicePixelRatio || 1);
+
+            drawGraphPaperBackground(ctx, w, h);
+
+            if (metricsHistory.length < 2) return;
+
+            // Plot changing Precision values over time (Cyan)
+            ctx.strokeStyle = '#00f2fe'; ctx.lineWidth = 2.5; ctx.beginPath();
+            metricsHistory.forEach((f, i) => {
+                let cx = 40 + (i / (metricsHistory.length - 1)) * (w - 80);
+                let cy = h - 40 - (f.p * (h - 80));
+                if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+            });
+            ctx.stroke();
+
+            // Plot changing Recall values over time (Blue)
+            ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2.5; ctx.beginPath();
+            metricsHistory.forEach((f, i) => {
+                let cx = 40 + (i / (metricsHistory.length - 1)) * (w - 80);
+                let cy = h - 40 - (f.r * (h - 80));
+                if (i === 0) ctx.moveTo(cx, cy); else ctx.lineTo(cx, cy);
+            });
+            ctx.stroke();
+        }
+    </script>
+</body>
+
+</html>

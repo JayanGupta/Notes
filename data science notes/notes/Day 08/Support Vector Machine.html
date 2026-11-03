@@ -1,0 +1,1456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Vector Machines: Geometric Optimization Suite</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background: #03050a;
+            color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #deck {
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at 50% 50%, #0a0514 0%, #020306 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Slide Architecture */
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding: 3rem 4rem;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.98) translateY(15px);
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+            transform: scale(1) translateY(0);
+            pointer-events: all;
+            z-index: 2;
+        }
+
+        /* Navigation HUD */
+        .controls {
+            position: absolute;
+            bottom: 2rem;
+            right: 4rem;
+            z-index: 100;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(5, 3, 15, 0.85);
+            padding: 12px 24px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+        }
+
+        .slide-indicator {
+            color: #94a3b8;
+            font-size: 14px;
+            font-weight: 700;
+            margin-right: 12px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .btn-nav {
+            background: #1e293b;
+            color: #f8fafc;
+            border: 1px solid #334155;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-nav:hover:not(:disabled) {
+            background: #d946ef;
+            border-color: #d946ef;
+            color: #fff;
+            box-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-nav:disabled {
+            opacity: 0.15;
+            cursor: not-allowed;
+        }
+
+        /* Branding Signature */
+        .suite-tag {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 4rem;
+            z-index: 100;
+            font-size: 12px;
+            color: #475569;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .signature-tag {
+            color: #d946ef;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(217, 70, 239, 0.3);
+        }
+
+        /* Typography */
+        .header-tag {
+            font-size: 11px;
+            color: #d946ef;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+            margin-bottom: 6px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            color: #fff;
+            margin-bottom: 12px;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.1;
+        }
+
+        h1 span {
+            background: linear-gradient(135deg, #d946ef 0%, #38bdf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        h2 span {
+            color: #d946ef;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            background: rgba(217, 70, 239, 0.1);
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(217, 70, 239, 0.2);
+        }
+
+        p,
+        li {
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+
+        ul {
+            margin-left: 20px;
+            margin-bottom: 12px;
+        }
+
+        /* Grid Layouts */
+        .split-layout {
+            display: flex;
+            gap: 3rem;
+            flex: 1;
+            min-height: 0;
+            align-items: stretch;
+            margin-bottom: 2rem;
+        }
+
+        .text-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 0;
+            overflow-y: auto;
+            padding-right: 15px;
+        }
+
+        /* Visual Playground Architecture */
+        .interactive-panel {
+            flex: 1.3;
+            background: rgba(8, 5, 20, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            gap: 12px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .chart-container {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            background: #030206;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        .math-block {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border-left: 4px solid #d946ef;
+            margin: 8px 0;
+            color: #e2e8f0;
+            font-size: 1.1rem;
+        }
+
+        /* HUD Telemetry */
+        .telemetry-hud {
+            background: #020104;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: #94a3b8;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            padding-bottom: 6px;
+            align-items: center;
+        }
+
+        .hud-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .val-purple {
+            color: #d946ef;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(217, 70, 239, 0.2);
+        }
+
+        .val-cyan {
+            color: #38bdf8;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(56, 189, 248, 0.2);
+        }
+
+        .val-rose {
+            color: #f43f5e;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.2);
+        }
+
+        .val-emerald {
+            color: #10b981;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+        }
+
+        /* UI Controls */
+        .playground-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            color: #cbd5e1;
+            font-weight: 500;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #1e293b;
+            height: 6px;
+            border-radius: 3px;
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            background: #d946ef;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #fff;
+            box-shadow: 0 0 10px rgba(217, 70, 239, 0.4);
+            transition: transform 0.1s;
+        }
+
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            background: #f0abfc;
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #d946ef 0%, #38bdf8 100%);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-action:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(217, 70, 239, 0.3);
+        }
+
+        /* Multi-box layouts */
+        .matrix-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .matrix-box {
+            background: rgba(5, 3, 15, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .matrix-box h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #fff;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 6px;
+        }
+
+        .matrix-box h3 span {
+            color: #d946ef;
+        }
+
+        .pipeline-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            flex: 1;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .pipeline-card {
+            background: rgba(5, 3, 15, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.2rem 1rem;
+            border-radius: 12px;
+            text-align: center;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pipeline-card:hover,
+        .pipeline-card.active-step {
+            border-color: #d946ef;
+            background: rgba(5, 3, 15, 0.8);
+            transform: translateY(-2px);
+        }
+
+        .pipeline-card.active-step {
+            box-shadow: 0 5px 20px rgba(217, 70, 239, 0.2);
+        }
+
+        .pipeline-card::after {
+            content: '→';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.2rem;
+            color: #475569;
+        }
+
+        .pipeline-card:last-child::after {
+            display: none;
+        }
+
+        .pipeline-icon {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 0 8px rgba(217, 70, 239, 0.3));
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="deck">
+        <div class="suite-tag">Convex Optimization & Kernel Spaces // <span class="signature-tag">Created by Jayan
+                Gupta</span></div>
+
+        <div class="slide active" data-index="1">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 01 // Geometric Foundations</div>
+                    <h1>What is <span>SVM?</span></h1>
+                    <p><strong>Support Vector Machines (SVM)</strong> are a premier class of supervised learning
+                        algorithms engineered to find the most optimal separating boundary (hyperplane) between
+                        different data categories.</p>
+                    <p>Instead of mapping probabilistic curves, SVM takes a strict geometric approach:</p>
+                    <ul>
+                        <li><strong>Margin Maximization:</strong> It physically maximizes the empty space between
+                            classes to ensure robust, generalized predictions.</li>
+                        <li><strong>Convex Rigor:</strong> Backed by solid convex optimization mathematics, ensuring the
+                            model finds a global optimum without getting trapped in local minimums.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s1"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Feature Topology:</span><span class="val-emerald">Linearly
+                                Separable</span></div>
+                        <div class="hud-row"><span>Optimal Boundary Status:</span><span class="val-purple">Maximum
+                                Margin Formed</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="2">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 02 // Boundary Traps</div>
+                    <h2><span>02</span> Why Not Any Boundary?</h2>
+                    <p>If data is perfectly separated, an infinite number of straight lines could technically split the
+                        classes.</p>
+                    <p>However, an arbitrary line often passes dangerously close to training points. This creates severe
+                        structural vulnerability:</p>
+                    <ul>
+                        <li><strong>High Variance Risk:</strong> Minor statistical noise in real-world data easily
+                            crosses tight, fragile boundaries, causing massive misclassification rates.</li>
+                        <li><strong>The Solution:</strong> The algorithm must actively repel the boundary away from the
+                            data points.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s2"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Current Boundary State:</span><span id="lbl-s2-state"
+                                class="val-rose">Fragile (High Overfitting Risk)</span></div>
+                    </div>
+                    <button class="btn-action" onclick="actions.s2_cycle()">Evaluate Alternative Hyperplanes</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="3">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 03 // The Safety Buffer</div>
+                    <h2><span>03</span> Maximum Margin Concept</h2>
+                    <p>To construct an unshakeable boundary, SVM identifies the maximum empty space—or
+                        <strong>Margin</strong>—between the two target classes.
+                    </p>
+                    <p>By forcing the decision hyperplane directly down the center of this maximized margin, we grant
+                        the model a massive mathematical safety buffer.</p>
+                    <div class="math-block">
+                        Goal: Maximize the orthogonal distance to the closest data points from either class.
+                    </div>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s3"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Margin Safety Width:</span><span id="lbl-s3-width"
+                                class="val-cyan">Baseline Extent</span></div>
+                    </div>
+                    <button class="btn-action" onclick="actions.s3_maximize()">Execute Margin Maximization</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="4">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 04 // Core Structural Anchors</div>
+                    <h2><span>04</span> Support Vectors</h2>
+                    <p>The entire location, angle, and width of the decision margin is defined by an incredibly small
+                        subset of data points called <strong>Support Vectors</strong>.</p>
+                    <p>These are the points resting exactly on the margin's outer gutters:</p>
+                    <ul>
+                        <li><strong>Absolute Independence:</strong> You could completely delete every other data point
+                            in the system. As long as the support vectors remain, the model's boundary will not shift a
+                            single millimeter.</li>
+                        <li><strong>High Efficiency:</strong> The model ignores non-support vectors during inference.
+                        </li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s4"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Active Support Vectors:</span><span id="lbl-s4-sv"
+                                class="val-purple">Awaiting Isolation...</span></div>
+                    </div>
+                    <button class="btn-action" onclick="actions.s4_highlight()">Isolate Anchor Vectors</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="5">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 05 // N-Dimensional Separators</div>
+                    <h2><span>05</span> The Hyperplane</h2>
+                    <p>In 2D space, the boundary is a line. In 3D, it is a flat plane. For anything higher, we use the
+                        generalized term <strong>Hyperplane</strong>.</p>
+                    <p>A hyperplane is mathematically defined by a weight vector and a scalar offset:</p>
+                    <div class="math-block">
+                        $$\mathbf{w}^T \mathbf{x} + b = 0$$
+                    </div>
+                    <ul>
+                        <li><strong>$\mathbf{w}$ (Weight Normal):</strong> A vector perpendicular to the boundary that
+                            controls its rotation.</li>
+                        <li><strong>$b$ (Bias Term):</strong> Controls the parallel displacement from the origin.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s5"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Rotate Weight Vector Normal ($\mathbf{w}$)</label><span
+                                    id="val-s5-w" class="val-cyan">45°</span></div>
+                            <input type="range" id="slide-s5-w" min="20" max="70" value="45"
+                                oninput="actions.s5_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="6">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 06 // Inference Evaluation</div>
+                    <h2><span>06</span> The Classification Rule</h2>
+                    <p>Classifying a new, unseen data point is deterministic and instantaneous.</p>
+                    <p>The new coordinates are plugged into the finalized hyperplane equation. The model outputs a
+                        prediction based solely on the mathematical sign of the result:</p>
+                    <div class="math-block">
+                        $$f(\mathbf{x}) = \text{sign}(\mathbf{w}^T \mathbf{x} + b)$$
+                    </div>
+                    <ul>
+                        <li>If the result is $\ge 0$, it falls in the Positive Half-Space (Class +1).</li>
+                        <li>If the result is $< 0$, it falls in the Negative Half-Space (Class -1).</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s6"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Test Query $\mathbf{x}_{\text{new}}$:</span><span id="lbl-s6-query"
+                                class="val-cyan">Awaiting Input...</span></div>
+                        <div class="hud-row"><span>Evaluation Output:</span><span id="lbl-s6-res"
+                                class="val-purple">Null</span></div>
+                    </div>
+                    <button class="btn-action" onclick="actions.s6_test()">Drop Random Query Vector</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="7">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 07 // L2 Norm Relationships</div>
+                    <h2><span>07</span> The Margin Formula</h2>
+                    <p>To maximize the margin mathematically, we must express its physical width via our model
+                        parameters.</p>
+                    <p>By scaling the dataset so that the closest points lie exactly on $\mathbf{w}^T \mathbf{x} + b =
+                        \pm 1$, the orthogonal distance between these two gutters becomes:</p>
+                    <div class="math-block">
+                        $$\text{Margin Width} = \frac{2}{\|\mathbf{w}\|}$$
+                    </div>
+                    <p>This formulation reveals the central trick of SVM: <strong>To maximize the width of the margin,
+                            we must minimize the Euclidean length $\|\mathbf{w}\|$ of the weight vector.</strong></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s7"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Vector Magnitude $\|\mathbf{w}\|$</label><span
+                                    id="val-s7-w" class="val-cyan">1.0</span></div>
+                            <input type="range" id="slide-s7-w" min="5" max="25" value="10"
+                                oninput="actions.s7_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Derived Margin Width ($2/\|\mathbf{w}\|$):</span><span
+                                id="lbl-s7-width" class="val-emerald">2.00 Units</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="8">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 08 // Quadratic Programming</div>
+                    <h2><span>08</span> Optimization Objective</h2>
+                    <p>We combine our margin goal and classification rules into a single, constrained optimization
+                        problem:</p>
+                    <div class="math-block" style="font-size:0.95rem;">
+                        $$\min_{\mathbf{w}, b} \frac{1}{2}\|\mathbf{w}\|^2 \quad \text{subject to } y_i(\mathbf{w}^T
+                        \mathbf{x}_i + b) \ge 1$$
+                    </div>
+                    <p>This formulation represents a strictly convex Quadratic Programming (QP) problem. The bowl-shaped
+                        optimization landscape guarantees that the algorithm will efficiently locate the absolute global
+                        minimum without stalling.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s8"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>QP Solver Status:</span><span id="lbl-s8-state"
+                                class="val-rose">Idle</span></div>
+                    </div>
+                    <button class="btn-action" onclick="actions.s8_solve()">Execute Convex QP Solver</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="9">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 09 // Non-Separable Relaxation</div>
+                    <h2><span>09</span> Hard vs. Soft Margins</h2>
+                    <p>A strict <strong>Hard Margin</strong> model crashes if data overlaps, as no perfect linear
+                        separator exists.</p>
+                    <p>A <strong>Soft Margin</strong> model introduces <strong>Slack Variables ($\xi_i$)</strong>. This
+                        grants individual points mathematical "permission" to breach the margin gutters or cross the
+                        hyperplane.</p>
+                    <div class="math-block">
+                        $$y_i(\mathbf{w}^T \mathbf{x}_i + b) \ge 1 - \xi_i$$
+                    </div>
+                    <p>This relaxation enables SVM to formulate stable boundaries even in highly noisy datasets.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s9"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Architecture Mode:</span><span id="lbl-s9-mode" class="val-rose">Hard
+                                Margin (Strict)</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s9" onclick="actions.s9_toggle()">Inject Slack Tolerance</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="10">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 10 // Violation Penalties</div>
+                    <h2><span>10</span> The C Parameter</h2>
+                    <p>The hyperparameter <strong>$C$</strong> dictates the trade-off between maximizing the empty
+                        margin width and punishing classification errors (slack violations).</p>
+                    <div class="math-block">
+                        $$\min \frac{1}{2}\|\mathbf{w}\|^2 + C \sum \xi_i$$
+                    </div>
+                    <ul>
+                        <li><strong>Low C:</strong> Forgiving. Prioritizes a wide margin, allowing some points to be
+                            misclassified (Reduces overfitting).</li>
+                        <li><strong>High C:</strong> Strict. Shrinks the margin aggressively to classify all training
+                            points perfectly (Increases overfitting risk).</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s10"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Penalty Factor ($C$)</label><span id="val-s10-c"
+                                    class="val-cyan">C = 1.0</span></div>
+                            <input type="range" id="slide-s10-c" min="1" max="3" value="2"
+                                oninput="actions.s10_update()">
+                        </div>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Boundary Status:</span><span id="lbl-s10-desc"
+                                class="val-emerald">Balanced Regularization</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="11">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 11 // Linear Limitations</div>
+                    <h2><span>11</span> Non-Linear Data Problem</h2>
+                    <p>When datasets contain complex formations—like concentric clusters—no straight line can
+                        successfully separate the classes.</p>
+                    <p>Forcing a linear SVM onto these formations yields catastrophic prediction accuracies.</p>
+                    <ul>
+                        <li><strong>The Dimension Solution:</strong> By mathematically lifting these coordinates into an
+                            added dimension (e.g., $Z = X^2 + Y^2$), previously intertwined classes separate physically,
+                            allowing a flat plane to slice cleanly between them.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s11"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Separability Purity:</span><span id="lbl-s11-state"
+                                class="val-rose">0.00% (Inseparable)</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s11" onclick="actions.s11_lift()">Project to 3D Paraboloid
+                        Space</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="12">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 12 // Implicit Projections</div>
+                    <h2><span>12</span> The Kernel Trick</h2>
+                    <p>Explicitly transforming millions of data points into higher dimensions is computationally
+                        crippling.</p>
+                    <p>The <strong>Kernel Trick</strong> mathematically bypasses the transformation. Kernel functions
+                        calculate the exact inner product of points in the high-dimensional space using only their
+                        original low-dimensional coordinates.</p>
+                    <div class="math-block">
+                        $$K(\mathbf{x}_i, \mathbf{x}_j) = \langle \Phi(\mathbf{x}_i), \Phi(\mathbf{x}_j) \rangle$$
+                    </div>
+                    <p>This allows SVMs to model incredibly complex, high-dimensional boundaries with almost zero
+                        additional processing overhead.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container" style="display:flex; justify-content:center; align-items:center;">
+                        <h3 style="color:#d946ef; font-family:'JetBrains Mono'; text-align:center;">Compute
+                            Bypassed:<br><span style="color:#38bdf8;">$\Phi(x) \to K(x, x')$</span></h3>
+                    </div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Performance Gain:</span><span class="val-emerald">O(N) operations
+                                avoided.</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="13">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 13 // Base Similarity Metrics</div>
+                    <h2><span>13</span> Linear Kernel</h2>
+                    <p>The <strong>Linear Kernel</strong> is the simplest transformation. It computes the standard
+                        algebraic dot product without lifting the data into higher dimensions.</p>
+                    <div class="math-block">
+                        $$K(\mathbf{x}, \mathbf{y}) = \mathbf{x}^T \mathbf{y}$$
+                    </div>
+                    <ul>
+                        <li><strong>Use Case:</strong> Ideal for datasets that already possess extremely high
+                            dimensionality (e.g., Natural Language Processing where features > rows).</li>
+                        <li><strong>Performance:</strong> The fastest kernel to compute.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s13"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="14">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 14 // Curved Intersects</div>
+                    <h2><span>14</span> Polynomial Kernel</h2>
+                    <p>The <strong>Polynomial Kernel</strong> considers cross-feature interactions up to a specified
+                        degree $d$, allowing the model to construct curved, non-linear boundaries.</p>
+                    <div class="math-block">
+                        $$K(\mathbf{x}, \mathbf{y}) = (\mathbf{x}^T \mathbf{y} + c)^d$$
+                    </div>
+                    <ul>
+                        <li>If $d=2$, it captures parabolic shapes.</li>
+                        <li>If $d=3$, it allows for S-shaped cubic bends.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s14"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Polynomial Degree Exponent ($d$)</label><span
+                                    id="val-s14-d" class="val-cyan">d = 1</span></div>
+                            <input type="range" id="slide-s14-d" min="1" max="3" value="1"
+                                oninput="actions.s14_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="15">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 15 // Infinite Dimensions</div>
+                    <h2><span>15</span> RBF (Gaussian) Kernel</h2>
+                    <p>The <strong>Radial Basis Function (RBF)</strong> is the default, most powerful kernel. It
+                        projects feature spaces into conceptually infinite dimensions.</p>
+                    <div class="math-block">
+                        $$K(\mathbf{x}, \mathbf{y}) = \exp\left(-\gamma \|\mathbf{x} - \mathbf{y}\|^2\right)$$
+                    </div>
+                    <p>It behaves like a geographical heatmap. Similarity decays exponentially as points move further
+                        apart, allowing the SVM to wrap custom, fluid boundaries perfectly around localized data
+                        clusters.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s15"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="16">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 16 // Radiance Control</div>
+                    <h2><span>16</span> The Gamma Parameter</h2>
+                    <p>In the RBF kernel, <strong>$\gamma$ (Gamma)</strong> controls the influence radius of a single
+                        support vector.</p>
+                    <ul>
+                        <li><strong>Low Gamma:</strong> Far-reaching influence. Boundaries are smooth and generalized.
+                        </li>
+                        <li><strong>High Gamma:</strong> Tight, localized influence. The boundary contorts sharply to
+                            wrap around individual points, heavily increasing the risk of overfitting.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s16"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Modify RBF Radius Influence ($\gamma$)</label><span
+                                    id="val-s16-g" class="val-purple">Balanced</span></div>
+                            <input type="range" id="slide-s16-g" min="1" max="3" value="2"
+                                oninput="actions.s16_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="17">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 17 // Continuous Tolerances</div>
+                    <h2><span>17</span> Support Vector Regression (SVR)</h2>
+                    <p>SVM adapts to continuous regression by inverting its logic: instead of carving an empty gap, SVR
+                        attempts to fit as much data as possible inside a central prediction tube.</p>
+                    <div class="math-block">
+                        $$|y_i - (\mathbf{w}^T \mathbf{x}_i + b)| \le \epsilon$$
+                    </div>
+                    <p>This creates an <strong>$\epsilon$-insensitive tube</strong>. Any data point falling inside this
+                        tube registers zero loss, making SVR highly robust against minor noise in the data.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s17"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="control-group">
+                            <div class="control-label"><label>Adjust Tube Thickness ($\epsilon$)</label><span
+                                    id="val-s17-e" class="val-cyan">0.30</span></div>
+                            <input type="range" id="slide-s17-e" min="1" max="8" value="3"
+                                oninput="actions.s17_update()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="18">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 18 // Distance Integrity</div>
+                    <h2><span>18</span> Feature Scaling</h2>
+                    <p>Because the fundamental math behind SVM relies on calculating raw Euclidean distances, it is
+                        acutely sensitive to variations in feature scales.</p>
+                    <p>If one feature ranges from $0$ to $100,000$ and another ranges from $0$ to $1$, the larger
+                        feature will completely dominate the margin geometry, destroying the model's accuracy.</p>
+                    <p><strong>Rule:</strong> Always apply Standard Scaling ($Z$-scores) before training an SVM.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s18"></canvas></div>
+                    <div class="telemetry-hud">
+                        <div class="hud-row"><span>Dataset Scale State:</span><span id="lbl-s18-scale"
+                                class="val-rose">Raw Unscaled Arrays</span></div>
+                    </div>
+                    <button class="btn-action" id="btn-s18" onclick="actions.s18_toggle()">Standardize Matrix</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="19">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <div class="header-tag">Module 19 // Performance Analytics</div>
+                    <h2><span>19</span> Evaluation Metrics</h2>
+                    <p>Beyond baseline accuracy, SVM boundaries must be audited using specific metrics to ensure
+                        stability across imbalanced classes:</p>
+                    <ul>
+                        <li><strong>F1-Score:</strong> The harmonic mean bridging Precision and Recall.</li>
+                        <li><strong>Confusion Matrix:</strong> Tracks raw counts of False Positives vs False Negatives.
+                        </li>
+                        <li><strong>ROC-AUC:</strong> Measures boundary separability effectiveness across varying
+                            distance thresholds.</li>
+                    </ul>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-s19"></canvas></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="20">
+            <div class="header-tag">Module 20 // Architectural Trade-offs</div>
+            <h2><span>20</span> Advantages & Disadvantages</h2>
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>System <span>Advantages</span></h3>
+                    <p>• Highly effective in datasets where the number of dimensions exceeds the number of samples.</p>
+                    <p>• Excellent memory efficiency (relies entirely on a small subset of support vectors).</p>
+                    <p>• Guarantees convergence to a global optimum due to convex structural geometry.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>System <span>Disadvantages</span></h3>
+                    <p>• Severe computational bottlenecks on massive datasets ($\mathcal{O}(N^3)$ training complexity).
+                    </p>
+                    <p>• Highly sensitive to outlier corruption if soft-margin slack is not tuned properly.</p>
+                    <p>• Does not directly provide probabilistic confidence scores natively.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="21">
+            <div class="header-tag">Module 21 // Algorithm Selection</div>
+            <h2><span>21</span> SVM vs. Alternatives</h2>
+            <div class="matrix-container">
+                <div class="matrix-box">
+                    <h3>SVM vs. <span>Logistic Regression</span></h3>
+                    <p>LR optimizes probabilities globally across all points. SVM optimizes geometric margins based
+                        strictly on boundary support vectors.</p>
+                </div>
+                <div class="matrix-box">
+                    <h3>SVM vs. <span>Random Forest</span></h3>
+                    <p>Trees build rigid, axis-aligned boxes. SVM utilizes Kernels to draw smooth, curving, continuous
+                        boundaries across space.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="slide" data-index="22">
+            <div class="header-tag">Module 22 // Production Deployments</div>
+            <h2><span>22</span> Real-World Pipeline</h2>
+            <p style="margin-bottom: 1.5rem;">To deploy SVM models safely in production, engineers utilize a strict
+                4-step pipeline:</p>
+
+            <div class="pipeline-grid" style="margin-bottom: 1.5rem;">
+                <div class="pipeline-card active-step" id="card-step-1" onclick="actions.s22_step(1)">
+                    <div class="pipeline-icon">⚖️</div>
+                    <h3 style="color:#fff; font-size:1rem;">1. Standardization</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-2" onclick="actions.s22_step(2)">
+                    <div class="pipeline-icon">🧬</div>
+                    <h3 style="color:#fff; font-size:1rem;">2. Kernel Mapping</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-3" onclick="actions.s22_step(3)">
+                    <div class="pipeline-icon">⚙️</div>
+                    <h3 style="color:#fff; font-size:1rem;">3. Grid Tuning</h3>
+                </div>
+                <div class="pipeline-card" id="card-step-4" onclick="actions.s22_step(4)">
+                    <div class="pipeline-icon">🚀</div>
+                    <h3 style="color:#fff; font-size:1rem;">4. Deployment</h3>
+                </div>
+            </div>
+
+            <div class="telemetry-hud" style="border-left:4px solid #10b981;" id="box-s22-log">
+                <span style="font-weight:700; color:#fff;">PIPELINE TELEMETRY // STEP 1: PREPROCESSING</span>
+                <p style="font-size:0.9rem; margin:0; color:#10b981;">Z-Score standardization applied. Variance
+                    equalized to prevent margin distortions.</p>
+            </div>
+        </div>
+
+        <div class="controls">
+            <span class="slide-indicator" id="nav-counter">1 / 22</span>
+            <button class="btn-nav" id="btn-prev" onclick="navEngine.move(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="btn-next" onclick="navEngine.move(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // Core Datasets
+        const DATA_POS = [{ x: 1.5, y: 5.5 }, { x: 2.2, y: 6.2 }, { x: 2.8, y: 5.0 }, { x: 1.8, y: 4.5 }, { x: 3.2, y: 5.8 }];
+        const DATA_NEG = [{ x: 4.2, y: 2.8 }, { x: 5.0, y: 3.5 }, { x: 4.8, y: 1.8 }, { x: 3.8, y: 2.0 }, { x: 5.5, y: 2.5 }];
+
+        // Standard Chart Configurations
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Outfit';
+        const stdScales = {
+            x: { type: 'linear', min: 0, max: 7, grid: { color: 'rgba(255,255,255,0.04)' } },
+            y: { type: 'linear', min: 0, max: 8, grid: { color: 'rgba(255,255,255,0.04)' } }
+        };
+        const buildConfig = (datasets, scales = stdScales) => ({
+            type: 'scatter',
+            data: { datasets: datasets },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: scales }
+        });
+
+        // Registry
+        let activeCharts = {};
+
+        // Actions Context
+        const actions = {
+            s2_chart: null, s2_idx: 0,
+            s2_cycle: function () {
+                this.s2_idx = (this.s2_idx + 1) % 3;
+                const state = document.getElementById('lbl-s2-state');
+                if (this.s2_idx === 1) {
+                    state.innerText = "Optimal (Balanced Margin)"; state.className = "val-emerald";
+                    this.s2_chart.data.datasets[2].data = [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }];
+                } else if (this.s2_idx === 2) {
+                    state.innerText = "Fragile (Proximity Danger)"; state.className = "val-rose";
+                    this.s2_chart.data.datasets[2].data = [{ x: 0, y: 1.8 }, { x: 7, y: 5.3 }];
+                } else {
+                    state.innerText = "Fragile (High Overfitting Risk)"; state.className = "val-rose";
+                    this.s2_chart.data.datasets[2].data = [{ x: 0, y: 3.2 }, { x: 7, y: 6.7 }];
+                }
+                this.s2_chart.update();
+            },
+
+            s3_chart: null,
+            s3_maximize: function () {
+                document.getElementById('lbl-s3-width').innerText = "2.82 Units (Maximized)";
+                document.getElementById('lbl-s3-width').className = "val-emerald";
+                this.s3_chart.data.datasets[2].borderWidth = 3;
+                this.s3_chart.data.datasets[3].data = [{ x: 0, y: 1.5 }, { x: 7, y: 5.0 }];
+                this.s3_chart.data.datasets[4].data = [{ x: 0, y: 3.5 }, { x: 7, y: 7.0 }];
+                this.s3_chart.update();
+            },
+
+            s4_chart: null,
+            s4_highlight: function () {
+                document.getElementById('lbl-s4-sv').innerText = "3 Anchor Points Detected";
+                document.getElementById('lbl-s4-sv').className = "val-emerald";
+                this.s4_chart.data.datasets[0].pointRadius = [0, 0, 10, 10, 0];
+                this.s4_chart.data.datasets[1].pointRadius = [0, 0, 0, 10, 0];
+                this.s4_chart.update();
+            },
+
+            s5_chart: null,
+            s5_update: function () {
+                let deg = parseInt(document.getElementById('slide-s5-w').value);
+                document.getElementById('val-s5-w').innerText = `${deg}°`;
+                let m = Math.tan(deg * Math.PI / 180);
+                this.s5_chart.data.datasets[2].data = [{ x: 0, y: 4.0 - (3.5 * m) }, { x: 7, y: 4.0 + (3.5 * m) }];
+                this.s5_chart.update();
+            },
+
+            s6_chart: null,
+            s6_test: function () {
+                let px = Math.random() * 5 + 1;
+                let py = Math.random() * 6 + 1;
+                document.getElementById('lbl-s6-query').innerText = `X: ${px.toFixed(2)}, Y: ${py.toFixed(2)}`;
+                let evalVal = py - (0.5 * px + 2.5);
+                const res = document.getElementById('lbl-s6-res');
+                if (evalVal >= 0) { res.innerText = "Class +1"; res.className = "val-purple"; }
+                else { res.innerText = "Class -1"; res.className = "val-cyan"; }
+                this.s6_chart.data.datasets[3].data = [{ x: px, y: py }];
+                this.s6_chart.update();
+            },
+
+            s7_chart: null,
+            s7_update: function () {
+                let norm = parseFloat(document.getElementById('slide-s7-w').value) / 10;
+                document.getElementById('val-s7-w').innerText = norm.toFixed(1);
+                let wDist = 2.0 / norm;
+                document.getElementById('lbl-s7-width').innerText = `${wDist.toFixed(2)} Units`;
+                this.s7_chart.data.datasets[1].data = [{ x: 0, y: 4.0 - wDist / 2 }, { x: 7, y: 4.0 - wDist / 2 }];
+                this.s7_chart.data.datasets[2].data = [{ x: 0, y: 4.0 + wDist / 2 }, { x: 7, y: 4.0 + wDist / 2 }];
+                this.s7_chart.update();
+            },
+
+            s8_solve: function () {
+                const s = document.getElementById('lbl-s8-state');
+                s.innerText = "Converged. Alpha=[0.4, 0.0, 1.2, 0.8]. Global Optimum Found.";
+                s.className = "val-emerald";
+            },
+
+            s9_chart: null, s9_mode: 'hard',
+            s9_toggle: function () {
+                const btn = document.getElementById('btn-s9');
+                const lbl = document.getElementById('lbl-s9-mode');
+                if (this.s9_mode === 'hard') {
+                    this.s9_mode = 'soft';
+                    lbl.innerText = "Soft Margin (Slack Tolerated)"; lbl.className = "val-emerald";
+                    btn.innerText = "Revert to Hard Margin";
+                    this.s9_chart.data.datasets[2].data = [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }];
+                } else {
+                    this.s9_mode = 'hard';
+                    lbl.innerText = "Hard Margin (Strict)"; lbl.className = "val-rose";
+                    btn.innerText = "Inject Slack Tolerance";
+                    this.s9_chart.data.datasets[2].data = [];
+                }
+                this.s9_chart.update();
+            },
+
+            s10_chart: null,
+            s10_update: function () {
+                let val = parseInt(document.getElementById('slide-s10-c').value);
+                const txt = document.getElementById('val-s10-c');
+                const desc = document.getElementById('lbl-s10-desc');
+                if (val === 1) {
+                    txt.innerText = "C = 0.01"; desc.innerText = "Wide Corridor (Underfitting risk)";
+                    this.s10_chart.data.datasets[2].data = [{ x: 0, y: 2.0 }, { x: 7, y: 4.5 }];
+                } else if (val === 2) {
+                    txt.innerText = "C = 1.0"; desc.innerText = "Balanced Regularization";
+                    this.s10_chart.data.datasets[2].data = [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }];
+                } else {
+                    txt.innerText = "C = 1000"; desc.innerText = "Narrow Constraints (Overfitting risk)";
+                    this.s10_chart.data.datasets[2].data = [{ x: 0, y: 2.8 }, { x: 7, y: 7.1 }];
+                }
+                this.s10_chart.update();
+            },
+
+            s11_chart: null, s11_mode: 'flat',
+            s11_lift: function () {
+                const btn = document.getElementById('btn-s11');
+                const state = document.getElementById('lbl-s11-state');
+                if (this.s11_mode === 'flat') {
+                    this.s11_mode = 'lifted';
+                    btn.innerText = "Collapse Geometry";
+                    state.innerText = "100% Separable (Z-Axis mapping)"; state.className = "val-emerald";
+                    this.s11_chart.data.datasets[0].data = [{ x: 1.5, y: 6.5 }, { x: 2.5, y: 5.8 }, { x: 2.0, y: 6.0 }];
+                    this.s11_chart.data.datasets[1].data = [{ x: 1.5, y: 1.5 }, { x: 2.5, y: 2.0 }, { x: 2.0, y: 1.2 }];
+                } else {
+                    this.s11_mode = 'flat';
+                    btn.innerText = "Project to 3D Paraboloid Space";
+                    state.innerText = "0.00% (Inseparable)"; state.className = "val-rose";
+                    this.s11_chart.data.datasets[0].data = [{ x: 3.5, y: 4.0 }, { x: 4.0, y: 4.5 }, { x: 3.8, y: 3.8 }];
+                    this.s11_chart.data.datasets[1].data = [{ x: 1.0, y: 1.0 }, { x: 6.0, y: 6.0 }, { x: 6.5, y: 1.5 }];
+                }
+                this.s11_chart.update();
+            },
+
+            s14_chart: null,
+            s14_update: function () {
+                let d = parseInt(document.getElementById('slide-s14-d').value);
+                document.getElementById('val-s14-d').innerText = `d = ${d}`;
+                let pts = [];
+                if (d === 1) pts = [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }];
+                else if (d === 2) { for (let x = 0; x <= 7; x += 0.5) pts.push({ x: x, y: 1.5 + 0.15 * Math.pow(x - 1, 2) }); }
+                else { for (let x = 0; x <= 7; x += 0.5) pts.push({ x: x, y: 4.0 + 0.05 * Math.pow(x - 3.5, 3) }); }
+                this.s14_chart.data.datasets[2].data = pts;
+                this.s14_chart.update();
+            },
+
+            s16_chart: null,
+            s16_update: function () {
+                let g = parseInt(document.getElementById('slide-s16-g').value);
+                const val = document.getElementById('val-s16-g');
+                let pts = [];
+                if (g === 1) { val.innerText = "Low Gamma (Wide/Smooth)"; for (let x = 0; x <= 7; x += 0.2) pts.push({ x: x, y: 4.0 + Math.sin(x * 0.8) * 0.5 }); }
+                else if (g === 2) { val.innerText = "Balanced"; pts = [{ x: 1, y: 6 }, { x: 2.5, y: 4 }, { x: 4.5, y: 3 }, { x: 6, y: 5 }]; }
+                else { val.innerText = "High Gamma (Overfitted)"; pts = [{ x: 1.8, y: 5.0 }, { x: 2.2, y: 5.8 }, { x: 2.0, y: 4.5 }]; }
+                this.s16_chart.data.datasets[1].data = pts;
+                this.s16_chart.update();
+            },
+
+            s17_chart: null,
+            s17_update: function () {
+                let e = parseFloat(document.getElementById('slide-s17-e').value) / 10;
+                document.getElementById('val-s17-e').innerText = e.toFixed(2);
+                let mid = [], top = [], bot = [];
+                for (let x = 0; x <= 7; x += 1) {
+                    let y = 0.5 * x + 2.0;
+                    mid.push({ x: x, y: y }); top.push({ x: x, y: y + e }); bot.push({ x: x, y: y - e });
+                }
+                this.s17_chart.data.datasets[1].data = mid;
+                this.s17_chart.data.datasets[2].data = top;
+                this.s17_chart.data.datasets[3].data = bot;
+                this.s17_chart.update();
+            },
+
+            s18_chart: null, s18_mode: 'raw',
+            s18_toggle: function () {
+                const btn = document.getElementById('btn-s18');
+                const lbl = document.getElementById('lbl-s18-scale');
+                if (this.s18_mode === 'raw') {
+                    this.s18_mode = 'scaled';
+                    lbl.innerText = "Z-Score Transformation Validated"; lbl.className = "val-emerald";
+                    btn.innerText = "Revert to Raw Data";
+                    this.s18_chart.data.datasets[0].data = [{ x: 1, y: 1.5 }, { x: 3, y: 3.5 }, { x: 5, y: 5.5 }];
+                    this.s18_chart.options.scales.y.max = 8;
+                } else {
+                    this.s18_mode = 'raw';
+                    lbl.innerText = "Raw Unscaled Arrays"; lbl.className = "val-rose";
+                    btn.innerText = "Standardize Matrix";
+                    this.s18_chart.data.datasets[0].data = [{ x: 1, y: 150 }, { x: 3, y: 350 }, { x: 5, y: 550 }];
+                    this.s18_chart.options.scales.y.max = 600;
+                }
+                this.s18_chart.update();
+            },
+
+            s22_step: function (idx) {
+                for (let i = 1; i <= 4; i++) document.getElementById(`card-step-${i}`).classList.remove('active-step');
+                document.getElementById(`card-step-${idx}`).classList.add('active-step');
+                const box = document.getElementById('box-s22-log');
+                if (idx === 1) box.innerHTML = `<span style="font-weight:700; color:#fff;">PIPELINE TELEMETRY // STEP 1: PREPROCESSING</span><p style="font-size:0.9rem; margin:0; color:#10b981;">Z-Score standardization applied. Variance equalized to prevent margin distortions.</p>`;
+                if (idx === 2) box.innerHTML = `<span style="font-weight:700; color:#fff;">PIPELINE TELEMETRY // STEP 2: KERNEL MAPPING</span><p style="font-size:0.9rem; margin:0; color:#00f2fe;">RBF matrix calculated implicitly. Infinite dimensional topologies enabled.</p>`;
+                if (idx === 3) box.innerHTML = `<span style="font-weight:700; color:#fff;">PIPELINE TELEMETRY // STEP 3: GRID TUNING</span><p style="font-size:0.9rem; margin:0; color:#f43f5e;">Testing C and Gamma vectors via K-Fold CV. Optimal parameters locked.</p>`;
+                if (idx === 4) box.innerHTML = `<span style="font-weight:700; color:#fff;">PIPELINE TELEMETRY // STEP 4: DEPLOYMENT</span><p style="font-size:0.9rem; margin:0; color:#d946ef;">Non-support vectors purged. Microservice compiled. Inference latency: 0.8ms.</p>`;
+            }
+        };
+
+        // Chart Initialization Generators
+        const lazyChartInitializers = {
+            init_1: () => {
+                let ctx = document.getElementById('chart-s1').getContext('2d');
+                new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 7 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 7 },
+                    { type: 'line', data: [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }], borderColor: '#fff', borderWidth: 2, pointRadius: 0 }
+                ]));
+            },
+            init_2: () => {
+                let ctx = document.getElementById('chart-s2').getContext('2d');
+                actions.s2_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [{ x: 0, y: 3.2 }, { x: 7, y: 6.7 }], borderColor: '#f43f5e', borderWidth: 2, pointRadius: 0 }
+                ]));
+            },
+            init_3: () => {
+                let ctx = document.getElementById('chart-s3').getContext('2d');
+                actions.s3_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }], borderColor: '#d946ef', borderWidth: 1, pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: 'rgba(255,255,255,0.25)', borderDash: [4, 4], pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: 'rgba(255,255,255,0.25)', borderDash: [4, 4], pointRadius: 0 }
+                ]));
+            },
+            init_4: () => {
+                let ctx = document.getElementById('chart-s4').getContext('2d');
+                actions.s4_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }], borderColor: 'rgba(255,255,255,0.1)', borderWidth: 2, pointRadius: 0 }
+                ]));
+            },
+            init_5: () => {
+                let ctx = document.getElementById('chart-s5').getContext('2d');
+                actions.s5_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: 'rgba(217,70,239,0.3)', pointRadius: 5 },
+                    { data: [...DATA_NEG], backgroundColor: 'rgba(56,189,248,0.3)', pointRadius: 5 },
+                    { type: 'line', data: [], borderColor: '#d946ef', borderWidth: 3, pointRadius: 0 }
+                ]));
+                actions.s5_update();
+            },
+            init_6: () => {
+                let ctx = document.getElementById('chart-s6').getContext('2d');
+                actions.s6_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }], borderColor: 'rgba(255,255,255,0.15)', borderWidth: 2, pointRadius: 0 },
+                    { data: [], backgroundColor: '#fff', pointRadius: 10, borderColor: '#d946ef', borderWidth: 3 }
+                ]));
+            },
+            init_7: () => {
+                let ctx = document.getElementById('chart-s7').getContext('2d');
+                actions.s7_chart = new Chart(ctx, buildConfig([
+                    { type: 'line', data: [{ x: 0, y: 4.0 }, { x: 7, y: 4.0 }], borderColor: '#fff', borderWidth: 2, pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: '#d946ef', borderDash: [5, 5], pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: '#38bdf8', borderDash: [5, 5], pointRadius: 0 }
+                ]));
+                actions.s7_update();
+            },
+            init_8: () => {
+                let ctx = document.getElementById('chart-s8').getContext('2d');
+                new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 }
+                ]));
+            },
+            init_9: () => {
+                let ctx = document.getElementById('chart-s9').getContext('2d');
+                actions.s9_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS, { x: 3.8, y: 4.8 }], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG, { x: 2.5, y: 3.0 }], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [], borderColor: '#10b981', borderWidth: 2, pointRadius: 0 }
+                ]));
+            },
+            init_10: () => {
+                let ctx = document.getElementById('chart-s10').getContext('2d');
+                actions.s10_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [], borderColor: '#38bdf8', borderWidth: 2, pointRadius: 0 }
+                ]));
+                actions.s10_update();
+            },
+            init_11: () => {
+                let ctx = document.getElementById('chart-s11').getContext('2d');
+                actions.s11_chart = new Chart(ctx, buildConfig([
+                    { data: [{ x: 3.5, y: 4.0 }, { x: 4.0, y: 4.5 }, { x: 3.8, y: 3.8 }], backgroundColor: '#d946ef', pointRadius: 8 },
+                    { data: [{ x: 1.0, y: 1.0 }, { x: 6.0, y: 6.0 }, { x: 6.5, y: 1.5 }], backgroundColor: '#38bdf8', pointRadius: 8 }
+                ]));
+            },
+            init_12: () => {
+                let ctx = document.getElementById('chart-s12').getContext('2d');
+                new Chart(ctx, buildConfig([
+                    { data: [{ x: 1, y: 1 }, { x: 2, y: 4 }, { x: 3, y: 9 }, { x: 4, y: 16 }], type: 'line', borderColor: '#d946ef', borderWidth: 2, pointRadius: 4 }
+                ], { y: { min: 0, max: 20, grid: { color: 'rgba(255,255,255,0.04)' } }, x: stdScales.x }));
+            },
+            init_13: () => {
+                let ctx = document.getElementById('chart-s13').getContext('2d');
+                new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 6 },
+                    { type: 'line', data: [{ x: 0, y: 2.5 }, { x: 7, y: 6.0 }], borderColor: '#fff', borderWidth: 2, pointRadius: 0 }
+                ]));
+            },
+            init_14: () => {
+                let ctx = document.getElementById('chart-s14').getContext('2d');
+                actions.s14_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 5 },
+                    { data: [...DATA_NEG], backgroundColor: '#38bdf8', pointRadius: 5 },
+                    { type: 'line', data: [], borderColor: '#38bdf8', borderWidth: 2, pointRadius: 0, fill: false }
+                ]));
+                actions.s14_update();
+            },
+            init_15: () => {
+                let ctx = document.getElementById('chart-s15').getContext('2d');
+                let ring = []; for (let a = 0; a <= 6.3; a += 0.2) ring.push({ x: 3.5 + Math.cos(a) * 1.5, y: 4.0 + Math.sin(a) * 1.5 });
+                new Chart(ctx, buildConfig([
+                    { data: [{ x: 3.5, y: 4.0 }], backgroundColor: '#d946ef', pointRadius: 8 },
+                    { type: 'line', data: ring, borderColor: '#d946ef', borderDash: [4, 4], pointRadius: 0 }
+                ]));
+            },
+            init_16: () => {
+                let ctx = document.getElementById('chart-s16').getContext('2d');
+                actions.s16_chart = new Chart(ctx, buildConfig([
+                    { data: [...DATA_POS], backgroundColor: '#d946ef', pointRadius: 6 },
+                    { type: 'line', data: [], borderColor: '#f43f5e', borderWidth: 2, pointRadius: 0 }
+                ]));
+                actions.s16_update();
+            },
+            init_17: () => {
+                let ctx = document.getElementById('chart-s17').getContext('2d');
+                actions.s17_chart = new Chart(ctx, buildConfig([
+                    { data: [{ x: 1, y: 2.6 }, { x: 2, y: 3.2 }, { x: 4, y: 4.3 }, { x: 6, y: 4.8 }], backgroundColor: '#fff', pointRadius: 6 },
+                    { type: 'line', data: [], borderColor: '#38bdf8', borderWidth: 2, pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: 'rgba(217,70,239,0.3)', borderDash: [4, 4], pointRadius: 0 },
+                    { type: 'line', data: [], borderColor: 'rgba(217,70,239,0.3)', borderDash: [4, 4], pointRadius: 0 }
+                ]));
+                actions.s17_update();
+            },
+            init_18: () => {
+                let ctx = document.getElementById('chart-s18').getContext('2d');
+                actions.s18_chart = new Chart(ctx, buildConfig(
+                    [{ data: [{ x: 1, y: 150 }, { x: 3, y: 350 }, { x: 5, y: 550 }], backgroundColor: '#d946ef', pointRadius: 8 }],
+                    { x: stdScales.x, y: { min: 0, max: 600, grid: stdScales.x.grid } }
+                ));
+            },
+            init_19: () => {
+                let ctx = document.getElementById('chart-s19').getContext('2d');
+                new Chart(ctx, { type: 'bar', data: { labels: ['Precision', 'Recall', 'F1-Score', 'ROC-AUC'], datasets: [{ data: [0.94, 0.88, 0.91, 0.95], backgroundColor: ['#38bdf8', '#d946ef', '#10b981', '#f43f5e'], borderRadius: 6 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { min: 0, max: 1, grid: stdScales.x.grid } }, plugins: { legend: { display: false } } } });
+            }
+        };
+
+        // Navigation Controller
+        const navEngine = {
+            idx: 1, max: 22,
+            move: function (dir) {
+                document.querySelector(`.slide[data-index="${this.idx}"]`).classList.remove('active');
+                this.idx += dir;
+                document.querySelector(`.slide[data-index="${this.idx}"]`).classList.add('active');
+
+                document.getElementById('btn-prev').disabled = (this.idx === 1);
+                document.getElementById('btn-next').disabled = (this.idx === this.max);
+                document.getElementById('nav-counter').innerText = `${this.idx} / ${this.max}`;
+
+                let k = `init_${this.idx}`;
+                if (lazyChartInitializers[k] && !activeCharts[k]) {
+                    setTimeout(() => { lazyChartInitializers[k](); activeCharts[k] = true; }, 40);
+                }
+            }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            lazyChartInitializers.init_1(); activeCharts['init_1'] = true;
+        });
+    </script>
+</body>
+
+</html>

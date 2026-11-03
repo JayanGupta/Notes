@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script>
+const originalWarn = console.warn;
+console.warn = function(...args) {
+  if (typeof args[0] === 'string' && (args[0].includes('cdn.tailwindcss.com') || args[0].includes('in-browser Babel transformer'))) return;
+  originalWarn.apply(console, args);
+};
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mastering DBSCAN Clustering | Elite Data Science Series</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            options: {
+                skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <style>
+        :root {
+            --bg-main: #0f172a;
+            --bg-secondary: #1e293b;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #38bdf8;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --accent-purple: #a78bfa;
+            --code-bg: #000000;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            background-color: var(--bg-main);
+            background-image:
+                radial-gradient(circle at 15% 10%, rgba(56,189,248,0.08), transparent 35%),
+                radial-gradient(circle at 85% 30%, rgba(167,139,250,0.07), transparent 35%),
+                radial-gradient(circle at 50% 90%, rgba(16,185,129,0.06), transparent 40%);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            padding: 2rem;
+            padding-top: 5.5rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3 { color: var(--accent-primary); margin-bottom: 1rem; font-weight: 800; }
+        h3 { font-size: 1.2rem; }
+        p { color: var(--text-secondary); margin-bottom: 1rem; font-size: 1.05rem; }
+        ul, ol { color: var(--text-secondary); margin: 0 0 1rem 1.4rem; }
+        li { margin-bottom: 0.4rem; }
+        strong { color: var(--text-main); }
+
+        #progressBar {
+            position: fixed; top: 0; left: 0; height: 4px; width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-purple), var(--accent-success));
+            z-index: 1000; transition: width 0.1s ease-out;
+            box-shadow: 0 0 10px rgba(56,189,248,0.6);
+        }
+
+        #navBar {
+            position: fixed; top: 4px; left: 0; right: 0; z-index: 999;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding: 0.7rem 1rem;
+            display: flex; gap: 0.4rem; overflow-x: auto;
+            white-space: nowrap;
+        }
+        #navBar::-webkit-scrollbar { height: 4px; }
+        #navBar::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 4px; }
+        #navBar a {
+            color: var(--text-secondary); text-decoration: none; font-size: 0.78rem;
+            font-weight: 600; padding: 0.4rem 0.75rem; border-radius: 999px;
+            border: 1px solid transparent; transition: all 0.25s ease; flex-shrink: 0;
+        }
+        #navBar a:hover { color: var(--text-main); border-color: rgba(56,189,248,0.4); }
+        #navBar a.active { color: var(--bg-main); background: var(--accent-primary); }
+
+        .slide {
+            padding: 3rem; margin-bottom: 4rem; background: var(--bg-secondary);
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 1px solid rgba(255,255,255,0.05);
+            opacity: 0; transform: translateY(40px) scale(0.98);
+            scroll-margin-top: 5.5rem;
+        }
+        .slide.in-view { animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0) scale(1); } }
+        .slide:hover { transform: scale(1.005); }
+
+        .reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .reveal.in-view { opacity: 1; transform: translateY(0); }
+
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 2rem; }
+        .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.5rem; margin-top: 2rem; }
+        @media (max-width: 800px) { .grid, .grid3 { grid-template-columns: 1fr; } }
+
+        .canvas-container { background: #000; border-radius: 12px; padding: 1rem; border: 1px solid var(--accent-primary); }
+
+        code, pre { font-family: 'Fira Code', monospace; background: var(--code-bg); padding: 0.2rem 0.5rem; border-radius: 4px; color: #e2e8f0; }
+        pre { padding: 1.5rem; overflow-x: auto; margin: 1.5rem 0; border-left: 4px solid var(--accent-primary); font-size: 0.88rem; position: relative; }
+        pre .c-import { color: #f472b6; }
+        pre .c-comment { color: #64748b; font-style: italic; }
+        pre .c-str { color: #a3e635; }
+        pre .c-fn { color: #38bdf8; }
+
+        .code-label {
+            display: inline-flex; align-items: center; gap: 0.5rem;
+            background: rgba(56,189,248,0.12); color: var(--accent-primary);
+            padding: 0.3rem 0.9rem; border-radius: 999px 999px 0 0;
+            font-size: 0.75rem; font-weight: 700; letter-spacing: 0.5px;
+            text-transform: uppercase; margin-top: 1.5rem;
+        }
+        .code-label + pre { margin-top: 0; border-radius: 0 8px 8px 8px; }
+
+        .explain-list {
+            background: rgba(0,0,0,0.25); border-radius: 8px; padding: 1.2rem 1.2rem 1.2rem 1rem;
+            margin: -0.5rem 0 1.5rem 0; border-left: 4px solid var(--accent-success);
+        }
+        .explain-list li { color: var(--text-secondary); font-size: 0.92rem; }
+        .explain-list code { font-size: 0.82rem; }
+
+        .btn {
+            background: var(--accent-primary); color: var(--bg-main); border: none;
+            padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; margin-right: 10px; margin-bottom: 10px;
+            font-family: inherit; font-size: 0.9rem;
+        }
+        .btn:hover { filter: brightness(1.2); transform: translateY(-2px); }
+        .btn:active { transform: translateY(0) scale(0.97); }
+        .btn-secondary { background: transparent; border: 2px solid var(--accent-primary); color: var(--accent-primary); }
+        .btn-success { background: var(--accent-success); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        .badge {
+            display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+            font-size: 0.8rem; font-weight: 700; text-transform: uppercase; margin-bottom: 1rem;
+            background: rgba(56, 189, 248, 0.1); color: var(--accent-primary); letter-spacing: 1px;
+        }
+
+        .math-block { background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 8px; text-align: center; margin: 1rem 0; border: 1px solid rgba(56,189,248,0.15); }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 1rem; border-bottom: 1px solid var(--bg-main); font-size: 0.92rem; }
+        th { color: var(--accent-primary); }
+        td { color: var(--text-secondary); }
+
+        .highlight-box { border-left: 4px solid var(--accent-warning); background: rgba(245, 158, 11, 0.05); padding: 1.5rem; margin: 1rem 0; border-radius: 0 8px 8px 0; }
+        .box-danger { border-left-color: var(--accent-danger); background: rgba(239,68,68,0.05); }
+        .box-success { border-left-color: var(--accent-success); background: rgba(16,185,129,0.05); }
+        .box-purple { border-left-color: var(--accent-purple); background: rgba(167,139,250,0.05); }
+
+        #dbscanSim { width: 100%; height: 420px; background: #0f172a; border-radius: 8px; display: block; }
+
+        .legend-row { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 1rem 0; justify-content: center; }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+        .legend-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+        .app-card { background: rgba(0,0,0,0.25); border-radius: 12px; padding: 1.4rem; border: 1px solid rgba(255,255,255,0.06); transition: transform 0.3s ease, border-color 0.3s ease; }
+        .app-card:hover { transform: translateY(-6px); border-color: var(--accent-primary); }
+        .app-card .icon { font-size: 2rem; margin-bottom: 0.6rem; display: block; }
+        .app-card h4 { color: var(--text-main); margin-bottom: 0.4rem; font-size: 1rem; }
+        .app-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+        .checklist { list-style: none; margin-left: 0; }
+        .checklist li { padding-left: 1.8rem; position: relative; }
+        .checklist li::before { content: '✓'; position: absolute; left: 0; color: var(--accent-success); font-weight: 800; }
+        .xlist li { padding-left: 1.8rem; position: relative; list-style: none; }
+        .xlist li::before { content: '✕'; position: absolute; left: 0; color: var(--accent-danger); font-weight: 800; }
+
+        .flow-svg text { font-family: 'Inter', sans-serif; fill: var(--text-main); }
+        .flow-arrow { stroke-dasharray: 6 4; animation: dashMove 1.2s linear infinite; }
+        @keyframes dashMove { to { stroke-dashoffset: -20; } }
+        .flow-pulse { animation: pulseGlow 2.4s ease-in-out infinite; }
+        @keyframes pulseGlow { 0%, 100% { filter: drop-shadow(0 0 2px currentColor); } 50% { filter: drop-shadow(0 0 9px currentColor); } }
+
+        .metric-svg-wrap { display: flex; flex-direction: column; align-items: center; }
+        .metric-svg-wrap span { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.5rem; }
+
+        footer { text-align: center; padding: 4rem 0 2rem; color: var(--text-secondary); }
+        ::selection { background: var(--accent-primary); color: var(--bg-main); }
+    </style>
+</head>
+<body>
+
+    <div id="progressBar"></div>
+    <nav id="navBar">
+        <a href="#intro">1. Intro</a>
+        <a href="#understanding">2. Understanding</a>
+        <a href="#math">3. Math</a>
+        <a href="#algorithm">4. Algorithm</a>
+        <a href="#params">5. Choosing eps/minPts</a>
+        <a href="#advlim">6. Adv/Limits</a>
+        <a href="#distance">7. Distances</a>
+        <a href="#python">8. Python</a>
+        <a href="#interpretation">9. Interpretation</a>
+        <a href="#practical">10. Tips</a>
+        <a href="#production">11. Production</a>
+        <a href="#summary">12. Summary</a>
+    </nav>
+
+    <header style="text-align: center; margin-bottom: 4rem;">
+        <div class="badge">Machine Learning Mastery Series</div>
+        <h1 style="font-size: 3.3rem; letter-spacing: -1px;">DBSCAN Clustering</h1>
+        <p style="font-size: 1.3rem;">Density-based clustering that finds arbitrary shapes and calls out the noise.</p>
+    </header>
+
+    <!-- ============ 1. INTRODUCTION ============ -->
+    <section class="slide" id="intro">
+        <div class="badge">Section 1</div>
+        <h2>Introduction</h2>
+
+        <h3>What is Density-Based Clustering?</h3>
+        <p><strong>DBSCAN</strong> (Density-Based Spatial Clustering of Applications with Noise) groups together points that are packed closely (dense regions), and marks points that sit alone in low-density regions as <strong>noise</strong> / outliers. Unlike centroid-based methods, it never assumes clusters are round blobs — it follows the actual density of the data.</p>
+
+        <h3>Why Not Just Use K-Means?</h3>
+        <div class="grid">
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">K-Means on non-convex data — fails</h4>
+                <canvas id="kmeansFailCanvas"></canvas>
+            </div>
+            <div class="canvas-container">
+                <h4 style="margin-bottom: 10px; font-size: 0.9rem; color: var(--text-secondary);">DBSCAN on the same data — succeeds</h4>
+                <canvas id="dbscanSuccessCanvas"></canvas>
+            </div>
+        </div>
+        <p>K-Means assigns points to the nearest <em>centroid</em>, so it can only ever discover roughly spherical regions. DBSCAN instead follows chains of nearby points, so it naturally traces curved, elongated, or ring-shaped clusters — and it doesn't force every point into a cluster at all.</p>
+
+        <table>
+            <thead><tr><th>Aspect</th><th>K-Means (centroid-based)</th><th>DBSCAN (density-based)</th></tr></thead>
+            <tbody>
+                <tr><td>Cluster shape</td><td>Roughly spherical/convex</td><td>Arbitrary shape</td></tr>
+                <tr><td>Number of clusters</td><td>Must specify $K$</td><td>Discovered automatically</td></tr>
+                <tr><td>Outliers</td><td>Forced into a cluster</td><td>Explicitly labeled as noise</td></tr>
+                <tr><td>Key parameters</td><td>$K$</td><td>$\varepsilon$ (eps), minPts</td></tr>
+            </tbody>
+        </table>
+
+        <h3>Real-World Applications</h3>
+        <div class="grid3">
+            <div class="app-card reveal"><span class="icon">🌍</span><h4>Geospatial Hotspots</h4><p>Finding dense regions of activity — crime hotspots, disease outbreak clusters, earthquake epicenters.</p></div>
+            <div class="app-card reveal"><span class="icon">🚨</span><h4>Anomaly / Fraud Detection</h4><p>Points DBSCAN labels as noise are natural outlier candidates — unusual transactions or sensor readings.</p></div>
+            <div class="app-card reveal"><span class="icon">🛰️</span><h4>Image Segmentation</h4><p>Grouping pixels of arbitrary shape into coherent regions or objects.</p></div>
+            <div class="app-card reveal"><span class="icon">📡</span><h4>Sensor Networks</h4><p>Clustering signal readings by spatial density to identify coverage zones.</p></div>
+            <div class="app-card reveal"><span class="icon">🧬</span><h4>Bioinformatics</h4><p>Discovering irregularly shaped groups in gene expression or spatial cell data.</p></div>
+            <div class="app-card reveal"><span class="icon">🚗</span><h4>Trajectory Clustering</h4><p>Grouping GPS traces or movement paths that follow similar dense routes.</p></div>
+        </div>
+    </section>
+
+    <!-- ============ 2. UNDERSTANDING DBSCAN ============ -->
+    <section class="slide" id="understanding">
+        <div class="badge">Section 2</div>
+        <h2>Understanding DBSCAN</h2>
+        <div class="grid">
+            <div>
+                <h3>What DBSCAN Is</h3>
+                <p>DBSCAN, introduced by Ester, Kriegel, Sander & Xu (1996), groups points by <strong>local density</strong> rather than distance-to-a-center. A cluster is a maximal set of density-connected points; anything not reachable from a dense region is noise.</p>
+                <h3>Intuition — The Crowd Analogy</h3>
+                <div class="highlight-box">
+                    Imagine a city viewed from above at night. Bright, densely-lit neighborhoods are clusters. A single lit house far out in the countryside, with no other lights nearby, is noise. DBSCAN "walks" from lit window to lit window as long as they're close enough together, tracing out the full shape of each neighborhood — however winding it is.
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; background: #000; border-radius: 12px;">
+                <div style="text-align: center; padding: 2rem;">
+                    <div style="font-size: 3rem;" id="cityEmoji">🏙️</div>
+                    <p>Density defines the neighborhood, not distance to one center</p>
+                </div>
+            </div>
+        </div>
+
+        <h3>Core, Border, and Noise Points</h3>
+        <div class="legend-row">
+            <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span>Core point — has ≥ minPts neighbors within $\varepsilon$</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#a78bfa; border:2px solid #38bdf8;"></span>Border point — within $\varepsilon$ of a core point, but not itself core</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#475569;"></span>Noise point — reachable by no core point</div>
+        </div>
+        <p>Every point in the dataset falls into exactly one of these three roles once DBSCAN finishes running, and that role is what determines whether — and how — it joins a cluster.</p>
+
+        <h3>How Clusters Are Formed</h3>
+        <p>Starting from any unvisited core point, DBSCAN gathers every point <em>density-reachable</em> from it (directly, or through a chain of other core points) into one cluster, then moves to the next unvisited point and repeats. No centroid is ever computed — cluster shape simply falls out of the chain of overlapping neighborhoods.</p>
+
+        <h3>Assumptions of DBSCAN</h3>
+        <ul class="checklist">
+            <li>Clusters have <strong>reasonably uniform density</strong> internally.</li>
+            <li>A single global $\varepsilon$ and minPts can meaningfully separate "dense" from "sparse" across the dataset.</li>
+            <li>Features are on <strong>comparable numeric scales</strong> (it is still distance-based within each neighborhood).</li>
+            <li>Noise genuinely exists in the data and shouldn't be forced into a cluster.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 3. MATHEMATICAL FOUNDATION ============ -->
+    <section class="slide" id="math">
+        <div class="badge">Section 3</div>
+        <h2>Mathematical Foundation</h2>
+
+        <h3>Epsilon-Neighborhood</h3>
+        <p>The $\varepsilon$-neighborhood of a point $p$ is the set of all points within distance $\varepsilon$ of it:</p>
+        <div class="math-block">$$N_\varepsilon(p) = \{ q \in D : d(p,q) \le \varepsilon \}$$</div>
+
+        <h3>Core Point Definition</h3>
+        <p>A point $p$ is a <strong>core point</strong> if its $\varepsilon$-neighborhood contains at least <code>minPts</code> points (including itself):</p>
+        <div class="math-block">$$|N_\varepsilon(p)| \ge \text{minPts}$$</div>
+
+        <h3>Directly Density-Reachable</h3>
+        <p>A point $q$ is <strong>directly density-reachable</strong> from $p$ if $q \in N_\varepsilon(p)$ and $p$ is a core point.</p>
+
+        <h3>Density-Reachable (chained)</h3>
+        <p>$q$ is <strong>density-reachable</strong> from $p$ if there is a chain of points $p = p_1, p_2, \ldots, p_n = q$ where each $p_{i+1}$ is directly density-reachable from $p_i$. This is how clusters "snake" through winding regions of density.</p>
+
+        <h3>Density-Connected</h3>
+        <p>Two points $p$ and $q$ are <strong>density-connected</strong> if there exists a point $o$ such that both $p$ and $q$ are density-reachable from $o$. A DBSCAN <strong>cluster</strong> is formally defined as a maximal set of density-connected points; everything else is <strong>noise</strong>:</p>
+        <div class="math-block">$$\text{Noise} = D \setminus \bigcup_{i} C_i$$</div>
+
+        <h3>Why No Explicit Objective Function</h3>
+        <div class="highlight-box box-purple">Unlike K-Means, DBSCAN doesn't minimize a global objective like WCSS. It's a deterministic, rule-based traversal of the neighborhood graph — clusters emerge directly from the connectivity structure defined by $\varepsilon$ and minPts, not from an optimization loop.</div>
+    </section>
+
+    <!-- ============ 4. DBSCAN ALGORITHM ============ -->
+    <section class="slide" id="algorithm">
+        <div class="badge">Section 4</div>
+        <h2>The DBSCAN Algorithm</h2>
+
+        <h3>Step-by-Step</h3>
+        <ol>
+            <li>Pick an arbitrary <strong>unvisited</strong> point $p$ and mark it visited.</li>
+            <li><strong>Region query:</strong> retrieve $N_\varepsilon(p)$.</li>
+            <li>If $|N_\varepsilon(p)| < \text{minPts}$, temporarily label $p$ as <strong>noise</strong> (it may later be claimed as a border point).</li>
+            <li>Otherwise, $p$ is a <strong>core point</strong> — start a new cluster and add all of $N_\varepsilon(p)$ to a seed queue.</li>
+            <li>Expand the cluster: for each point in the seed queue, if it's a core point too, add <em>its</em> neighbors to the queue as well (this is the chaining that traces arbitrary shapes).</li>
+            <li>Repeat until every point has been visited.</li>
+        </ol>
+
+        <h3>Visual Explanation — Live Region Growing</h3>
+        <p>Watch DBSCAN pick a point, query its $\varepsilon$-neighborhood (the glowing circle), and either mark it noise or grow a cluster outward through connected core points.</p>
+        <div class="canvas-container">
+            <canvas id="dbscanSim"></canvas>
+        </div>
+        <div class="legend-row">
+            <div class="legend-item"><span class="legend-dot" style="background:#38bdf8;"></span>Core</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#a78bfa;"></span>Border</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#475569;"></span>Noise</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#1e293b; border: 1px dashed #f59e0b;"></span>Unvisited</div>
+        </div>
+        <div style="margin-top: 0.5rem; text-align: center;">
+            <button class="btn" onclick="initDbscan()">🔄 Reset Data</button>
+            <button class="btn btn-secondary" onclick="stepDbscan()">⏭ Next Step</button>
+            <button class="btn btn-success" id="autoBtnD" onclick="toggleAutoRunD()">▶ Auto Run</button>
+            <p id="simStatusD" style="margin-top: 1rem; font-weight: 600; color: var(--accent-primary);">Click "Next Step" or "Auto Run" to begin.</p>
+        </div>
+
+        <h3>Flowchart of the Algorithm</h3>
+        <div class="canvas-container" style="background:#000;">
+            <svg viewBox="0 0 780 320" class="flow-svg" style="width:100%; height:auto;">
+                <defs>
+                    <marker id="arrowD" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                        <path d="M0,0 L6,3 L0,6 Z" fill="#38bdf8"/>
+                    </marker>
+                </defs>
+                <rect x="20" y="20" width="160" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                <text x="100" y="50" text-anchor="middle" font-size="13">Pick unvisited point p</text>
+
+                <rect x="220" y="20" width="160" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                <text x="300" y="50" text-anchor="middle" font-size="13">Region query N(p)</text>
+
+                <polygon points="480,15 570,45 480,75 390,45" fill="#0f172a" stroke="#f59e0b" stroke-width="2"/>
+                <text x="480" y="49" text-anchor="middle" font-size="12">Core point?</text>
+
+                <rect x="620" y="20" width="140" height="50" rx="10" fill="#0f172a" stroke="#475569" stroke-width="2"/>
+                <text x="690" y="50" text-anchor="middle" font-size="13">Mark noise</text>
+
+                <rect x="390" y="140" width="180" height="50" rx="10" fill="#0f172a" stroke="#10b981" stroke-width="2" class="flow-pulse" style="color:#10b981;"/>
+                <text x="480" y="165" text-anchor="middle" font-size="13">New cluster,</text>
+                <text x="480" y="180" text-anchor="middle" font-size="13">add neighbors to queue</text>
+
+                <rect x="390" y="220" width="180" height="50" rx="10" fill="#0f172a" stroke="#a78bfa" stroke-width="2" class="flow-pulse" style="color:#a78bfa;"/>
+                <text x="480" y="245" text-anchor="middle" font-size="13">Expand: check each</text>
+                <text x="480" y="260" text-anchor="middle" font-size="13">queued point, chain cores</text>
+
+                <rect x="20" y="220" width="200" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+                <text x="120" y="245" text-anchor="middle" font-size="13">All points visited?</text>
+
+                <path d="M180,45 H220" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <path d="M380,45 H390" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <path d="M570,45 H620" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <text x="590" y="35" font-size="11" fill="#f59e0b">no</text>
+                <path d="M480,75 V140" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <text x="495" y="105" font-size="11" fill="#10b981">yes</text>
+                <path d="M480,190 V220" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <path d="M390,245 H220" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <path d="M690,70 C690,180 300,260 220,245" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <path d="M20,245 C-40,150 20,60 20,45" stroke="#38bdf8" stroke-width="2" fill="none" marker-end="url(#arrowD)" class="flow-arrow"/>
+                <text x="30" y="150" font-size="11" fill="#f59e0b">no</text>
+                <rect x="20" y="290" width="200" height="1" fill="none"/>
+                <text x="120" y="298" text-anchor="middle" font-size="11" fill="#10b981">yes → Stop / Output labels</text>
+            </svg>
+        </div>
+
+        <h3>Time and Space Complexity</h3>
+        <table>
+            <thead><tr><th>Aspect</th><th>Complexity</th><th>Notes</th></tr></thead>
+            <tbody>
+                <tr><td>Time (naive)</td><td>$O(n^2)$</td><td>Each region query scans all $n$ points</td></tr>
+                <tr><td>Time (with spatial index)</td><td>$O(n \log n)$</td><td>Using a k-d tree / ball tree for low-dimensional data</td></tr>
+                <tr><td>Space</td><td>$O(n)$</td><td>Storing labels, visited flags, and the seed queue</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- ============ 5. CHOOSING EPS AND MINPTS ============ -->
+    <section class="slide" id="params">
+        <div class="badge">Section 5</div>
+        <h2>Choosing $\varepsilon$ and minPts</h2>
+
+        <div class="canvas-container">
+            <h4 style="color: var(--text-secondary);">k-Distance Graph — sorted distance to the k-th nearest neighbor</h4>
+            <canvas id="kdistChart"></canvas>
+        </div>
+
+        <h3>The k-Distance Graph Method</h3>
+        <p>For every point, compute the distance to its $k$-th nearest neighbor (where $k = \text{minPts}$). Sort these distances in descending order and plot them. Points in dense regions have small $k$-distance; points in sparse regions have large $k$-distance. The <strong>knee</strong> of this curve — where the values start rising sharply — is a good candidate for $\varepsilon$.</p>
+
+        <h3>Choosing minPts</h3>
+        <ul>
+            <li>A common rule of thumb: <strong>minPts $\ge$ dimensions + 1</strong>.</li>
+            <li>For 2D data, minPts = 4 is a widely used default (from the original DBSCAN paper).</li>
+            <li>Larger, noisier datasets benefit from a larger minPts to avoid treating noise clumps as clusters.</li>
+        </ul>
+
+        <table>
+            <thead><tr><th>Parameter</th><th>Too Small</th><th>Too Large</th></tr></thead>
+            <tbody>
+                <tr><td>$\varepsilon$</td><td>Most points become noise; clusters fragment</td><td>Distinct clusters merge into one</td></tr>
+                <tr><td>minPts</td><td>Noise gets absorbed into clusters</td><td>Real clusters get relabeled as noise</td></tr>
+            </tbody>
+        </table>
+        <div class="highlight-box"><strong>Interview Tip:</strong> There's no single optimal $(\varepsilon, \text{minPts})$ pair — practitioners typically fix minPts from the rule of thumb first, then read $\varepsilon$ off the k-distance knee, and finally validate visually or with silhouette score (excluding noise points).</div>
+    </section>
+
+    <!-- ============ 6. ADVANTAGES & LIMITATIONS ============ -->
+    <section class="slide" id="advlim">
+        <div class="badge">Section 6</div>
+        <h2>Advantages and Limitations</h2>
+        <div class="grid">
+            <div>
+                <h3>Strengths</h3>
+                <ul class="checklist">
+                    <li>No need to specify the number of clusters in advance</li>
+                    <li>Finds arbitrarily shaped clusters</li>
+                    <li>Naturally identifies outliers as noise</li>
+                    <li>Robust to a moderate amount of noise in the data</li>
+                    <li>Deterministic given fixed parameters (no random initialization)</li>
+                </ul>
+            </div>
+            <div>
+                <h3>Weaknesses</h3>
+                <ul class="xlist">
+                    <li>Struggles when clusters have very different densities</li>
+                    <li>Sensitive to the choice of $\varepsilon$ and minPts</li>
+                    <li>Naive implementation is $O(n^2)$ — needs a spatial index to scale</li>
+                    <li>Suffers from the curse of dimensionality (distance becomes less meaningful in high-$d$ spaces)</li>
+                    <li>Border points can be assigned inconsistently if reachable from multiple clusters (order-dependent edge case)</li>
+                </ul>
+            </div>
+        </div>
+
+        <h3>Sensitivity to Parameters</h3>
+        <p>DBSCAN's single global $\varepsilon$ implicitly assumes one "scale" of density fits the whole dataset. A tiny change in $\varepsilon$ can merge two real clusters or shatter one into fragments — this is the algorithm's most common failure mode in practice.</p>
+
+        <h3>Effect of Varying Density</h3>
+        <p>Because $\varepsilon$ and minPts are global, DBSCAN cannot simultaneously treat a sparse cluster and a dense cluster correctly — one will be over-merged or entirely lost as noise. <strong>HDBSCAN</strong> (hierarchical DBSCAN) relaxes this by exploring a range of densities instead of one fixed $\varepsilon$.</p>
+
+        <h3>When DBSCAN Should Not Be Used</h3>
+        <ul class="xlist">
+            <li>Clusters of substantially different densities in the same dataset — use HDBSCAN or GMM</li>
+            <li>High-dimensional feature spaces without dimensionality reduction first</li>
+            <li>You need every point assigned to a cluster (no notion of noise is acceptable) — use K-Means or GMM</li>
+            <li>You need a fast, predictable model for very large streaming datasets without a spatial index</li>
+        </ul>
+    </section>
+
+    <!-- ============ 7. DISTANCE METRICS ============ -->
+    <section class="slide" id="distance">
+        <div class="badge">Section 7</div>
+        <h2>Distance Metrics</h2>
+        <p>DBSCAN's region queries need a notion of "closeness," exactly like K-Means — but because DBSCAN only ever compares against a fixed radius $\varepsilon$ (never computes a mean), it is far more flexible about which metric it uses.</p>
+
+        <div class="grid3">
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <line x1="20" y1="20" x2="140" y2="140" stroke="#38bdf8" stroke-width="3"/>
+                    <circle cx="20" cy="20" r="5" fill="#f59e0b"/>
+                    <circle cx="140" cy="140" r="5" fill="#10b981"/>
+                </svg>
+                <span><strong>Euclidean</strong> — straight line</span>
+            </div>
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <path d="M20,20 H140 V140" stroke="#a78bfa" stroke-width="3" fill="none"/>
+                    <circle cx="20" cy="20" r="5" fill="#f59e0b"/>
+                    <circle cx="140" cy="140" r="5" fill="#10b981"/>
+                </svg>
+                <span><strong>Manhattan</strong> — grid path</span>
+            </div>
+            <div class="metric-svg-wrap">
+                <svg viewBox="0 0 160 160" width="150" height="150">
+                    <rect width="160" height="160" fill="#0f172a" rx="10"/>
+                    <line x1="80" y1="140" x2="30" y2="30" stroke="#f59e0b" stroke-width="3"/>
+                    <line x1="80" y1="140" x2="130" y2="50" stroke="#10b981" stroke-width="3"/>
+                    <path d="M75,105 A40,40 0 0 1 105,95" stroke="#ef4444" stroke-width="2" fill="none"/>
+                </svg>
+                <span><strong>Cosine</strong> — angle between vectors</span>
+            </div>
+        </div>
+
+        <h3>Euclidean Distance</h3>
+        <div class="math-block">$$d_{euclid}(x,y) = \sqrt{\sum_{m=1}^{d}(x_m - y_m)^2}$$</div>
+        <p>The default choice for continuous, spatial data — matches the natural notion of a circular $\varepsilon$-neighborhood.</p>
+
+        <h3>Manhattan Distance</h3>
+        <div class="math-block">$$d_{manhattan}(x,y) = \sum_{m=1}^{d}|x_m - y_m|$$</div>
+        <p>Useful in grid-like spaces (e.g., city blocks) or when robustness to outliers along individual axes matters — the $\varepsilon$-neighborhood becomes diamond-shaped instead of circular.</p>
+
+        <h3>Cosine Distance (Discussion Only)</h3>
+        <div class="math-block">$$d_{cosine}(x,y) = 1 - \frac{x \cdot y}{\lVert x \rVert \lVert y \rVert}$$</div>
+        <p>Common for text or high-dimensional embedding data where direction matters more than magnitude. Since DBSCAN's neighborhood test is just a threshold comparison ($d(p,q) \le \varepsilon$), it works correctly with cosine distance without any change to the algorithm — unlike K-Means, no centroid-mean assumption gets violated.</p>
+
+        <h3>Why This Flexibility Matters</h3>
+        <div class="highlight-box box-purple">Because DBSCAN never averages points into a centroid, it has no built-in preference for Euclidean geometry. In scikit-learn, the <code>metric</code> parameter of <code>DBSCAN</code> can be set to <code>'euclidean'</code>, <code>'manhattan'</code>, <code>'cosine'</code>, or a custom callable — making DBSCAN a natural fit for text clustering or precomputed distance/similarity matrices.</div>
+    </section>
+
+    <!-- ============ 8. PYTHON IMPLEMENTATION ============ -->
+    <section class="slide" id="python">
+        <div class="badge">Section 8</div>
+        <h2>Python Implementation</h2>
+        <p>We'll first demonstrate DBSCAN's key strength — non-convex shapes — on a synthetic <code>make_moons</code> dataset, then apply it to the same Mall Customers data used for K-Means to compare how the two algorithms behave differently on the same features.</p>
+
+        <div class="code-label">1 · Import Libraries</div>
+        <pre><span class="c-import">import</span> pandas <span class="c-import">as</span> pd
+<span class="c-import">import</span> numpy <span class="c-import">as</span> np
+<span class="c-import">import</span> matplotlib.pyplot <span class="c-import">as</span> plt
+<span class="c-import">from</span> sklearn.datasets <span class="c-import">import</span> make_moons
+<span class="c-import">from</span> sklearn.preprocessing <span class="c-import">import</span> StandardScaler
+<span class="c-import">from</span> sklearn.cluster <span class="c-import">import</span> DBSCAN
+<span class="c-import">from</span> sklearn.neighbors <span class="c-import">import</span> NearestNeighbors
+<span class="c-import">from</span> sklearn.metrics <span class="c-import">import</span> silhouette_score</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>make_moons</code> generates two interleaving crescent shapes — a classic non-convex case that breaks K-Means but suits DBSCAN.</li>
+                <li><code>NearestNeighbors</code> is used to build the k-distance graph for choosing $\varepsilon$.</li>
+                <li><code>DBSCAN</code> is scikit-learn's implementation of the algorithm.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">2 · Generate / Load Data</div>
+        <pre>X, _ = make_moons(n_samples=300, noise=0.06, random_state=42)
+X_scaled = StandardScaler().fit_transform(X)</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>make_moons</code> returns coordinates <code>X</code> and ground-truth labels (discarded with <code>_</code>, since DBSCAN is unsupervised).</li>
+                <li>We scale even this synthetic data as a habit — always scale before any distance-based algorithm.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">3 · k-Distance Graph to Pick eps</div>
+        <pre>minPts = 5
+neighbors = NearestNeighbors(n_neighbors=minPts).fit(X_scaled)
+distances, _ = neighbors.kneighbors(X_scaled)
+k_distances = np.sort(distances[:, minPts - 1])[::-1]
+
+plt.plot(k_distances)
+plt.xlabel(<span class="c-str">'Points sorted by distance'</span>)
+plt.ylabel(<span class="c-str">f'{minPts}-th nearest neighbor distance'</span>)
+plt.title(<span class="c-str">'k-Distance Graph'</span>)
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>NearestNeighbors(n_neighbors=minPts)</code> fits a search structure to find each point's <code>minPts</code> nearest neighbors.</li>
+                <li><code>distances[:, minPts-1]</code> pulls out the distance to the <code>minPts</code>-th neighbor for every point.</li>
+                <li>Sorting in descending order and plotting reveals the "knee" — read the $\varepsilon$ value off the y-axis at the bend.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">4 · Train DBSCAN</div>
+        <pre>dbscan = DBSCAN(eps=0.25, min_samples=minPts, metric=<span class="c-str">'euclidean'</span>)
+labels = dbscan.fit_predict(X_scaled)</pre>
+        <div class="explain-list">
+            <ul>
+                <li><code>eps=0.25</code> is read from the k-distance knee in the previous step; <code>min_samples</code> is scikit-learn's name for minPts.</li>
+                <li><code>fit_predict</code> fits the model and returns a label per point in one call: cluster IDs starting at 0, with <strong>-1 reserved for noise</strong>.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">5 · Inspect Results</div>
+        <pre>n_clusters = len(set(labels)) - (1 <span class="c-import">if</span> -1 <span class="c-import">in</span> labels <span class="c-import">else</span> 0)
+n_noise = list(labels).count(-1)
+print(<span class="c-str">f"Clusters found: {n_clusters}, Noise points: {n_noise}"</span>)
+
+<span class="c-comment"># Silhouette score should exclude noise points</span>
+mask = labels != -1
+<span class="c-import">if</span> n_clusters > 1:
+    print(<span class="c-str">"Silhouette:"</span>, silhouette_score(X_scaled[mask], labels[mask]))</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We subtract 1 from the label-set size <em>if</em> -1 (noise) is present, so noise isn't miscounted as a real cluster.</li>
+                <li>Silhouette score is only meaningful on the non-noise points, so we mask them out before scoring.</li>
+            </ul>
+        </div>
+
+        <div class="code-label">6 · Visualize Clusters (Moons)</div>
+        <pre>unique_labels = set(labels)
+colors = plt.cm.get_cmap(<span class="c-str">'tab10'</span>, len(unique_labels))
+
+<span class="c-import">for</span> k <span class="c-import">in</span> unique_labels:
+    mask = labels == k
+    color = <span class="c-str">'black'</span> <span class="c-import">if</span> k == -1 <span class="c-import">else</span> colors(k)
+    marker = <span class="c-str">'x'</span> <span class="c-import">if</span> k == -1 <span class="c-import">else</span> <span class="c-str">'o'</span>
+    plt.scatter(X[mask, 0], X[mask, 1], c=[color], marker=marker, s=40, label=<span class="c-str">f'Cluster {k}'</span> <span class="c-import">if</span> k != -1 <span class="c-import">else</span> <span class="c-str">'Noise'</span>)
+
+plt.title(<span class="c-str">'DBSCAN on make_moons'</span>)
+plt.legend()
+plt.show()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>We loop through every unique label, plotting noise (-1) as black X markers and each real cluster in its own color — visually confirming DBSCAN traced both crescent shapes correctly, something K-Means cannot do.</li>
+            </ul>
+        </div>
+
+        <div class="canvas-container">
+            <h4 style="color: var(--text-secondary);">DBSCAN Result on Moons (illustrative)</h4>
+            <canvas id="moonsChart"></canvas>
+        </div>
+
+        <div class="code-label">7 · Apply to Mall Customers Dataset</div>
+        <pre>df = pd.read_csv(<span class="c-str">"Mall_Customers.csv"</span>)
+X_mall = df[[<span class="c-str">'Annual Income (k$)'</span>, <span class="c-str">'Spending Score (1-100)'</span>]].values
+X_mall_scaled = StandardScaler().fit_transform(X_mall)
+
+dbscan_mall = DBSCAN(eps=0.35, min_samples=5)
+df[<span class="c-str">'Cluster'</span>] = dbscan_mall.fit_predict(X_mall_scaled)
+df[<span class="c-str">'Cluster'</span>].value_counts()</pre>
+        <div class="explain-list">
+            <ul>
+                <li>Same scaling discipline as before — DBSCAN is just as distance-sensitive as K-Means.</li>
+                <li>On this fairly uniform-density dataset, DBSCAN typically finds fewer, chunkier clusters than K-Means's 5 clean segments, plus a handful of noise points — a good talking point on choosing the right algorithm for the data's actual shape (see Section 9).</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============ 9. CLUSTER INTERPRETATION ============ -->
+    <section class="slide" id="interpretation">
+        <div class="badge">Section 9</div>
+        <h2>Cluster Interpretation</h2>
+        <p>DBSCAN's output needs a slightly different reading than K-Means: label <strong>-1</strong> is not a segment, it's an explicit "doesn't fit anywhere" flag.</p>
+
+        <table>
+            <thead><tr><th>Label</th><th>Meaning</th><th>Typical Action</th></tr></thead>
+            <tbody>
+                <tr><td style="color:#38bdf8; font-weight:bold;">0, 1, 2, …</td><td>A dense, connected group of similar points</td><td>Treat as a segment — profile and target it</td></tr>
+                <tr><td style="color:#94a3b8; font-weight:bold;">-1 (Noise)</td><td>Point isn't close enough to any dense region</td><td>Investigate individually — outlier, fraud, or data error candidate</td></tr>
+            </tbody>
+        </table>
+
+        <div class="grid">
+            <div class="highlight-box box-success">
+                <strong>Dense clusters</strong> found by DBSCAN represent genuinely tight groupings in behavior — because membership requires actual local density rather than "closest centroid," being inside a DBSCAN cluster is stronger evidence of real similarity.
+            </div>
+            <div class="highlight-box box-danger">
+                <strong>Noise points</strong> are not garbage to be discarded — they are often the most interesting rows in the dataset: a customer with an unusual income/spending combination, a fraudulent transaction, or a sensor fault.
+            </div>
+        </div>
+
+        <h3>Marketing / Analytical Insights</h3>
+        <ul>
+            <li>Use DBSCAN clusters to find genuinely homogeneous "core" customer groups for precise targeting.</li>
+            <li>Route noise points to a manual-review or "unclassified" segment rather than force-fitting a rule.</li>
+            <li>Combine with K-Means: use DBSCAN first to strip outliers, then K-Means on the cleaned data for a stable $K$-segment plan.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 10. PRACTICAL TIPS ============ -->
+    <section class="slide" id="practical">
+        <div class="badge">Section 10</div>
+        <h2>Practical Tips</h2>
+        <div class="grid">
+            <div>
+                <h3>Importance of Feature Scaling</h3>
+                <p>DBSCAN's $\varepsilon$ threshold is applied in raw distance units — an unscaled feature with a large numeric range will make its axis dominate every neighborhood query. Always scale first.</p>
+                <h3>Tuning Workflow</h3>
+                <p>1) Fix minPts from the dimensionality rule of thumb. 2) Build the k-distance graph and read $\varepsilon$ off the knee. 3) Visualize the resulting clusters/noise. 4) Nudge $\varepsilon$ up/down and repeat until clusters look sensible.</p>
+            </div>
+            <div>
+                <h3>Precomputed Distance Matrices</h3>
+                <p>For non-standard similarity functions, compute the pairwise distance matrix yourself and pass <code>metric='precomputed'</code> — useful for text, graphs, or custom domain-specific distances.</p>
+                <h3>Combining with Dimensionality Reduction</h3>
+                <p>In high dimensions, distances become less meaningful (curse of dimensionality). Running PCA or UMAP first, then DBSCAN on the reduced space, is a common and effective pattern.</p>
+            </div>
+        </div>
+
+        <h3>Common Mistakes</h3>
+        <ul class="xlist">
+            <li>Forgetting to scale features before fitting.</li>
+            <li>Treating label <code>-1</code> as a normal cluster in downstream aggregation.</li>
+            <li>Using a single $\varepsilon$ across features with very different density scales.</li>
+            <li>Computing silhouette score without excluding noise points first.</li>
+            <li>Applying DBSCAN blindly to high-dimensional data without checking whether distances are still meaningful.</li>
+            <li>Expecting DBSCAN results to be stable if $\varepsilon$/minPts are only loosely tuned — small changes can shift cluster counts a lot.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 11. PRODUCTION CONSIDERATIONS ============ -->
+    <section class="slide" id="production">
+        <div class="badge">Section 11</div>
+        <h2>Production Considerations</h2>
+
+        <h3>DBSCAN Has No Native <code>.predict()</code></h3>
+        <div class="highlight-box box-danger">Unlike K-Means, DBSCAN doesn't produce reusable centroids — it only labels the exact points it was fit on. There is no built-in way to assign a brand-new point to an existing cluster without re-running (or approximating) the neighborhood logic.</div>
+
+        <h3>Saving Trained Models</h3>
+        <pre><span class="c-import">import</span> joblib
+joblib.dump(dbscan_mall, <span class="c-str">'dbscan_model.pkl'</span>)
+joblib.dump(scaler, <span class="c-str">'scaler.pkl'</span>)</pre>
+        <div class="explain-list">
+            <ul>
+                <li>You can still persist the fitted object (it retains <code>core_sample_indices_</code> and <code>components_</code>), but remember its main use afterward is inspecting the training-set labels, not scoring new data out of the box.</li>
+            </ul>
+        </div>
+
+        <h3>Predicting Clusters for New Points (Workaround)</h3>
+        <pre><span class="c-import">from</span> sklearn.neighbors <span class="c-import">import</span> KNeighborsClassifier
+
+<span class="c-comment"># Train a classifier on DBSCAN's own output (excluding noise)</span>
+core_mask = dbscan_mall.labels_ != -1
+knn = KNeighborsClassifier(n_neighbors=1)
+knn.fit(X_mall_scaled[core_mask], dbscan_mall.labels_[core_mask])
+
+new_point_scaled = scaler.transform([[75, 82]])
+predicted_cluster = knn.predict(new_point_scaled)</pre>
+        <div class="explain-list">
+            <ul>
+                <li>A common production pattern: treat DBSCAN's labels as ground truth and train a lightweight classifier (often 1-NN) on top, purely to score new incoming points against the clusters DBSCAN already discovered.</li>
+                <li>This doesn't let a new point be its own noise point or start a new cluster — it always assigns to the nearest known cluster, which is a deliberate simplification.</li>
+            </ul>
+        </div>
+
+        <h3>Retraining Strategies</h3>
+        <ul>
+            <li><strong>Scheduled retraining:</strong> since DBSCAN has no incremental update, periodic full refits (e.g. weekly/monthly) are standard.</li>
+            <li><strong>Parameter re-validation:</strong> re-check the k-distance graph each retrain — density can drift even if you don't change $\varepsilon$.</li>
+            <li><strong>Incremental variants:</strong> for streaming use cases, consider Incremental DBSCAN or HDBSCAN variants designed for online updates.</li>
+        </ul>
+
+        <h3>Monitoring Cluster Drift</h3>
+        <ul>
+            <li>Track the <strong>noise ratio</strong> over time — a rising fraction of points labeled -1 signals the population no longer matches the training density.</li>
+            <li>Track the number of clusters discovered per retrain — instability here often means $\varepsilon$/minPts need revisiting.</li>
+            <li>Monitor the KNN-classifier's confidence (distance to nearest neighbor) for the production workaround above — growing distances suggest drift.</li>
+        </ul>
+    </section>
+
+    <!-- ============ 12. SUMMARY ============ -->
+    <section class="slide" id="summary">
+        <div class="badge">Section 12</div>
+        <h2>Summary</h2>
+        <div class="grid">
+            <div>
+                <h3>Key Takeaways</h3>
+                <ul class="checklist">
+                    <li><strong>No $K$ needed:</strong> cluster count is discovered, not chosen.</li>
+                    <li><strong>Density, not distance-to-center:</strong> handles arbitrary shapes.</li>
+                    <li><strong>Explicit noise:</strong> outliers are labeled, not forced into a group.</li>
+                    <li><strong>Two parameters matter most:</strong> $\varepsilon$ and minPts.</li>
+                    <li><strong>No native predict:</strong> plan for a workaround in production.</li>
+                </ul>
+                <h3>Best Practices</h3>
+                <ul class="checklist">
+                    <li>Always scale features first.</li>
+                    <li>Use the k-distance graph to choose $\varepsilon$ systematically.</li>
+                    <li>Exclude noise points before computing silhouette score.</li>
+                </ul>
+            </div>
+            <div style="background: var(--bg-main); padding: 1.5rem; border-radius: 12px;">
+                <h3 style="font-size: 1rem;">Final Quiz</h3>
+                <p style="font-size: 0.9rem;">If DBSCAN labels 15% of your data as -1, does that mean the model failed?</p>
+                <p style="color: var(--accent-warning); font-weight: bold;">No. That's DBSCAN doing exactly what it's designed to do — explicitly flagging points that don't belong to any dense region, which is often valuable signal rather than a failure.</p>
+            </div>
+        </div>
+
+        <h3>When to Use DBSCAN</h3>
+        <p>Arbitrary or unknown cluster shapes, a genuine need to detect outliers/noise explicitly, spatial or geographic data, and no strong prior on how many clusters exist.</p>
+
+        <h3>When to Choose an Alternative</h3>
+        <table>
+            <thead><tr><th>Situation</th><th>Better Alternative</th></tr></thead>
+            <tbody>
+                <tr><td>Roughly spherical, similarly-sized clusters, need speed at scale</td><td>K-Means</td></tr>
+                <tr><td>Clusters of very different densities</td><td>HDBSCAN</td></tr>
+                <tr><td>Need soft/probabilistic cluster membership</td><td>Gaussian Mixture Models (GMM)</td></tr>
+                <tr><td>Want a dendrogram / multi-resolution view</td><td>Hierarchical (Agglomerative) Clustering</td></tr>
+                <tr><td>Need to score brand-new points cheaply and natively</td><td>K-Means (has a true <code>.predict()</code>)</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 Elite Frontend Designer &amp; UI/UX Developer. Mastering DBSCAN Clustering.</p>
+    </footer>
+
+    <script>
+        // ---------------- Scroll progress + nav spy ----------------
+        const progressBar = document.getElementById('progressBar');
+        function updateProgress() {
+            const h = document.documentElement;
+            const scrolled = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+            progressBar.style.width = scrolled + '%';
+        }
+        window.addEventListener('scroll', updateProgress);
+        updateProgress();
+
+        const navLinks = Array.from(document.querySelectorAll('#navBar a'));
+        const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+        const navSpy = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                const idx = sections.indexOf(entry.target);
+                if (idx === -1) return;
+                if (entry.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    navLinks[idx].classList.add('active');
+                }
+            });
+        }, { rootMargin: '-45% 0px -45% 0px' });
+        sections.forEach(s => s && navSpy.observe(s));
+
+        // ---------------- Reveal-on-scroll ----------------
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('in-view');
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        document.querySelectorAll('.slide, .reveal').forEach(el => revealObserver.observe(el));
+
+        // ---------------- City emoji subtle float ----------------
+        const cityEmoji = document.getElementById('cityEmoji');
+        if (cityEmoji) {
+            let t = 0;
+            setInterval(() => {
+                t += 0.15;
+                cityEmoji.style.transform = `translateY(${Math.sin(t) * 6}px) rotate(${Math.sin(t*0.5)*6}deg)`;
+            }, 60);
+        }
+
+        // ---------------- Intro comparison charts ----------------
+        const commonOptions = {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { x: { display: false }, y: { display: false } }
+        };
+
+        function makeMoons(n, noise) {
+            const pts = [];
+            for (let i = 0; i < n/2; i++) {
+                const a = Math.PI * (i / (n/2));
+                pts.push({ x: Math.cos(a)*40 + 50 + (Math.random()-0.5)*noise, y: Math.sin(a)*40 + 40 + (Math.random()-0.5)*noise });
+            }
+            for (let i = 0; i < n/2; i++) {
+                const a = Math.PI * (i / (n/2));
+                pts.push({ x: 50 - Math.cos(a)*40 + (Math.random()-0.5)*noise, y: 40 - Math.sin(a)*40 + 30 + (Math.random()-0.5)*noise });
+            }
+            return pts;
+        }
+        const moonPts = makeMoons(120, 14);
+
+        // K-Means "fails" view: split moons by a straight vertical line (mimics centroid assignment failure)
+        new Chart(document.getElementById('kmeansFailCanvas'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: moonPts.filter(p => p.x < 50), backgroundColor: '#ff6384' },
+                { data: moonPts.filter(p => p.x >= 50), backgroundColor: '#36a2eb' }
+            ]},
+            options: commonOptions
+        });
+
+        // DBSCAN "succeeds" view: colored by true moon membership
+        new Chart(document.getElementById('dbscanSuccessCanvas'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: moonPts.slice(0, 60), backgroundColor: '#38bdf8' },
+                { data: moonPts.slice(60), backgroundColor: '#a78bfa' }
+            ]},
+            options: commonOptions
+        });
+
+        // ---------------- k-Distance Graph ----------------
+        const kdistData = Array.from({length: 60}, (_, i) => {
+            const x = i / 59;
+            return Math.max(0.05, 0.15 + 0.9 * Math.pow(x, 4) + (Math.random()*0.02));
+        }).sort((a,b) => b - a);
+
+        new Chart(document.getElementById('kdistChart'), {
+            type: 'line',
+            data: {
+                labels: kdistData.map((_, i) => i),
+                datasets: [{
+                    label: '5th nearest neighbor distance', data: kdistData,
+                    borderColor: '#f59e0b', tension: 0.25, fill: false, pointRadius: 0
+                }]
+            },
+            options: {
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { color: '#94a3b8' }, grid: { color: '#334155' }, title: { display: true, text: 'distance', color: '#94a3b8' } },
+                    x: { ticks: { display: false }, grid: { color: '#334155' }, title: { display: true, text: 'points sorted descending', color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // ---------------- Moons result chart (post-DBSCAN illustrative) ----------------
+        new Chart(document.getElementById('moonsChart'), {
+            type: 'scatter',
+            data: { datasets: [
+                { data: moonPts.slice(0, 60), backgroundColor: '#38bdf8', label: 'Cluster 0' },
+                { data: moonPts.slice(60), backgroundColor: '#a78bfa', label: 'Cluster 1' },
+                { data: [{x: 8, y: 75}, {x: 92, y: 5}], backgroundColor: '#000', borderColor: '#ef4444', borderWidth: 2, pointStyle: 'crossRot', radius: 8, label: 'Noise' }
+            ]},
+            options: commonOptions
+        });
+
+        // ---------------- DBSCAN Live Simulator ----------------
+        const canvasD = document.getElementById('dbscanSim');
+        const ctxD = canvasD.getContext('2d');
+        const EPS = 42, MINPTS = 4;
+        const clusterColors = ['#38bdf8', '#a78bfa', '#10b981', '#f59e0b', '#ff6384', '#4bc0c0'];
+        let ptsD = [], labelsD = [], visitedD = [], isCoreD = [];
+        let gen = null, currentState = null;
+        let autoRunningD = false, autoTimerD = null;
+
+        function distD(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+        function regionQuery(i) {
+            const out = [];
+            for (let j = 0; j < ptsD.length; j++) {
+                if (distD(ptsD[i], ptsD[j]) <= EPS) out.push(j);
+            }
+            return out;
+        }
+
+        function* dbscanGenerator() {
+            const n = ptsD.length;
+            let clusterId = 0;
+            for (let i = 0; i < n; i++) {
+                if (visitedD[i]) continue;
+                visitedD[i] = true;
+                const neighbors = regionQuery(i);
+                yield { current: i, neighbors, phase: 'query' };
+                if (neighbors.length < MINPTS) {
+                    labelsD[i] = -1;
+                    yield { current: i, neighbors, phase: 'noise' };
+                    continue;
+                }
+                clusterId++;
+                labelsD[i] = clusterId;
+                let seeds = neighbors.slice();
+                yield { current: i, neighbors, phase: 'newcluster', clusterId };
+                let idx = 0;
+                while (idx < seeds.length) {
+                    const q = seeds[idx];
+                    if (!visitedD[q]) {
+                        visitedD[q] = true;
+                        const qNeighbors = regionQuery(q);
+                        yield { current: q, neighbors: qNeighbors, phase: 'expand', clusterId };
+                        if (qNeighbors.length >= MINPTS) {
+                            qNeighbors.forEach(x => { if (!seeds.includes(x)) seeds.push(x); });
+                        }
+                    }
+                    if (labelsD[q] === 0 || labelsD[q] === -1) labelsD[q] = clusterId;
+                    idx++;
+                }
+            }
+            return { done: true };
+        }
+
+        function initDbscan() {
+            stopAutoD();
+            const rect = canvasD.getBoundingClientRect();
+            canvasD.width = rect.width;
+            canvasD.height = 420;
+
+            ptsD = [];
+            const blobs = [[canvasD.width*0.25, canvasD.height*0.3], [canvasD.width*0.7, canvasD.height*0.35], [canvasD.width*0.5, canvasD.height*0.75]];
+            blobs.forEach(([bx, by]) => {
+                for (let i = 0; i < 35; i++) {
+                    const ang = Math.random()*Math.PI*2, r = Math.random()*45;
+                    ptsD.push({ x: bx + Math.cos(ang)*r, y: by + Math.sin(ang)*r });
+                }
+            });
+            for (let i = 0; i < 12; i++) {
+                ptsD.push({ x: Math.random()*canvasD.width, y: Math.random()*canvasD.height });
+            }
+
+            labelsD = new Array(ptsD.length).fill(0);
+            visitedD = new Array(ptsD.length).fill(false);
+            isCoreD = ptsD.map((_, i) => regionQuery(i).length >= MINPTS);
+            gen = dbscanGenerator();
+            currentState = null;
+            document.getElementById('simStatusD').innerText = 'Data generated. Click "Next Step" to start region queries.';
+            drawD();
+        }
+
+        function pointColor(i) {
+            if (!visitedD[i]) return '#1e293b';
+            if (labelsD[i] === -1) return '#475569';
+            return clusterColors[(labelsD[i]-1) % clusterColors.length];
+        }
+
+        function drawD() {
+            ctxD.clearRect(0, 0, canvasD.width, canvasD.height);
+
+            // eps circle around current point
+            if (currentState && currentState.current !== undefined) {
+                const p = ptsD[currentState.current];
+                ctxD.beginPath();
+                ctxD.arc(p.x, p.y, EPS, 0, Math.PI*2);
+                ctxD.strokeStyle = 'rgba(56,189,248,0.5)';
+                ctxD.fillStyle = 'rgba(56,189,248,0.08)';
+                ctxD.lineWidth = 2;
+                ctxD.fill();
+                ctxD.stroke();
+            }
+
+            ptsD.forEach((p, i) => {
+                ctxD.beginPath();
+                ctxD.arc(p.x, p.y, 5, 0, Math.PI*2);
+                ctxD.fillStyle = pointColor(i);
+                ctxD.fill();
+                if (visitedD[i] && labelsD[i] > 0 && !isCoreD[i]) {
+                    ctxD.strokeStyle = '#fff';
+                    ctxD.lineWidth = 1.5;
+                    ctxD.stroke();
+                }
+                if (!visitedD[i]) {
+                    ctxD.strokeStyle = 'rgba(245,158,11,0.6)';
+                    ctxD.lineWidth = 1;
+                    ctxD.stroke();
+                }
+            });
+
+            if (currentState && currentState.current !== undefined) {
+                const p = ptsD[currentState.current];
+                ctxD.beginPath();
+                ctxD.arc(p.x, p.y, 9, 0, Math.PI*2);
+                ctxD.strokeStyle = '#fff';
+                ctxD.lineWidth = 2;
+                ctxD.stroke();
+            }
+        }
+
+        function stepDbscan(cb) {
+            if (!gen) initDbscan();
+            const result = gen.next();
+            if (result.done) {
+                document.getElementById('simStatusD').innerText = 'All points visited. DBSCAN finished — every point is core, border, or noise.';
+                stopAutoD();
+                if (cb) cb(true);
+                return;
+            }
+            currentState = result.value;
+            drawD();
+            const msgs = {
+                query: `Visiting point — querying its ε-neighborhood (${currentState.neighbors.length} points found).`,
+                noise: `Only ${currentState.neighbors.length} neighbors (< minPts=${MINPTS}) → marked as noise.`,
+                newcluster: `Core point found (${currentState.neighbors.length} ≥ minPts) → starting Cluster ${currentState.clusterId}.`,
+                expand: `Expanding Cluster ${currentState.clusterId}: checking a neighbor (${currentState.neighbors.length} of its own neighbors).`
+            };
+            document.getElementById('simStatusD').innerText = msgs[currentState.phase] || 'Processing...';
+            if (cb) cb(false);
+        }
+
+        function toggleAutoRunD() {
+            if (autoRunningD) { stopAutoD(); return; }
+            autoRunningD = true;
+            document.getElementById('autoBtnD').innerText = '⏸ Pause';
+            runAutoLoopD();
+        }
+        function runAutoLoopD() {
+            if (!autoRunningD) return;
+            stepDbscan((finished) => {
+                if (!finished) autoTimerD = setTimeout(runAutoLoopD, 220);
+                else stopAutoD();
+            });
+        }
+        function stopAutoD() {
+            autoRunningD = false;
+            clearTimeout(autoTimerD);
+            const btn = document.getElementById('autoBtnD');
+            if (btn) btn.innerText = '▶ Auto Run';
+        }
+
+        window.addEventListener('resize', initDbscan);
+        initDbscan();
+    </script>
+</body>
+</html>

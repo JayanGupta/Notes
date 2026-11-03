@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Price Prediction — End-to-End ML Pipeline by Jayan Gupta</title>
+<meta name="description" content="A comprehensive machine learning workshop covering the CarDekho dataset, feature engineering, EDA, and building a Random Forest regression pipeline for car price prediction.">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg-primary: #080b14;
+  --bg-secondary: #0d1120;
+  --bg-card: rgba(255,255,255,0.05);
+  --bg-card-hover: rgba(255,255,255,0.09);
+  --accent-gold: #f5a623;
+  --accent-orange: #ff6b35;
+  --accent-blue: #4f9cf9;
+  --accent-teal: #06d6a0;
+  --accent-purple: #b481f7;
+  --accent-pink: #f72585;
+  --accent-cyan: #00d4ff;
+  --text-primary: #eef0f8;
+  --text-secondary: #8892b0;
+  --text-dim: #4a5568;
+  --gradient-hero: linear-gradient(135deg, #f5a623 0%, #ff6b35 40%, #f72585 100%);
+  --gradient-blue: linear-gradient(135deg, #4f9cf9, #00d4ff);
+  --gradient-teal: linear-gradient(135deg, #06d6a0, #00d4ff);
+  --gradient-purple: linear-gradient(135deg, #b481f7, #f72585);
+  --font-primary: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+  --border-subtle: rgba(255,255,255,0.07);
+  --glow-gold: rgba(245,166,35,0.15);
+  --glow-teal: rgba(6,214,160,0.12);
+  --glow-blue: rgba(79,156,249,0.12);
+}
+
+html, body {
+  height: 100%; width: 100%;
+  font-family: var(--font-primary);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+/* ============================================================
+   SLIDE ENGINE
+   ============================================================ */
+.deck { position: relative; width: 100vw; height: 100vh; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 48px 80px;
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: translateX(50px);
+  overflow-y: auto;
+}
+.slide.active {
+  opacity: 1; visibility: visible; transform: translateX(0);
+}
+.slide.prev {
+  opacity: 0; visibility: hidden; transform: translateX(-50px);
+}
+
+/* ============================================================
+   ANIMATED BACKGROUND GRID
+   ============================================================ */
+.deck::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: 
+    linear-gradient(rgba(79,156,249,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,156,249,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================
+   PROGRESS & NAVIGATION
+   ============================================================ */
+.progress-track {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 3px; background: rgba(255,255,255,0.06); z-index: 100;
+}
+.progress-bar {
+  height: 100%; background: var(--gradient-hero);
+  transition: width 0.4s ease;
+  box-shadow: 0 0 10px rgba(245,166,35,0.5);
+}
+.slide-counter {
+  position: fixed; bottom: 16px; right: 32px;
+  font-size: 13px; color: var(--text-dim);
+  font-family: var(--font-mono); z-index: 100;
+  letter-spacing: 1px;
+}
+.nav-hint {
+  position: fixed; bottom: 16px; left: 32px;
+  font-size: 11px; color: var(--text-dim); z-index: 100;
+  letter-spacing: 0.5px;
+}
+.nav-arrows {
+  position: fixed; top: 50%; right: 20px;
+  transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 100;
+}
+.nav-arrows button {
+  width: 38px; height: 38px; border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04); color: var(--text-dim);
+  border-radius: 10px; cursor: pointer; font-size: 14px;
+  transition: all 0.25s; backdrop-filter: blur(8px);
+}
+.nav-arrows button:hover {
+  background: rgba(255,255,255,0.10); color: var(--accent-gold);
+  border-color: rgba(245,166,35,0.3);
+  box-shadow: 0 0 12px rgba(245,166,35,0.15);
+}
+
+/* Slide number dots */
+.slide-dots {
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 6px; z-index: 100;
+}
+.slide-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: rgba(255,255,255,0.18);
+  transition: all 0.3s ease; cursor: pointer;
+}
+.slide-dot.active {
+  background: var(--accent-gold);
+  box-shadow: 0 0 8px rgba(245,166,35,0.6);
+  width: 18px; border-radius: 3px;
+}
+
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+h1 { font-size: 3.4rem; font-weight: 800; line-height: 1.12; letter-spacing: -1.5px; }
+h2 { font-size: 2.2rem; font-weight: 700; line-height: 1.2; letter-spacing: -0.8px; }
+h3 { font-size: 1.3rem; font-weight: 600; line-height: 1.3; }
+p, li { font-size: 1.15rem; line-height: 1.75; color: var(--text-secondary); }
+
+.gradient-text {
+  background: var(--gradient-hero);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-blue {
+  background: var(--gradient-blue);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-teal {
+  background: var(--gradient-teal);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gradient-text-purple {
+  background: var(--gradient-purple);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.gold { color: var(--accent-gold); }
+.blue { color: var(--accent-blue); }
+.teal { color: var(--accent-teal); }
+.orange { color: var(--accent-orange); }
+.purple { color: var(--accent-purple); }
+.pink { color: var(--accent-pink); }
+.dim { color: var(--text-dim); }
+.mono { font-family: var(--font-mono); font-size: 0.88em; }
+
+/* ============================================================
+   SLIDE LAYOUTS
+   ============================================================ */
+.slide-content { max-width: 1100px; width: 100%; text-align: center; position: relative; z-index: 1; }
+.slide-content.left { text-align: left; }
+
+.split {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 52px;
+  align-items: center; max-width: 1200px; width: 100%; text-align: left; position: relative; z-index: 1;
+}
+.split-3 {
+  display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px;
+  align-items: start; max-width: 1200px; width: 100%; text-align: left; position: relative; z-index: 1;
+}
+
+/* ============================================================
+   CARDS & BOXES
+   ============================================================ */
+.card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: 18px; padding: 24px 28px; margin: 10px 0;
+  backdrop-filter: blur(12px);
+  transition: all 0.3s ease;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
+  pointer-events: none;
+}
+.card:hover {
+  background: var(--bg-card-hover); border-color: rgba(255,255,255,0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+}
+.card.gold-border { border-color: rgba(245,166,35,0.25); }
+.card.gold-border:hover { border-color: rgba(245,166,35,0.4); box-shadow: 0 8px 30px rgba(245,166,35,0.1); }
+.card.teal-border { border-color: rgba(6,214,160,0.25); }
+.card.teal-border:hover { border-color: rgba(6,214,160,0.4); box-shadow: 0 8px 30px rgba(6,214,160,0.1); }
+.card.blue-border { border-color: rgba(79,156,249,0.25); }
+.card.blue-border:hover { border-color: rgba(79,156,249,0.4); box-shadow: 0 8px 30px rgba(79,156,249,0.1); }
+.card.purple-border { border-color: rgba(180,129,247,0.25); }
+
+.stat-card {
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  border-radius: 18px; padding: 28px 20px; text-align: center;
+  transition: all 0.3s ease;
+}
+.stat-card:hover { transform: translateY(-3px); }
+.stat-number { font-size: 3rem; font-weight: 800; line-height: 1; font-family: var(--font-primary); letter-spacing: -1px; }
+.stat-label { font-size: 0.88rem; color: var(--text-dim); margin-top: 8px; line-height: 1.5; }
+
+.callout {
+  border-left: 3px solid var(--accent-teal); padding: 16px 22px;
+  background: rgba(6,214,160,0.06); border-radius: 0 14px 14px 0;
+  margin: 14px 0; text-align: left;
+  transition: all 0.3s ease;
+}
+.callout.gold { border-left-color: var(--accent-gold); background: rgba(245,166,35,0.06); }
+.callout.blue { border-left-color: var(--accent-blue); background: rgba(79,156,249,0.06); }
+.callout.orange { border-left-color: var(--accent-orange); background: rgba(255,107,53,0.06); }
+.callout.purple { border-left-color: var(--accent-purple); background: rgba(180,129,247,0.06); }
+
+/* ============================================================
+   CODE BLOCKS
+   ============================================================ */
+.code-block {
+  background: #0a0c15; border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px; padding: 18px 22px; text-align: left;
+  font-family: var(--font-mono); font-size: 0.85rem; line-height: 1.7;
+  color: #c9d1d9; overflow-x: auto; margin: 12px 0;
+  position: relative;
+}
+.code-block::before {
+  content: ''; position: absolute; top: 12px; left: 14px;
+  width: 10px; height: 10px; border-radius: 50%;
+  background: #ff5f57; box-shadow: 16px 0 #febc2e, 32px 0 #28c840;
+}
+.code-block .code-inner { padding-top: 18px; display: block; white-space: pre; }
+.type-cursor {
+  display: inline-block; width: 8px; height: 1em; margin-left: 1px;
+  background: var(--accent-teal); vertical-align: text-bottom;
+  animation: cursor-blink 0.8s step-end infinite;
+}
+@keyframes cursor-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+.code-block .kw { color: #ff79c6; }
+.code-block .fn { color: #50fa7b; }
+.code-block .str { color: #f1fa8c; }
+.code-block .num { color: #bd93f9; }
+.code-block .cm { color: #6272a4; font-style: italic; }
+.code-block .op { color: #ff5555; }
+.code-block .cls { color: #8be9fd; }
+.code-block .var { color: #f8f8f2; }
+
+/* ============================================================
+   GRID LAYOUTS
+   ============================================================ */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 14px 0; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 14px 0; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; margin: 14px 0; }
+
+/* ============================================================
+   TABLE
+   ============================================================ */
+table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  margin: 14px 0; font-size: 0.9rem;
+  border-radius: 14px; overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+th {
+  background: rgba(245,166,35,0.1); padding: 11px 16px;
+  text-align: left; font-weight: 600; color: var(--accent-gold);
+  border-bottom: 1px solid rgba(245,166,35,0.2);
+  font-size: 0.85rem; letter-spacing: 0.5px;
+}
+td {
+  padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: var(--text-secondary); font-size: 0.88rem;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: rgba(255,255,255,0.025); }
+
+.emoji { font-size: 2rem; margin-bottom: 10px; display: block; }
+
+ul { list-style: none; padding: 0; }
+ul li { padding: 5px 0; position: relative; padding-left: 22px; }
+ul li::before {
+  content: ''; position: absolute; left: 0; top: 12px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-gold);
+}
+ul.teal li::before { background: var(--accent-teal); }
+ul.blue li::before { background: var(--accent-blue); }
+ul.purple li::before { background: var(--accent-purple); }
+
+.divider {
+  width: 60px; height: 3px; border-radius: 3px;
+  background: var(--gradient-hero); margin: 18px auto;
+}
+.divider.left { margin: 18px 0; }
+.divider.teal { background: var(--gradient-teal); }
+.divider.blue { background: var(--gradient-blue); }
+
+.phase-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 18px; border-radius: 30px;
+  font-size: 0.78rem; font-weight: 700; letter-spacing: 2.5px;
+  text-transform: uppercase; margin-bottom: 14px;
+  border: 1px solid currentColor;
+}
+
+/* ============================================================
+   SPECIAL ELEMENTS
+   ============================================================ */
+.step-number {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px;
+  font-size: 1rem; font-weight: 700; flex-shrink: 0;
+  margin-right: 14px;
+}
+
+.bar-chart-row {
+  display: flex; align-items: center; gap: 12px;
+  margin: 8px 0;
+}
+.bar-label { width: 180px; text-align: right; font-size: 0.88rem; color: var(--text-secondary); flex-shrink: 0; }
+.bar-track { flex: 1; background: rgba(255,255,255,0.06); border-radius: 8px; height: 26px; overflow: hidden; }
+.bar-fill {
+  height: 100%; border-radius: 8px;
+  display: flex; align-items: center; padding-left: 10px;
+  font-size: 0.78rem; font-weight: 700;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.metric-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 14px; border-radius: 20px; font-size: 0.82rem;
+  font-weight: 600; margin: 4px;
+}
+
+/* ============================================================
+   ANIMATIONS
+   ============================================================ */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+@keyframes rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.float { animation: float 4s ease-in-out infinite; }
+
+.slide.active .anim-1 { animation: slideUp 0.5s ease 0.06s both; }
+.slide.active .anim-2 { animation: slideUp 0.5s ease 0.16s both; }
+.slide.active .anim-3 { animation: slideUp 0.5s ease 0.26s both; }
+.slide.active .anim-4 { animation: slideUp 0.5s ease 0.36s both; }
+.slide.active .anim-5 { animation: slideUp 0.5s ease 0.46s both; }
+.slide.active .anim-6 { animation: slideUp 0.5s ease 0.56s both; }
+
+/* Background glows */
+.bg-glow {
+  position: absolute; width: 400px; height: 400px; border-radius: 50%;
+  filter: blur(110px); opacity: 0.08; pointer-events: none; z-index: 0;
+}
+.bg-glow-sm {
+  position: absolute; width: 200px; height: 200px; border-radius: 50%;
+  filter: blur(70px); opacity: 0.10; pointer-events: none; z-index: 0;
+}
+
+/* ============================================================
+   CAR PRICE SPECIFIC - Hero Illustration
+   ============================================================ */
+.car-icon {
+  font-size: 5rem; display: inline-block;
+  filter: drop-shadow(0 0 20px rgba(245,166,35,0.3));
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Pipeline Step */
+.pipeline-step {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 16px 20px; border-radius: 14px;
+  background: var(--bg-card); border: 1px solid var(--border-subtle);
+  margin: 8px 0; transition: all 0.3s ease;
+}
+.pipeline-step:hover { background: var(--bg-card-hover); transform: translateX(4px); }
+.pipeline-icon {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; flex-shrink: 0;
+}
+
+/* Highlight box */
+.highlight-box {
+  border-radius: 16px; padding: 20px 26px;
+  position: relative; overflow: hidden;
+  background: linear-gradient(135deg, rgba(245,166,35,0.08), rgba(255,107,53,0.05));
+  border: 1px solid rgba(245,166,35,0.2);
+}
+
+/* Result tag */
+.result-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 600;
+  background: rgba(6,214,160,0.12); color: var(--accent-teal);
+  border: 1px solid rgba(6,214,160,0.2);
+  margin: 3px;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .slide { padding: 20px; }
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.5rem; }
+  .split, .split-3 { grid-template-columns: 1fr; gap: 20px; }
+  .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+<!-- ============================================================
+     SLIDE 1: TITLE
+     ============================================================ -->
+<div class="slide active" id="slide-0">
+  <div class="bg-glow" style="top:-100px;left:-100px;background:var(--accent-gold);"></div>
+  <div class="bg-glow" style="bottom:-100px;right:-100px;background:var(--accent-orange);"></div>
+  <div class="bg-glow-sm" style="top:30%;left:60%;background:var(--accent-blue);"></div>
+  <div class="slide-content">
+    <div class="anim-1">
+      <span class="car-icon">🚗</span>
+    </div>
+    <div class="anim-2" style="margin-bottom:6px;">
+      <span class="phase-badge" style="color:var(--accent-gold);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);">End-to-End ML Project</span>
+    </div>
+    <h1 class="anim-3" style="margin-bottom:14px;">
+      Car Price <span class="gradient-text">Prediction</span><br>
+      <span style="font-size:0.65em;font-weight:600;letter-spacing:-0.5px;color:var(--text-secondary);">Machine Learning Pipeline</span>
+    </h1>
+    <div class="divider anim-4"></div>
+    <p class="anim-4" style="font-size:1.2rem;color:var(--text-secondary);margin-bottom:28px;max-width:700px;margin-left:auto;margin-right:auto;">
+      From raw CarDekho data to a production-ready ML model — <strong style="color:var(--text-primary);">EDA, feature engineering, preprocessing, and regression.</strong>
+    </p>
+    <div class="anim-5" style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:24px;">
+      <span class="result-tag">📊 2,059 Cars</span>
+      <span class="result-tag" style="color:var(--accent-blue);background:rgba(79,156,249,0.12);border-color:rgba(79,156,249,0.2);">🔧 20 Features</span>
+      <span class="result-tag" style="color:var(--accent-purple);background:rgba(180,129,247,0.12);border-color:rgba(180,129,247,0.2);">🌲 Random Forest</span>
+      <span class="result-tag" style="color:var(--accent-gold);background:rgba(245,166,35,0.12);border-color:rgba(245,166,35,0.2);">💰 Price Prediction</span>
+    </div>
+    <p class="anim-6 dim" style="font-size:0.9rem;">Created by <strong style="color:var(--text-primary);">Jayan Gupta</strong> &bull; Day 11 Workshop</p>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 2: THE PROBLEM STATEMENT
+     ============================================================ -->
+<div class="slide" id="slide-1">
+  <div class="bg-glow" style="top:40%;left:10%;background:var(--accent-gold);"></div>
+  <div class="slide-content">
+    <div class="anim-1" style="margin-bottom:8px;">
+      <span class="phase-badge" style="color:var(--accent-gold);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);">The Problem</span>
+    </div>
+    <h2 class="anim-2" style="margin-bottom:20px;">How Much Is This Car <span class="gradient-text">Worth?</span></h2>
+    <p class="anim-3" style="font-size:1.15rem;margin-bottom:28px;max-width:750px;margin-left:auto;margin-right:auto;">
+      The used car market is a <strong style="color:var(--text-primary);">₹4.5 trillion</strong> industry in India. Buyers and sellers constantly struggle to determine fair market prices.
+    </p>
+    <div class="grid-3 anim-4" style="max-width:900px;margin:0 auto;">
+      <div class="stat-card" style="border:1px solid rgba(245,166,35,0.2);">
+        <div class="stat-number gradient-text">₹4.5T</div>
+        <div class="stat-label">Indian used car market value in 2024</div>
+      </div>
+      <div class="stat-card" style="border:1px solid rgba(6,214,160,0.2);">
+        <div class="stat-number" style="color:var(--accent-teal);">30%</div>
+        <div class="stat-label">Price variation for same car model across platforms</div>
+      </div>
+      <div class="stat-card" style="border:1px solid rgba(79,156,249,0.2);">
+        <div class="stat-number" style="color:var(--accent-blue);">60+</div>
+        <div class="stat-label">Factors that influence a used car's final price</div>
+      </div>
+    </div>
+    <div class="callout gold anim-5" style="max-width:800px;margin:20px auto 0;text-align:center;">
+      <p style="font-size:1.1rem;color:var(--text-primary);">
+        <strong>Our Goal:</strong> Build a <span class="gold">machine learning model</span> that predicts a car's resale price given its specifications — enabling fair, data-driven valuations.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 3: THE DATASET
+     ============================================================ -->
+<div class="slide" id="slide-2">
+  <div class="slide-content left">
+    <span class="phase-badge anim-1" style="color:var(--accent-blue);border-color:rgba(79,156,249,0.3);background:rgba(79,156,249,0.08);">Step 1 — Data Loading</span>
+    <h2 class="anim-2" style="margin-bottom:8px;">Meet the <span class="gradient-text-blue">CarDekho Dataset</span></h2>
+    <p class="anim-2" style="font-size:1rem;margin-bottom:16px;color:var(--text-secondary);">2,059 real used car listings with 20 features covering make, specs, and location.</p>
+    <table class="anim-3">
+      <thead>
+        <tr><th>Feature</th><th>Type</th><th>Example / Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>Make</code></td><td>String</td><td>Honda, Maruti Suzuki, Toyota</td></tr>
+        <tr><td><code>Model</code></td><td>String</td><td>Amaze 1.2 VX i-VTEC</td></tr>
+        <tr><td><code>Year</code></td><td>Integer</td><td>Manufacturing year (2011–2020)</td></tr>
+        <tr><td><code>Kilometer</code></td><td>Integer</td><td>Total km driven (e.g. 87,150)</td></tr>
+        <tr><td><code>Fuel Type</code></td><td>Categorical</td><td>Petrol, Diesel, Electric, CNG</td></tr>
+        <tr><td><code>Transmission</code></td><td>Categorical</td><td>Manual / Automatic</td></tr>
+        <tr><td><code>Engine</code></td><td>Object → Float</td><td>"1198 cc" → 1198.0 (requires cleaning)</td></tr>
+        <tr><td><code>Max Power</code></td><td>Object → Float</td><td>"87 bhp @ 6000 rpm" → 87.0</td></tr>
+        <tr><td><code>Max Torque</code></td><td>Object → Float</td><td>"109 Nm @ 4500 rpm" → 109.0</td></tr>
+        <tr><td><code>Seating Capacity</code></td><td>Float</td><td>5.0, 7.0, 8.0</td></tr>
+        <tr><td><strong class="gold">Price</strong></td><td><strong>Integer (Target)</strong></td><td><strong>₹220,000 – ₹19,500,000</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 4: MISSING DATA PROBLEM
+     ============================================================ -->
+<div class="slide" id="slide-3">
+  <div class="bg-glow" style="top:20%;right:0;background:var(--accent-orange);"></div>
+  <div class="split">
+    <div>
+      <span class="phase-badge anim-1" style="color:var(--accent-orange);border-color:rgba(255,107,53,0.3);background:rgba(255,107,53,0.08);">Step 2 — Data Audit</span>
+      <h2 class="anim-2" style="margin-bottom:14px;">Where Are <span class="gradient-text">the Gaps?</span></h2>
+      <p class="anim-3" style="margin-bottom:16px;">Running <code style="background:rgba(255,255,255,0.06);padding:2px 8px;border-radius:6px;font-family:var(--font-mono);font-size:0.9em;">df.isnull().sum()</code> reveals significant missing data in technical specs.</p>
+      <div class="callout orange anim-4">
+        <p style="font-size:1rem;"><strong>Key insight:</strong> Missing technical specs (Engine, Power) are NOT random — they come from Electric Vehicles which physically don't have combustion engine specs!</p>
+      </div>
+      <div class="callout blue anim-5" style="margin-top:12px;">
+        <p style="font-size:0.95rem;"><strong>Strategy:</strong> Apply domain knowledge — fill EV rows with 0, drop remaining missing critical rows rather than imputing arbitrarily.</p>
+      </div>
+    </div>
+    <div class="anim-3">
+      <div style="background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:18px;padding:20px 24px;">
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:16px;font-family:var(--font-mono);letter-spacing:0.5px;">MISSING VALUE COUNTS</p>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Engine</span>
+            <div class="bar-track"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,var(--accent-orange),#ff8c00);color:#000;">80</div></div>
+          </div>
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Max Power</span>
+            <div class="bar-track"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,var(--accent-orange),#ff8c00);color:#000;">80</div></div>
+          </div>
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Max Torque</span>
+            <div class="bar-track"><div class="bar-fill" style="width:52%;background:linear-gradient(90deg,var(--accent-orange),#ff8c00);color:#000;">80</div></div>
+          </div>
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Drivetrain</span>
+            <div class="bar-track"><div class="bar-fill" style="width:87%;background:linear-gradient(90deg,var(--accent-pink),#e91e63);color:#fff;">136</div></div>
+          </div>
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Fuel Tank Cap</span>
+            <div class="bar-track"><div class="bar-fill" style="width:72%;background:linear-gradient(90deg,var(--accent-purple),#9c27b0);color:#fff;">113</div></div>
+          </div>
+          <div class="bar-chart-row" style="gap:10px;">
+            <span class="bar-label" style="font-size:0.8rem;">Length/Width/Height</span>
+            <div class="bar-track"><div class="bar-fill" style="width:40%;background:linear-gradient(90deg,var(--accent-teal),#00bcd4);color:#000;">64</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 5: FEATURE ENGINEERING
+     ============================================================ -->
+<div class="slide" id="slide-4">
+  <div class="slide-content left">
+    <span class="phase-badge anim-1" style="color:var(--accent-teal);border-color:rgba(6,214,160,0.3);background:rgba(6,214,160,0.08);">Step 3 — Feature Engineering</span>
+    <h2 class="anim-2" style="margin-bottom:16px;">Turning <span class="gradient-text-teal">Strings into Numbers</span></h2>
+    <p class="anim-2" style="font-size:1rem;margin-bottom:20px;color:var(--text-secondary);">ML models need numbers. Raw string columns like Engine contain units that must be parsed out.</p>
+    
+    <div class="split anim-3" style="gap:30px;align-items:start;">
+      <div>
+        <p style="font-size:0.9rem;color:var(--text-dim);margin-bottom:10px;letter-spacing:1px;text-transform:uppercase;">Before: Raw Strings</p>
+        <div class="code-block" style="font-size:0.82rem;">
+          <span class="code-inner">
+<span class="cm"># These columns are type: object</span>
+<span class="var">Engine</span>:    <span class="str">"1198 cc"</span>
+<span class="var">Max Power</span>: <span class="str">"87 bhp @ 6000 rpm"</span>
+<span class="var">Max Torque</span>: <span class="str">"109 Nm @ 4500 rpm"</span>
+          </span>
+        </div>
+        <p style="font-size:0.9rem;color:var(--text-dim);margin:16px 0 10px;letter-spacing:1px;text-transform:uppercase;">After: Clean Numbers</p>
+        <div class="code-block" style="font-size:0.82rem;">
+          <span class="code-inner">
+<span class="var">df</span>[<span class="str">'Engine'</span>] = <span class="var">df</span>[<span class="str">'Engine'</span>].<span class="fn">str</span>.<span class="fn">replace</span>(<span class="str">' cc'</span>, <span class="str">''</span>).<span class="fn">astype</span>(<span class="fn">float</span>)
+
+<span class="var">df</span>[<span class="str">'Max Power'</span>] = <span class="var">df</span>[<span class="str">'Max Power'</span>].<span class="fn">str</span>.<span class="fn">extract</span>(<span class="str">r'([\d\.]+)'</span>).<span class="fn">astype</span>(<span class="fn">float</span>)
+
+<span class="var">df</span>[<span class="str">'Max Torque'</span>] = <span class="var">df</span>[<span class="str">'Max Torque'</span>].<span class="fn">str</span>.<span class="fn">extract</span>(<span class="str">r'([\d\.]+)'</span>).<span class="fn">astype</span>(<span class="fn">float</span>)
+          </span>
+        </div>
+      </div>
+      <div>
+        <div class="card gold-border">
+          <span class="emoji">🔬</span>
+          <h3 style="margin-bottom:8px;">What is <code style="font-size:0.85em;">.str.extract()</code>?</h3>
+          <p style="font-size:0.9rem;">Uses a regex pattern to pull the first numeric value from a string. The pattern <code style="background:rgba(255,255,255,0.06);padding:2px 6px;border-radius:4px;font-size:0.82em;">([\d\.]+)</code> matches any digit or dot sequence.</p>
+        </div>
+        <div class="card teal-border" style="margin-top:14px;">
+          <span class="emoji">✅</span>
+          <h3 style="margin-bottom:8px;">Result After Extraction</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;">
+            <div style="text-align:center;padding:10px 14px;background:rgba(6,214,160,0.08);border-radius:10px;flex:1;">
+              <div style="font-size:1.4rem;font-weight:700;color:var(--accent-teal);">1198.0</div>
+              <div style="font-size:0.75rem;color:var(--text-dim);">Engine (cc)</div>
+            </div>
+            <div style="text-align:center;padding:10px 14px;background:rgba(6,214,160,0.08);border-radius:10px;flex:1;">
+              <div style="font-size:1.4rem;font-weight:700;color:var(--accent-teal);">87.0</div>
+              <div style="font-size:0.75rem;color:var(--text-dim);">Max Power (bhp)</div>
+            </div>
+            <div style="text-align:center;padding:10px 14px;background:rgba(6,214,160,0.08);border-radius:10px;flex:1;">
+              <div style="font-size:1.4rem;font-weight:700;color:var(--accent-teal);">109.0</div>
+              <div style="font-size:0.75rem;color:var(--text-dim);">Max Torque (Nm)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 6: EDA — PRICE DISTRIBUTION
+     ============================================================ -->
+<div class="slide" id="slide-5">
+  <div class="bg-glow" style="top:20%;left:20%;background:var(--accent-gold);"></div>
+  <div class="slide-content">
+    <span class="phase-badge anim-1" style="color:var(--accent-gold);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);">Step 4 — EDA</span>
+    <h2 class="anim-2" style="margin-bottom:8px;">Target Variable: <span class="gradient-text">Price Distribution</span></h2>
+    <p class="anim-3" style="margin-bottom:20px;">Car prices are heavily right-skewed — a few luxury cars stretch the distribution enormously.</p>
+
+    <div class="split anim-4" style="max-width:1000px;margin:0 auto;gap:40px;align-items:start;">
+      <div>
+        <!-- Simulated price distribution bars -->
+        <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;letter-spacing:0.5px;text-transform:uppercase;">Price frequency distribution</p>
+        <div style="display:flex;align-items:flex-end;gap:5px;height:140px;padding-bottom:8px;border-bottom:1px solid var(--border-subtle);">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-gold),var(--accent-orange));border-radius:4px 4px 0 0;width:100%;height:90%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">&lt;5L</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-gold),var(--accent-orange));border-radius:4px 4px 0 0;width:100%;height:100%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">5–10L</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-gold),var(--accent-orange));border-radius:4px 4px 0 0;width:100%;height:75%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">10–15L</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-teal),#00bcd4);border-radius:4px 4px 0 0;width:100%;height:50%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">15–25L</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-teal),#00bcd4);border-radius:4px 4px 0 0;width:100%;height:30%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">25–50L</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-blue),#1565c0);border-radius:4px 4px 0 0;width:100%;height:15%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">50L–1Cr</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px;">
+            <div style="background:linear-gradient(to top,var(--accent-purple),#673ab7);border-radius:4px 4px 0 0;width:100%;height:6%;opacity:0.9;"></div>
+            <span style="font-size:0.65rem;color:var(--text-dim);">&gt;1Cr</span>
+          </div>
+        </div>
+        <p style="font-size:0.75rem;color:var(--text-dim);margin-top:8px;text-align:center;">Price Range (Rupees)</p>
+      </div>
+      <div>
+        <div class="card gold-border" style="margin-bottom:14px;">
+          <h3 class="gold" style="margin-bottom:10px;">📊 Key Stats</h3>
+          <div class="grid-2" style="gap:10px;margin:0;">
+            <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent-gold);">₹5.8L</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);">Median Price</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent-gold);">₹9.2L</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);">Mean Price</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent-teal);">₹2.2L</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);">Min Price</div>
+            </div>
+            <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+              <div style="font-size:1.3rem;font-weight:700;color:var(--accent-pink);">₹1.95Cr</div>
+              <div style="font-size:0.72rem;color:var(--text-dim);">Max Price</div>
+            </div>
+          </div>
+        </div>
+        <div class="callout" style="margin:0;">
+          <p style="font-size:0.9rem;"><strong>⚡ Why Random Forest?</strong> The heavy skew means linear models will struggle. Tree-based models like Random Forest are naturally robust to non-linear, skewed distributions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 7: EDA — KEY INSIGHTS
+     ============================================================ -->
+<div class="slide" id="slide-6">
+  <div class="slide-content">
+    <span class="phase-badge anim-1" style="color:var(--accent-blue);border-color:rgba(79,156,249,0.3);background:rgba(79,156,249,0.08);">Step 4 — EDA Insights</span>
+    <h2 class="anim-2" style="margin-bottom:8px;">What <span class="gradient-text-blue">Drives Price?</span></h2>
+    <p class="anim-3" style="margin-bottom:20px;font-size:1rem;">Exploring correlations between car features and price reveals powerful signals.</p>
+    <div class="grid-2 anim-4" style="max-width:1000px;margin:0 auto;gap:18px;">
+      <div class="card blue-border">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <span style="font-size:1.8rem;">⛽</span>
+          <div>
+            <h3 class="blue">Fuel Type</h3>
+            <p style="font-size:0.85rem;margin:0;">Hybrid & Electric command the highest premium</p>
+          </div>
+        </div>
+        <div class="grid-2" style="margin:0;gap:8px;">
+          <div style="text-align:center;padding:10px;background:rgba(79,156,249,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-blue);">₹52.0L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Hybrid (median)</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(79,156,249,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-gold);">₹5.95L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Petrol (median)</div>
+          </div>
+        </div>
+      </div>
+      <div class="card gold-border">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <span style="font-size:1.8rem;">⚙️</span>
+          <div>
+            <h3 class="gold">Transmission</h3>
+            <p style="font-size:0.85rem;margin:0;">Automatic is a strong luxury indicator</p>
+          </div>
+        </div>
+        <div class="grid-2" style="margin:0;gap:8px;">
+          <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-teal);">₹21.5L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Automatic (median)</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(245,166,35,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-orange);">₹5.65L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Manual (median)</div>
+          </div>
+        </div>
+      </div>
+      <div class="card teal-border">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <span style="font-size:1.8rem;">🏢</span>
+          <div>
+            <h3 class="teal">Seller Type</h3>
+            <p style="font-size:0.85rem;margin:0;">Who you buy from matters a lot</p>
+          </div>
+        </div>
+        <div class="grid-2" style="margin:0;gap:8px;">
+          <div style="text-align:center;padding:10px;background:rgba(6,214,160,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-teal);">₹18.3L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Corporate (median)</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(6,214,160,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-orange);">₹4.5L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Commercial (median)</div>
+          </div>
+        </div>
+      </div>
+      <div class="card purple-border">
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+          <span style="font-size:1.8rem;">📉</span>
+          <div>
+            <h3 class="purple">Depreciation Curve</h3>
+            <p style="font-size:0.85rem;margin:0;">Cars lose value fast as they age</p>
+          </div>
+        </div>
+        <div class="grid-2" style="margin:0;gap:8px;">
+          <div style="text-align:center;padding:10px;background:rgba(180,129,247,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-teal);">₹33–37L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Avg 2021–22 models</div>
+          </div>
+          <div style="text-align:center;padding:10px;background:rgba(180,129,247,0.06);border-radius:10px;">
+            <div style="font-size:1.3rem;font-weight:700;color:var(--accent-orange);">₹6.5L</div>
+            <div style="font-size:0.72rem;color:var(--text-dim);">Avg 2013 models</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 8: PREPROCESSING PIPELINE
+     ============================================================ -->
+<div class="slide" id="slide-7">
+  <div class="slide-content left">
+    <span class="phase-badge anim-1" style="color:var(--accent-purple);border-color:rgba(180,129,247,0.3);background:rgba(180,129,247,0.08);">Step 5 — Preprocessing</span>
+    <h2 class="anim-2" style="margin-bottom:16px;">Building the <span class="gradient-text-purple">ML Pipeline</span></h2>
+    <div class="grid-2 anim-3" style="gap:16px;">
+      <div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon" style="background:rgba(245,166,35,0.12);color:var(--accent-gold);">📂</div>
+          <div>
+            <h3 style="font-size:1rem;margin-bottom:4px;">1. Select Modeling Features</h3>
+            <p style="font-size:0.88rem;">Keep 8 columns: <code style="font-size:0.82em;">Year</code>, <code style="font-size:0.82em;">Kilometer</code>, <code style="font-size:0.82em;">Engine</code>, <code style="font-size:0.82em;">Max Power</code>, <code style="font-size:0.82em;">Seating Capacity</code>, <code style="font-size:0.82em;">Fuel Type</code>, <code style="font-size:0.82em;">Transmission</code>, <code style="font-size:0.82em;">Seller Type</code>. High-cardinality text like <code style="font-size:0.82em;">Model</code>/<code style="font-size:0.82em;">Color</code> is simply left out.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon" style="background:rgba(6,214,160,0.12);color:var(--accent-teal);">🩹</div>
+          <div>
+            <h3 style="font-size:1rem;margin-bottom:4px;">2. Impute Missing Values</h3>
+            <p style="font-size:0.88rem;">Numeric gaps (e.g. <code style="font-size:0.82em;">Seating Capacity</code>) filled with the <strong>median</strong>; categorical gaps filled with the <strong>most frequent</strong> value — both inside the pipeline.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon" style="background:rgba(79,156,249,0.12);color:var(--accent-blue);">🔢</div>
+          <div>
+            <h3 style="font-size:1rem;margin-bottom:4px;">3. One-Hot Encode Categoricals</h3>
+            <p style="font-size:0.88rem;"><code style="font-size:0.82em;">Fuel Type</code>, <code style="font-size:0.82em;">Transmission</code>, <code style="font-size:0.82em;">Seller Type</code> converted via <code style="font-size:0.82em;">OneHotEncoder(handle_unknown='ignore', drop='first')</code>.</p>
+          </div>
+        </div>
+        <div class="pipeline-step">
+          <div class="pipeline-icon" style="background:rgba(180,129,247,0.12);color:var(--accent-purple);">✂️</div>
+          <div>
+            <h3 style="font-size:1rem;margin-bottom:4px;">4. Train/Test Split</h3>
+            <p style="font-size:0.88rem;">80/20 split — <strong>1,588 training rows / 398 test rows</strong> — via <code style="font-size:0.82em;">train_test_split()</code> with <code style="font-size:0.82em;">random_state=42</code>.</p>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="code-block" style="font-size:0.78rem;">
+          <span class="code-inner">
+<span class="kw">from</span> sklearn.pipeline <span class="kw">import</span> <span class="cls">Pipeline</span>
+<span class="kw">from</span> sklearn.compose <span class="kw">import</span> <span class="cls">ColumnTransformer</span>
+<span class="kw">from</span> sklearn.impute <span class="kw">import</span> <span class="cls">SimpleImputer</span>
+<span class="kw">from</span> sklearn.preprocessing <span class="kw">import</span> <span class="cls">OneHotEncoder</span>
+
+<span class="var">numerical_features</span> = [<span class="str">'Year'</span>, <span class="str">'Kilometer'</span>, <span class="str">'Engine'</span>,
+                      <span class="str">'Max Power'</span>, <span class="str">'Seating Capacity'</span>]
+<span class="var">categorical_features</span> = [<span class="str">'Fuel Type'</span>, <span class="str">'Transmission'</span>,
+                        <span class="str">'Seller Type'</span>]
+
+<span class="var">numerical_transformer</span> = <span class="cls">Pipeline</span>(<span class="var">steps</span>=[
+    (<span class="str">'imputer'</span>, <span class="cls">SimpleImputer</span>(<span class="var">strategy</span>=<span class="str">'median'</span>))
+])
+<span class="var">categorical_transformer</span> = <span class="cls">Pipeline</span>(<span class="var">steps</span>=[
+    (<span class="str">'imputer'</span>, <span class="cls">SimpleImputer</span>(<span class="var">strategy</span>=<span class="str">'most_frequent'</span>)),
+    (<span class="str">'onehot'</span>, <span class="cls">OneHotEncoder</span>(<span class="var">handle_unknown</span>=<span class="str">'ignore'</span>, <span class="var">drop</span>=<span class="str">'first'</span>))
+])
+
+<span class="var">preprocessor</span> = <span class="cls">ColumnTransformer</span>(<span class="var">transformers</span>=[
+    (<span class="str">'num'</span>, <span class="var">numerical_transformer</span>, <span class="var">numerical_features</span>),
+    (<span class="str">'cat'</span>, <span class="var">categorical_transformer</span>, <span class="var">categorical_features</span>)
+])
+          </span>
+        </div>
+        <div class="callout" style="margin-top:14px;">
+          <p style="font-size:0.88rem;"><strong>💡 sklearn Pipeline:</strong> Wraps preprocessor + model into one object, fitting imputers and the encoder only on training data. No manual scaling is used — Random Forest doesn't need it.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 9: THE MODEL — RANDOM FOREST
+     ============================================================ -->
+<div class="slide" id="slide-8">
+  <div class="bg-glow" style="top:10%;left:60%;background:var(--accent-teal);"></div>
+  <div class="split-3">
+    <div>
+      <span class="phase-badge anim-1" style="color:var(--accent-teal);border-color:rgba(6,214,160,0.3);background:rgba(6,214,160,0.08);">Step 6 — Modelling</span>
+      <h2 class="anim-2" style="margin-bottom:14px;">Weak Baseline vs <span class="gradient-text-teal">Random Forest</span></h2>
+      <p class="anim-3" style="margin-bottom:16px;">To showcase the performance difference, two pipelines are trained: a simple <strong style="color:var(--text-primary);">Linear Regression</strong> baseline and a <strong style="color:var(--text-primary);">Random Forest</strong> — an ensemble of decision trees whose final prediction is the <strong style="color:var(--text-primary);">average</strong> of all tree outputs.</p>
+      <div class="code-block anim-3" style="font-size:0.8rem;">
+        <span class="code-inner">
+<span class="kw">from</span> sklearn.linear_model <span class="kw">import</span> <span class="cls">LinearRegression</span>
+<span class="kw">from</span> sklearn.ensemble <span class="kw">import</span> <span class="cls">RandomForestRegressor</span>
+
+<span class="var">lr_pipeline</span> = <span class="cls">Pipeline</span>(<span class="var">steps</span>=[
+    (<span class="str">'preprocessor'</span>, <span class="var">preprocessor</span>),
+    (<span class="str">'model'</span>, <span class="cls">LinearRegression</span>())
+])
+
+<span class="var">rf_pipeline</span> = <span class="cls">Pipeline</span>(<span class="var">steps</span>=[
+    (<span class="str">'preprocessor'</span>, <span class="var">preprocessor</span>),
+    (<span class="str">'model'</span>, <span class="cls">RandomForestRegressor</span>(
+        <span class="var">n_estimators</span>=<span class="num">100</span>,
+        <span class="var">random_state</span>=<span class="num">42</span>
+    ))
+])
+
+<span class="var">lr_pipeline</span>.<span class="fn">fit</span>(<span class="var">X_train</span>, <span class="var">y_train</span>)
+<span class="var">rf_pipeline</span>.<span class="fn">fit</span>(<span class="var">X_train</span>, <span class="var">y_train</span>)
+        </span>
+      </div>
+    </div>
+    <div>
+      <div class="card teal-border anim-2">
+        <h3 class="teal" style="margin-bottom:14px;">🌲 How Random Forest Works</h3>
+        <ul class="teal" style="font-size:0.9rem;">
+          <li>Build 100 independent decision trees</li>
+          <li>Each tree sees a random sample of data (bootstrap)</li>
+          <li>Each split considers random subset of features</li>
+          <li>Average all tree predictions → robust result</li>
+        </ul>
+      </div>
+      <div class="card gold-border anim-3" style="margin-top:14px;">
+        <h3 class="gold" style="margin-bottom:10px;">🎯 Why Compare the Two?</h3>
+        <ul style="font-size:0.88rem;">
+          <li>Linear Regression assumes straight-line relationships</li>
+          <li>Car pricing is non-linear and heavily skewed</li>
+          <li>Random Forest handles that non-linearity naturally</li>
+          <li>Robust to luxury-car outliers left in the data</li>
+          <li>Comparison quantifies exactly how much that buys us</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 10: MODEL EVALUATION
+     ============================================================ -->
+<div class="slide" id="slide-9">
+  <div class="slide-content">
+    <span class="phase-badge anim-1" style="color:var(--accent-gold);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);">Step 7 — Evaluation</span>
+    <h2 class="anim-2" style="margin-bottom:8px;">How Well Did We <span class="gradient-text">Predict?</span></h2>
+    <p class="anim-3" style="margin-bottom:22px;">Evaluating regression models requires different metrics than classification — we measure how close our predictions are in ₹, on the held-out 398-row test set.</p>
+
+    <div class="grid-2 anim-4" style="max-width:800px;margin:0 auto 20px;gap:24px;">
+      <div class="stat-card" style="border:1px solid rgba(255,107,53,0.25);">
+        <div style="font-size:0.85rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Linear Regression (weak)</div>
+        <div style="font-size:1.8rem;font-weight:800;color:var(--accent-orange);margin:4px 0;">R² = 0.54</div>
+        <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);margin:6px 0;">MAE = ₹8.88L</div>
+        <div class="stat-label">Explains just over half the price variance</div>
+      </div>
+      <div class="stat-card" style="border:1px solid rgba(6,214,160,0.25);">
+        <div style="font-size:0.85rem;color:var(--text-dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Random Forest (strong)</div>
+        <div style="font-size:1.8rem;font-weight:800;color:var(--accent-teal);margin:4px 0;">R² = 0.74</div>
+        <div style="font-size:1.3rem;font-weight:700;color:var(--text-primary);margin:6px 0;">MAE = ₹3.78L</div>
+        <div class="stat-label">Explains nearly ¾ of the price variance</div>
+      </div>
+    </div>
+
+    <div class="callout anim-5" style="max-width:800px;margin:0 auto;text-align:center;">
+      <p style="font-size:1.05rem;color:var(--text-primary);">
+        <strong>What does this jump mean?</strong> Switching from Linear Regression to Random Forest raises R² from <span class="orange">0.54</span> to <span class="teal">0.74</span> and cuts the average error by more than half — evidence that car pricing is a non-linear problem, and this data still includes ₹50L+ luxury outliers.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 11: METRICS DEEP DIVE
+     ============================================================ -->
+<div class="slide" id="slide-10">
+  <div class="slide-content left">
+    <span class="phase-badge anim-1" style="color:var(--accent-blue);border-color:rgba(79,156,249,0.3);background:rgba(79,156,249,0.08);">Understanding Metrics</span>
+    <h2 class="anim-2" style="margin-bottom:16px;">Regression <span class="gradient-text-blue">Evaluation Metrics</span></h2>
+    <div class="grid-3 anim-3">
+      <div class="card blue-border" style="border-top:3px solid var(--accent-teal);">
+        <h3 class="teal" style="margin-bottom:8px;">R² Score</h3>
+        <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--accent-teal);padding:8px 12px;background:rgba(6,214,160,0.08);border-radius:8px;margin:8px 0;">
+          1 - (SS_res / SS_tot)
+        </div>
+        <p style="font-size:0.88rem;">Measures how much of the variance in the target the model explains. 1.0 = perfect, 0 = no better than mean.</p>
+        <div style="margin-top:8px;padding:8px;background:rgba(6,214,160,0.06);border-radius:8px;text-align:center;">
+          <span style="font-size:1.05rem;font-weight:700;color:var(--accent-teal);">RF: 0.74 &nbsp;·&nbsp; LR: 0.54</span>
+        </div>
+      </div>
+      <div class="card gold-border" style="border-top:3px solid var(--accent-gold);">
+        <h3 class="gold" style="margin-bottom:8px;">MAE</h3>
+        <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--accent-gold);padding:8px 12px;background:rgba(245,166,35,0.08);border-radius:8px;margin:8px 0;">
+          mean(|y_pred - y_true|)
+        </div>
+        <p style="font-size:0.88rem;">Average absolute difference between prediction and reality. In the same units as target (₹). Intuitive and robust to outliers.</p>
+        <div style="margin-top:8px;padding:8px;background:rgba(245,166,35,0.06);border-radius:8px;text-align:center;">
+          <span style="font-size:1.05rem;font-weight:700;color:var(--accent-gold);">RF: ₹3.78L &nbsp;·&nbsp; LR: ₹8.88L</span>
+        </div>
+      </div>
+      <div class="card blue-border" style="border-top:3px solid var(--accent-blue);">
+        <h3 class="blue" style="margin-bottom:8px;">Net Improvement</h3>
+        <div style="font-family:var(--font-mono);font-size:0.82rem;color:var(--accent-blue);padding:8px 12px;background:rgba(79,156,249,0.08);border-radius:8px;margin:8px 0;">
+          RF vs. LR
+        </div>
+        <p style="font-size:0.88rem;">Switching models keeps the exact same pipeline and only swaps the estimator — isolating the effect of model choice on accuracy.</p>
+        <div style="margin-top:8px;padding:8px;background:rgba(79,156,249,0.06);border-radius:8px;text-align:center;">
+          <span style="font-size:1.05rem;font-weight:700;color:var(--accent-blue);">~57% lower error ✅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 12: CORRELATION WITH PRICE (Q10)
+     ============================================================ -->
+<div class="slide" id="slide-11">
+  <div class="slide-content">
+    <span class="phase-badge anim-1" style="color:var(--accent-purple);border-color:rgba(180,129,247,0.3);background:rgba(180,129,247,0.08);">Step 4 — EDA (Q10)</span>
+    <h2 class="anim-2" style="margin-bottom:8px;">Which Features <span class="gradient-text-purple">Correlate with Price?</span></h2>
+    <p class="anim-3" style="margin-bottom:20px;">A correlation heatmap over the numeric columns shows what moves with price — before any model is even trained.</p>
+    <div class="anim-4" style="max-width:700px;margin:0 auto;">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="bar-chart-row">
+          <span class="bar-label">Max Power (bhp)</span>
+          <div class="bar-track"><div class="bar-fill" style="width:88%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-orange));color:#000;font-weight:700;">+0.78</div></div>
+        </div>
+        <div class="bar-chart-row">
+          <span class="bar-label">Max Torque (Nm)</span>
+          <div class="bar-track"><div class="bar-fill" style="width:75%;background:linear-gradient(90deg,var(--accent-gold),var(--accent-orange));color:#000;font-weight:700;">+0.67</div></div>
+        </div>
+        <div class="bar-chart-row">
+          <span class="bar-label">Engine (cc)</span>
+          <div class="bar-track"><div class="bar-fill" style="width:68%;background:linear-gradient(90deg,var(--accent-teal),#00bcd4);color:#000;font-weight:700;">+0.61</div></div>
+        </div>
+        <div class="bar-chart-row">
+          <span class="bar-label">Kilometer</span>
+          <div class="bar-track"><div class="bar-fill" style="width:17%;background:linear-gradient(90deg,var(--accent-pink),#c2185b);color:#fff;font-weight:700;">−0.15</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="callout anim-5" style="max-width:650px;margin:16px auto 0;text-align:center;">
+      <p style="font-size:1rem;"><strong>Key Insight:</strong> <span class="gold">Max Power</span> has the strongest positive correlation with price, followed by torque and engine size — faster, bigger-engined cars cost more. <span class="pink">Kilometer</span> is the only feature here with a negative correlation: more distance driven, lower resale value.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 13: HANDLING UNSEEN CATEGORIES
+     ============================================================ -->
+<div class="slide" id="slide-12">
+  <div class="split">
+    <div>
+      <span class="phase-badge anim-1" style="color:var(--accent-teal);border-color:rgba(6,214,160,0.3);background:rgba(6,214,160,0.08);">In Action</span>
+      <h2 class="anim-2" style="margin-bottom:14px;">Handling <span class="gradient-text-teal">Unseen Categories</span></h2>
+      <p class="anim-3" style="margin-bottom:16px;">When the model transforms the test set, it can meet category values it never saw during training. <code style="font-size:0.85em;">handle_unknown='ignore'</code> is what keeps the pipeline from crashing.</p>
+      <div class="callout anim-4">
+        <p style="font-size:0.9rem;"><strong>Actual warning raised while scoring the test set:</strong></p>
+        <div class="code-block" style="margin-top:8px;font-size:0.76rem;">
+          <span class="code-inner">
+<span class="cm">UserWarning: Found unknown categories in
+columns [0] during transform. These unknown
+categories will be encoded as all zeros.</span>
+          </span>
+        </div>
+      </div>
+    </div>
+    <div class="anim-3">
+      <p style="font-size:0.82rem;color:var(--text-dim);margin-bottom:14px;letter-spacing:0.5px;text-transform:uppercase;">Why it happens & why it's safe</p>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card blue-border" style="padding:16px 20px;">
+          <h3 class="blue" style="font-size:0.95rem;margin-bottom:6px;">🔀 Random split, rare category</h3>
+          <p style="font-size:0.85rem;margin:0;">With an 80/20 split, a rare value of a categorical column (e.g. a seller-type variant) can land only in the test fold and never appear in training.</p>
+        </div>
+        <div class="card teal-border" style="padding:16px 20px;">
+          <h3 class="teal" style="font-size:0.95rem;margin-bottom:6px;">🛡️ Graceful degradation</h3>
+          <p style="font-size:0.85rem;margin:0;"><code style="font-size:0.85em;">OneHotEncoder(handle_unknown='ignore')</code> encodes the unseen category as all zeros instead of raising an error — the pipeline keeps predicting.</p>
+        </div>
+        <div class="card gold-border" style="padding:16px 20px;">
+          <h3 class="gold" style="font-size:0.95rem;margin-bottom:6px;">🚀 Production implication</h3>
+          <p style="font-size:0.85rem;margin:0;">This is exactly the behavior you want in a deployed API: a brand-new seller type from a live listing shouldn't take the whole service down.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 14: MODEL SAVING & DEPLOYMENT
+     ============================================================ -->
+<div class="slide" id="slide-13">
+  <div class="split-3">
+    <div>
+      <span class="phase-badge anim-1" style="color:var(--accent-blue);border-color:rgba(79,156,249,0.3);background:rgba(79,156,249,0.08);">Step 8 — Deployment</span>
+      <h2 class="anim-2" style="margin-bottom:14px;">Saving to <span class="gradient-text-blue">Production</span></h2>
+      <p class="anim-2" style="margin-bottom:14px;">Once trained, we save the entire Pipeline (preprocessor + model) using <code style="font-size:0.9em;">joblib</code>.</p>
+      <div class="code-block anim-3" style="font-size:0.82rem;">
+        <span class="code-inner">
+<span class="kw">import</span> joblib
+
+<span class="cm"># Save the entire Random Forest Pipeline</span>
+joblib.<span class="fn">dump</span>(<span class="var">rf_pipeline</span>, <span class="str">'car_price_pipeline_model.pkl'</span>)
+
+<span class="fn">print</span>(<span class="str">"Model pipeline successfully saved!"</span>)
+
+<span class="cm"># ---- Later, on new data ----</span>
+<span class="var">loaded_model</span> = joblib.<span class="fn">load</span>(
+    <span class="str">'car_price_pipeline_model.pkl'</span>)
+<span class="var">price</span> = <span class="var">loaded_model</span>.<span class="fn">predict</span>(<span class="var">new_listings</span>)
+        </span>
+      </div>
+    </div>
+    <div>
+      <div class="card teal-border anim-2">
+        <span class="emoji">🎯</span>
+        <h3 class="teal">Pipeline Advantage</h3>
+        <p style="font-size:0.9rem;margin-top:6px;">Saving the full Pipeline bundles the <strong>imputers and one-hot encoder together with the trained model</strong>. No need to reapply feature engineering by hand — just call <code style="font-size:0.85em;">.predict()</code> on raw rows.</p>
+      </div>
+      <div class="card gold-border anim-3" style="margin-top:14px;">
+        <span class="emoji">🌐</span>
+        <h3 class="gold">A Natural Next Step</h3>
+        <p style="font-size:0.9rem;margin-top:6px;">Beyond this notebook, a real platform could wrap the loaded pipeline in a <strong>web API endpoint</strong> that accepts a car listing and returns an estimated price.</p>
+      </div>
+      <div class="card blue-border anim-4" style="margin-top:14px;">
+        <span class="emoji">🔄</span>
+        <h3 class="blue">Model Refresh</h3>
+        <p style="font-size:0.9rem;margin-top:6px;">Retrain monthly as new listings arrive. Car market prices shift — a stale model will drift from reality without periodic retraining.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 15: KEY TAKEAWAYS
+     ============================================================ -->
+<div class="slide" id="slide-14">
+  <div class="bg-glow" style="bottom:-100px;left:-50px;background:var(--accent-teal);"></div>
+  <div class="bg-glow" style="top:-50px;right:-50px;background:var(--accent-purple);"></div>
+  <div class="slide-content">
+    <span class="phase-badge anim-1" style="color:var(--accent-gold);border-color:rgba(245,166,35,0.3);background:rgba(245,166,35,0.08);">Summary</span>
+    <h2 class="anim-2" style="margin-bottom:20px;">🎓 Key <span class="gradient-text">Takeaways</span></h2>
+    <div style="max-width:850px;margin:0 auto;text-align:left;">
+      <div class="pipeline-step anim-3" style="border-left:3px solid var(--accent-teal);">
+        <div class="pipeline-icon" style="background:rgba(6,214,160,0.12);color:var(--accent-teal);font-size:1.5rem;">1</div>
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent-teal);margin-bottom:4px;">Feature Engineering is Everything</h3>
+          <p style="font-size:0.9rem;">Raw strings (Engine: "1198 cc") must be parsed into numbers before ML can use them. Domain knowledge guides what to extract and how.</p>
+        </div>
+      </div>
+      <div class="pipeline-step anim-4" style="border-left:3px solid var(--accent-gold);">
+        <div class="pipeline-icon" style="background:rgba(245,166,35,0.12);color:var(--accent-gold);font-size:1.5rem;">2</div>
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent-gold);margin-bottom:4px;">Smart Missing Value Strategy</h3>
+          <p style="font-size:0.9rem;">Not all NaN values should be dropped or filled the same way. EVs have 0 engine specs by design — applying domain knowledge prevents data loss.</p>
+        </div>
+      </div>
+      <div class="pipeline-step anim-4" style="border-left:3px solid var(--accent-blue);">
+        <div class="pipeline-icon" style="background:rgba(79,156,249,0.12);color:var(--accent-blue);font-size:1.5rem;">3</div>
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent-blue);margin-bottom:4px;">sklearn Pipelines Prevent Leakage</h3>
+          <p style="font-size:0.9rem;">Fitting imputers and the one-hot encoder inside a Pipeline ensures they only learn from training data. This is critical for valid evaluation and deployment safety.</p>
+        </div>
+      </div>
+      <div class="pipeline-step anim-5" style="border-left:3px solid var(--accent-purple);">
+        <div class="pipeline-icon" style="background:rgba(180,129,247,0.12);color:var(--accent-purple);font-size:1.5rem;">4</div>
+        <div>
+          <h3 style="font-size:1rem;color:var(--accent-purple);margin-bottom:4px;">Technical Specs Dominate Price</h3>
+          <p style="font-size:0.9rem;">Correlation analysis shows Max Power (+0.78), Max Torque (+0.67), and Engine size (+0.61) are the strongest numeric predictors — far ahead of Kilometer (−0.15).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SLIDE 16: THANK YOU
+     ============================================================ -->
+<div class="slide" id="slide-15">
+  <div class="bg-glow" style="top:-80px;left:-80px;background:var(--accent-gold);width:500px;height:500px;"></div>
+  <div class="bg-glow" style="bottom:-80px;right:-80px;background:var(--accent-orange);width:500px;height:500px;"></div>
+  <div class="bg-glow-sm" style="top:30%;right:25%;background:var(--accent-blue);"></div>
+  <div class="slide-content">
+    <div class="anim-1">
+      <span style="font-size:4rem;display:inline-block;filter:drop-shadow(0 0 20px rgba(245,166,35,0.4));" class="float">🏆</span>
+    </div>
+    <h1 class="anim-2 gradient-text" style="font-size:3.5rem;margin:16px 0 8px;">Pipeline Complete!</h1>
+    <div class="divider anim-3"></div>
+    <p class="anim-3" style="font-size:1.2rem;margin-bottom:28px;max-width:700px;margin-left:auto;margin-right:auto;">
+      We built an end-to-end ML pipeline that predicts used car prices with <strong style="color:var(--text-primary);">R² = 0.74</strong> and a mean error of <strong class="teal">₹3.78 Lakhs</strong> — more than double the Linear Regression baseline's explanatory power.
+    </p>
+    <div class="grid-4 anim-4" style="max-width:800px;margin:0 auto 28px;">
+      <div style="text-align:center;padding:16px;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);border-radius:14px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🔍</div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);">EDA</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:rgba(6,214,160,0.08);border:1px solid rgba(6,214,160,0.2);border-radius:14px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🔧</div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);">Engineering</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:rgba(79,156,249,0.08);border:1px solid rgba(79,156,249,0.2);border-radius:14px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🌲</div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);">Random Forest</div>
+      </div>
+      <div style="text-align:center;padding:16px;background:rgba(180,129,247,0.08);border:1px solid rgba(180,129,247,0.2);border-radius:14px;">
+        <div style="font-size:1.5rem;margin-bottom:4px;">🚀</div>
+        <div style="font-size:0.8rem;color:var(--text-secondary);">Deployed</div>
+      </div>
+    </div>
+    <div class="card anim-5" style="display:inline-block;padding:18px 40px;">
+      <p style="font-size:1rem;color:var(--text-primary);">Created by <strong class="gradient-text" style="font-size:1.2rem;">Jayan Gupta</strong></p>
+      <p class="dim" style="font-size:0.82rem;margin-top:6px;">Thank you! 🎉 &nbsp;·&nbsp; Day 11 Workshop</p>
+    </div>
+    <p class="anim-6 dim" style="font-size:0.78rem;margin-top:20px;">
+      Stack: Python &bull; pandas &bull; scikit-learn &bull; matplotlib &bull; seaborn &bull; joblib
+    </p>
+  </div>
+</div>
+
+</div> <!-- /deck -->
+
+<!-- ============================================================
+     NAVIGATION UI
+     ============================================================ -->
+<div class="progress-track"><div class="progress-bar" id="progressBar"></div></div>
+<div class="slide-counter" id="slideCounter">1 / 16</div>
+<div class="nav-hint">← → arrows &nbsp;|&nbsp; F = fullscreen &nbsp;|&nbsp; Home/End = first/last</div>
+<div class="nav-arrows">
+  <button onclick="navigate(-1)" aria-label="Previous slide">▲</button>
+  <button onclick="navigate(1)" aria-label="Next slide">▼</button>
+</div>
+<div class="slide-dots" id="slideDots"></div>
+
+<!-- ============================================================
+     SLIDE ENGINE JS
+     ============================================================ -->
+<script>
+(function() {
+  const slides = document.querySelectorAll('.slide');
+  const total = slides.length;
+  let current = 0;
+
+  // ============================================================
+  // CODE TYPEWRITER
+  // ============================================================
+  document.querySelectorAll('.code-block .code-inner').forEach(function(el) {
+    el.dataset.original = el.innerHTML;
+    el.innerHTML = '';
+  });
+
+  function typeHTML(el, html, onDone) {
+    let i = 0;
+    const cursor = document.createElement('span');
+    cursor.className = 'type-cursor';
+    el.appendChild(cursor);
+
+    function step() {
+      if (i >= html.length) { cursor.remove(); if (onDone) onDone(); return; }
+      if (html[i] === '<') {
+        const end = html.indexOf('>', i);
+        const tag = html.slice(i, end + 1);
+        i = end + 1;
+        cursor.insertAdjacentHTML('beforebegin', tag);
+        step();
+        return;
+      }
+      const ch = html[i];
+      i++;
+      cursor.insertAdjacentHTML('beforebegin', ch);
+      const delay = ch === '\n' ? (110 + Math.random() * 60) : (16 + Math.random() * 28);
+      setTimeout(step, delay);
+    }
+    step();
+  }
+
+  function typeCodeBlocksIn(slideEl) {
+    const blocks = slideEl.querySelectorAll('.code-block .code-inner');
+    let delay = 0;
+    blocks.forEach(function(el) {
+      if (el.dataset.typed === 'true') return;
+      el.dataset.typed = 'true';
+      const startDelay = delay;
+      setTimeout(function() { typeHTML(el, el.dataset.original); }, startDelay);
+      delay += 350;
+    });
+  }
+
+  // Create dots
+  const dotsContainer = document.getElementById('slideDots');
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'slide-dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  }
+
+  function goTo(index) {
+    if (index < 0 || index >= total) return;
+    slides[current].classList.remove('active');
+    if (index > current) { slides[current].classList.add('prev'); }
+    const old = current;
+    setTimeout(() => {
+      slides[old].classList.remove('prev');
+    }, 550);
+    current = index;
+    slides[current].classList.add('active');
+    slides[current].classList.remove('prev');
+    setTimeout(function() { typeCodeBlocksIn(slides[current]); }, 300);
+
+    // Update progress
+    document.getElementById('progressBar').style.width =
+      ((current + 1) / total * 100) + '%';
+    document.getElementById('slideCounter').textContent =
+      (current + 1) + ' / ' + total;
+
+    // Update dots
+    document.querySelectorAll('.slide-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === current);
+    });
+  }
+
+  window.navigate = function(dir) {
+    goTo(current + dir);
+  };
+
+  // Keyboard navigation
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+      e.preventDefault(); navigate(1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+      e.preventDefault(); navigate(-1);
+    } else if (e.key === 'Home') {
+      e.preventDefault(); goTo(0);
+    } else if (e.key === 'End') {
+      e.preventDefault(); goTo(total - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // Touch swipe support
+  let touchStartX = 0, touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.changedTouches[0].screenX;
+    touchStartY = e.changedTouches[0].screenY;
+  });
+  document.addEventListener('touchend', function(e) {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    const dy = e.changedTouches[0].screenY - touchStartY;
+    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+      navigate(dx < 0 ? 1 : -1);
+    }
+  });
+
+  // Initialize
+  goTo(0);
+})();
+</script>
+
+</body>
+</html>

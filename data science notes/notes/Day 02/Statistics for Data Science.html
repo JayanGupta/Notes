@@ -1,0 +1,1185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistics & Probability for Data Science</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* CORE STYLES */
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+        body { background: #020617; color: #f8fafc; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        
+        /* PRESENTATION DECK CONTAINER */
+        #deck { width: 1280px; height: 720px; background: #0f172a; border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.8); border: 1px solid #1e293b; }
+        
+        /* SLIDES */
+        .slide { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 60px; display: flex; flex-direction: column; opacity: 0; transform: translateX(50px); transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1); pointer-events: none; z-index: 1; }
+        .slide.active { opacity: 1; transform: translateX(0); pointer-events: all; z-index: 2; }
+        
+        /* NAVIGATION CONTROLS */
+        .controls { position: absolute; bottom: 40px; right: 60px; z-index: 100; display: flex; gap: 15px; }
+        .btn-nav { background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 12px 24px; border-radius: 8px; font-size: 18px; font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .btn-nav:hover:not(:disabled) { background: #334155; border-color: #6366f1; }
+        .btn-nav:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* SLIDE COUNTER */
+        .slide-counter { position: absolute; bottom: 44px; right: 240px; z-index: 100; font-size: 14px; color: #475569; font-weight: 600; letter-spacing: 1px; }
+
+        /* AUTHOR CREDIT */
+        .credit { position: absolute; bottom: 40px; left: 60px; z-index: 100; font-size: 14px; color: #475569; letter-spacing: 1px; font-weight: 600; }
+        .credit span { color: #6366f1; }
+
+        /* TYPOGRAPHY */
+        h1 { font-size: 56px; color: #f8fafc; margin-bottom: 10px; }
+        h1 span { color: #6366f1; }
+        h2 { font-size: 36px; color: #6366f1; margin-bottom: 24px; border-left: 5px solid #6366f1; padding-left: 20px; }
+        p, li { font-size: 19px; line-height: 1.6; color: #94a3b8; margin-bottom: 16px; }
+        ul { margin-left: 30px; margin-bottom: 20px; }
+        strong { color: #f8fafc; }
+        
+        /* TYPING EFFECT COMPONENT */
+        .typing-container { min-height: 40px; font-size: 22px; color: #cbd5e1; font-weight: 400; margin-bottom: 20px; border-right: 2px solid transparent; width: fit-content; }
+        .typing-container.cursor { border-right-color: #6366f1; animation: blink 0.75s step-end infinite; }
+        @keyframes blink { from, to { border-color: transparent } 50% { border-color: #6366f1; } }
+
+        /* LAYOUTS */
+        .split-layout { display: flex; gap: 40px; height: 100%; align-items: stretch; padding-bottom: 60px; }
+        .text-panel { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+        .interactive-panel { flex: 1.2; background: #020617; border-radius: 16px; border: 1px solid #1e293b; padding: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .chart-container { flex-grow: 1; position: relative; width: 100%; height: 75%; min-height: 250px; }
+        
+        /* PLAYGROUND CONTROLS */
+        .playground-controls { background: #1e293b; padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+        .btn-action { background: #6366f1; color: #ffffff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s; }
+        .btn-action:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-action.secondary { background: #ec4899; }
+        .btn-action.secondary:hover { background: #db2777; }
+        .btn-action.tertiary { background: #10b981; }
+        .btn-action.tertiary:hover { background: #059669; }
+        
+        .slider-group { display: flex; flex-direction: column; gap: 6px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #cbd5e1; }
+        .slider-header span { color: #6366f1; font-size: 16px; font-weight: bold; }
+        input[type=range] { -webkit-appearance: none; width: 100%; background: #334155; height: 6px; border-radius: 3px; outline: none; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #6366f1; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        input[type=range]::-webkit-slider-thumb:hover { transform: scale(1.2); }
+
+        /* MATH FORMULA DISPLAY */
+        .math-box { background: #0f172a; border-left: 4px solid #ec4899; padding: 15px; border-radius: 8px; margin: 15px 0; font-family: 'Times New Roman', Times, serif; font-style: italic; font-size: 22px; color: #f1f5f9; text-align: center; }
+        .math-box span.label { font-family: 'Outfit', sans-serif; font-style: normal; font-size: 14px; color: #64748b; display: block; margin-bottom: 5px; text-align: left; }
+
+        /* GRID/CARDS */
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; height: 100%; align-items: center; padding-bottom: 80px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 12px; border-top: 4px solid #6366f1; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; transition: transform 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { color: #f8fafc; font-size: 22px; margin-bottom: 12px; }
+        .card ul li { font-size: 16px; margin-bottom: 10px; }
+
+        /* TABLES */
+        table { width: 100%; border-collapse: collapse; background: #1e293b; border-radius: 12px; overflow: hidden; margin-top: 10px; }
+        th { padding: 14px; text-align: left; background: #0f172a; color: #6366f1; font-size: 17px; }
+        td { padding: 14px; border-bottom: 1px solid #334155; font-size: 15px; color: #f8fafc; }
+
+        /* ========== NEW STYLES FOR PROBABILITY SECTIONS ========== */
+
+        /* VENN DIAGRAM */
+        .venn-wrap { display: flex; flex-direction: column; align-items: center; flex-grow: 1; }
+        .venn-wrap canvas { width: 100%; max-height: 240px; border-radius: 8px; }
+        .venn-stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 12px; }
+        .venn-stat { background: #0f172a; padding: 8px 14px; border-radius: 8px; text-align: center; min-width: 90px; border: 1px solid #334155; }
+        .venn-stat .val { font-size: 20px; font-weight: 700; color: #6366f1; }
+        .venn-stat .lbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+        /* PROBABILITY BAR */
+        .prob-bar-track { background: #334155; border-radius: 10px; height: 44px; overflow: hidden; position: relative; margin: 12px 0; }
+        .prob-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; justify-content: flex-end; padding-right: 14px; min-width: 60px; }
+        .prob-bar-fill span { font-weight: 700; font-size: 16px; color: #fff; text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+
+        /* CONFUSION MATRIX */
+        .confusion-grid { display: grid; grid-template-columns: 100px 1fr 1fr; grid-template-rows: auto auto auto; gap: 3px; margin: 10px 0; font-size: 13px; }
+        .confusion-cell { padding: 10px 6px; text-align: center; border-radius: 4px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+        .confusion-cell .num { font-size: 18px; font-weight: 700; transition: all 0.4s; }
+        .confusion-header { background: #0f172a; color: #94a3b8; font-size: 12px; }
+        .tp { background: rgba(16,185,129,0.2); color: #10b981; }
+        .fp { background: rgba(239,68,68,0.15); color: #ef4444; }
+        .fn { background: rgba(245,158,11,0.15); color: #f59e0b; }
+        .tn { background: rgba(99,102,241,0.15); color: #a5b4fc; }
+
+        /* RESULT HIGHLIGHT BOX */
+        .result-box { background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(236,72,153,0.15)); border: 1px solid #6366f1; border-radius: 12px; padding: 14px 20px; text-align: center; margin-top: 8px; }
+        .result-box .result-val { font-size: 32px; font-weight: 700; color: #f8fafc; }
+        .result-box .result-lbl { font-size: 13px; color: #94a3b8; margin-top: 2px; }
+
+        /* STEP-BY-STEP COMPUTATION */
+        .computation-steps { background: #0f172a; border-radius: 10px; padding: 14px 18px; margin: 8px 0; border-left: 3px solid #a855f7; }
+        .computation-steps .step { font-size: 14px; color: #cbd5e1; margin-bottom: 6px; font-family: 'Outfit', sans-serif; }
+        .computation-steps .step strong { color: #a855f7; }
+        .computation-steps .step:last-child { margin-bottom: 0; }
+
+        /* DICE ROLL STATS ROW */
+        .dice-stats { display: flex; gap: 10px; justify-content: center; margin-top: 8px; }
+        .dice-stat { background: #0f172a; padding: 8px 16px; border-radius: 8px; text-align: center; flex: 1; border: 1px solid #334155; }
+        .dice-stat .val { font-size: 20px; font-weight: 700; color: #10b981; }
+        .dice-stat .lbl { font-size: 11px; color: #64748b; margin-top: 2px; }
+    </style>
+</head>
+<body>
+
+    <div id="deck">
+        <div class="credit">Created by <span>Jayan Gupta</span></div>
+        <div class="slide-counter" id="slide-counter">1 / 14</div>
+
+        <!-- SLIDE 1: WELCOME -->
+        <div class="slide active" style="justify-content: center; align-items: center; text-align: center;">
+            <h1 style="font-size: 68px; margin-bottom: 20px;">Statistics & <span>Probability</span></h1>
+            <div id="typewriter-slide0" class="typing-container cursor"></div>
+            <p style="font-size: 22px; max-width: 800px; color: #94a3b8; margin-top: 10px;">The foundational math required to find signals inside raw data noise.</p>
+        </div>
+
+        <!-- SLIDE 2: CENTRAL TENDENCY (INTRO) -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Measures of Central Tendency</h2>
+                    <div id="typewriter-slide1" class="typing-container cursor"></div>
+                    <p>Before modeling data, you must locate its "center". There are three main ways to do this:</p>
+                    <ul>
+                        <li><strong>Mean:</strong> The arithmetic average of all values.</li>
+                        <li><strong>Median:</strong> The exact middle value when ordered.</li>
+                        <li><strong>Mode:</strong> The value that appears most frequently.</li>
+                    </ul>
+                    <p><em>Each metric tells a unique story depending on whether your dataset has severe distortions.</em></p>
+                </div>
+                <div class="interactive-panel" style="background: #1e293b; border: none; justify-content: center;">
+                    <div class="card" style="border-top-color: #6366f1; height: auto; margin-bottom: 15px;">
+                        <h3>Why not just use the average?</h3>
+                        <p style="font-size: 16px;">Imagine a room with 4 workers earning $40k/yr. The average is $40k. Suddenly, a billionaire walking into the room shifts the average to <strong>$200 Million</strong>, completely misrepresenting the real group dynamics!</p>
+                    </div>
+                    <div class="card" style="border-top-color: #ec4899; height: auto;">
+                        <h3>Data Science Insight</h3>
+                        <p style="font-size: 16px;">We check central values during initial EDA to notice if data distribution leans aggressively to one side (Skewness).</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 3: MEAN VS MEDIAN (THE OUTLIER PLAYGROUND) -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Mean vs. Median</h2>
+                    <p>Let's look at the mathematical formula for the population Mean (μ):</p>
+                    <div class="math-box">
+                        <span class="label">Population Mean Formula:</span>
+                        μ = ( Σ Xᵢ ) / N
+                    </div>
+                    <p><strong>The Outlier Effect:</strong> The Mean takes every single value into account, making it highly sensitive to extreme values.</p>
+                    <p>The <strong>Median</strong> splits the data in half, ignoring the size of extreme edges.</p>
+                    <p><em>Use the slider to add a massive outlier to the salary dataset and observe how the red Mean line flies away while the green Median line holds firm!</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-mean-median"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Introduce Outlier (Extreme Salary)</label><span id="outlier-val">$45,000</span></div>
+                            <input type="range" id="outlier-slider" min="45000" max="600000" step="25000" value="45000" oninput="updateMeanMedianChart()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 4: THE MODE FREQUENCY -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Understanding the Mode</h2>
+                    <p>The <strong>Mode</strong> represents the highest density of frequency. Unlike Mean and Median, the Mode can be applied to categorical non-numerical data (e.g., most popular car color).</p>
+                    <ul>
+                        <li><strong>Unimodal:</strong> One clear peak.</li>
+                        <li><strong>Bimodal:</strong> Two distinct frequent peaks (often points to two mixed sub-populations).</li>
+                    </ul>
+                    <p><em>Click the preset buttons to inject new survey entries into our dataset. Observe how the peak shifts dynamically!</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-mode"></canvas></div>
+                    <div class="playground-controls" style="flex-direction: row; justify-content: space-around;">
+                        <button class="btn-action" onclick="setModePreset('normal')">Reset Default</button>
+                        <button class="btn-action secondary" onclick="setModePreset('bimodal')">Make Bimodal (Add Peaks)</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 5: MEASURES OF DISPERSION (VARIANCE) -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Measures of Dispersion</h2>
+                    <div id="typewriter-slide4" class="typing-container cursor"></div>
+                    <p>Knowing the center isn't enough. Two datasets can have the exact same mean but look completely different.</p>
+                    <p><strong>Variance (σ²):</strong> Measures the average squared distance from the mean.</p>
+                    <div class="math-box">
+                        <span class="label">Population Variance Formula:</span>
+                        σ² = Σ (Xᵢ - μ)² / N
+                    </div>
+                    <p>Because we square the distances, the units become squared (e.g., if data is dollars, variance is dollars squared), which is hard to interpret.</p>
+                </div>
+                <div class="interactive-panel" style="background: #1e293b; border: none; justify-content: center; gap: 15px;">
+                    <div style="background: #020617; padding: 20px; border-radius: 10px; border-left: 4px solid #6366f1;">
+                        <h4 style="color: #fff; margin-bottom: 5px;">Dataset A: [10, 10, 10, 10]</h4>
+                        <p style="margin: 0; font-size: 16px;">Mean = 10 | <strong>Variance = 0</strong> (No spread)</p>
+                    </div>
+                    <div style="background: #020617; padding: 20px; border-radius: 10px; border-left: 4px solid #ec4899;">
+                        <h4 style="color: #fff; margin-bottom: 5px;">Dataset B: [0, 5, 15, 20]</h4>
+                        <p style="margin: 0; font-size: 16px;">Mean = 10 | <strong>Variance = 62.5</strong> (High spread)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 6: STANDARD DEVIATION PLAYGROUND -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Standard Deviation (σ)</h2>
+                    <p>To fix the squared unit problem, we take the square root of the variance. This brings us back to the original unit scale.</p>
+                    <div class="math-box">
+                        <span class="label">Standard Deviation Formula:</span>
+                        σ = √[ Σ (Xᵢ - μ)² / N ]
+                    </div>
+                    <p>A <strong>low σ</strong> means points are closely bunched around the mean (highly predictable).</p>
+                    <p>A <strong>high σ</strong> means wide variability and volatility (risky/unpredictable).</p>
+                    <p><em>Drag the slider to adjust the Standard Deviation (σ) and witness how the distribution shape warps.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-sigma"></canvas></div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Standard Deviation Scale (σ)</label><span id="sigma-val">1.5</span></div>
+                            <input type="range" id="sigma-slider" min="0.6" max="3.0" step="0.2" value="1.5" oninput="updateSigmaChart()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 7: QUARTILES & BOX PLOTS -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Percentiles & Quartiles</h2>
+                    <p>Quartiles divide your ordered data into 4 equal quarters:</p>
+                    <ul>
+                        <li><strong>Q1 (25th Percentile):</strong> Splits bottom 25% of data.</li>
+                        <li><strong>Q2 (50th Percentile):</strong> The Median.</li>
+                        <li><strong>Q3 (75th Percentile):</strong> Splits top 25% of data.</li>
+                    </ul>
+                    <p>The <strong>Interquartile Range (IQR)</strong> = Q3 - Q1. It captures the middle 50% of your data points, stripping away outliers.</p>
+                    <p>In Data Science, anything outside 1.5 × IQR below Q1 or above Q3 is mathematically classified as an outlier!</p>
+                </div>
+                <div class="interactive-panel" style="justify-content: center; background:#1e293b; border:none; color:#f8fafc; text-align:center;">
+                    <h3 style="margin-bottom: 20px;">The Anatomy of a Box Plot</h3>
+                    <div style="background: #020617; padding: 25px; border-radius: 12px; display: inline-block; text-align: left; width: 90%; margin: auto; border: 1px solid #334155;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px; color:#a5b4fc; font-weight: bold; font-size:14px;">
+                            <span>Min (Q1 - 1.5*IQR)</span>
+                            <span>Q1 (25%)</span>
+                            <span>Median (50%)</span>
+                            <span>Q3 (75%)</span>
+                            <span>Max (Q3 + 1.5*IQR)</span>
+                        </div>
+                        <div style="height: 30px; background: linear-gradient(to right, #334155 25%, #6366f1 25%, #6366f1 75%, #334155 75%); border-radius: 6px; position: relative;">
+                            <div style="position: absolute; left: 50%; top: 0; width: 4px; height: 100%; background: #ec4899;"></div>
+                        </div>
+                        <p style="font-size: 14px; margin-top: 15px; text-align: center; color: #64748b; margin-bottom: 0;">The central purple block holds the core 50% of the data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 8: CORRELATION VS CAUSATION -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Correlation vs. Causation</h2>
+                    <p><strong>Correlation (r):</strong> Measures the linear strength between two variables. Ranges from -1 to +1.</p>
+                    <ul>
+                        <li><strong>+1:</strong> Perfect positive movement.</li>
+                        <li><strong>-1:</strong> Perfect opposite movement.</li>
+                        <li><strong>0:</strong> Absolute chaos / random noise.</li>
+                    </ul>
+                    <p style="color: #ec4899; font-weight: bold;">The Cardinal Rule of Data Science:</p>
+                    <p>Just because variable X tracks perfectly with variable Y does not mean X causes Y! They might both be driven by a hidden third variable.</p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-correlation"></canvas></div>
+                    <div style="font-size: 14px; color:#94a3b8; text-align: center; margin-top: 5px;">
+                        <em>Example: Ice Cream Sales & Shark Attacks both rise in summer because of warm weather, not because ice cream triggers sharks!</em>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== NEW PROBABILITY SLIDES ========== -->
+
+        <!-- SLIDE 9: INTRODUCTION TO PROBABILITY -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Introduction to Probability</h2>
+                    <div id="typewriter-slide8" class="typing-container cursor"></div>
+                    <p><strong>Probability</strong> quantifies how likely an event is to occur. It ranges from <strong>0</strong> (impossible) to <strong>1</strong> (certain).</p>
+                    <div class="math-box">
+                        <span class="label">Basic Probability Formula:</span>
+                        P(A) = |Favorable Outcomes| / |Sample Space|
+                    </div>
+                    <ul>
+                        <li><strong>Sample Space (S):</strong> All possible outcomes.</li>
+                        <li><strong>Event (A):</strong> A specific outcome subset.</li>
+                        <li><strong>Complement (A'):</strong> P(A') = 1 − P(A).</li>
+                    </ul>
+                    <p><em>Roll the dice and watch frequencies converge to the theoretical 16.67% — the Law of Large Numbers in action!</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="chart-container"><canvas id="chart-dice"></canvas></div>
+                    <div class="dice-stats">
+                        <div class="dice-stat">
+                            <div class="val" id="total-rolls">0</div>
+                            <div class="lbl">Total Rolls</div>
+                        </div>
+                        <div class="dice-stat">
+                            <div class="val" id="max-dev">—</div>
+                            <div class="lbl">Max Deviation from 16.67%</div>
+                        </div>
+                    </div>
+                    <div class="playground-controls" style="flex-direction: row; justify-content: space-around;">
+                        <button class="btn-action" onclick="rollDice(100)">Roll 100 🎲</button>
+                        <button class="btn-action secondary" onclick="rollDice(1000)">Roll 1,000 🎲</button>
+                        <button class="btn-action tertiary" onclick="resetDice()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 10: ADDITION RULE + VENN DIAGRAM -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Addition Rule of Probability</h2>
+                    <p>When events <strong>can't happen together</strong> (mutually exclusive):</p>
+                    <div class="math-box">
+                        <span class="label">Mutually Exclusive Events:</span>
+                        P(A ∪ B) = P(A) + P(B)
+                    </div>
+                    <p>When events <strong>can overlap</strong> (non-mutually exclusive):</p>
+                    <div class="math-box">
+                        <span class="label">General Addition Rule:</span>
+                        P(A ∪ B) = P(A) + P(B) − P(A ∩ B)
+                    </div>
+                    <p><em>Example: Drawing a card that is a King OR a Heart from a deck. Kings and Hearts overlap at the King of Hearts!</em></p>
+                    <p><em>Drag the slider to control how much events A and B overlap and watch the union probability change.</em></p>
+                </div>
+                <div class="interactive-panel">
+                    <div class="venn-wrap">
+                        <canvas id="venn-canvas" width="500" height="240"></canvas>
+                        <div class="venn-stats">
+                            <div class="venn-stat"><div class="val" id="venn-pa">0.40</div><div class="lbl">P(A)</div></div>
+                            <div class="venn-stat"><div class="val" id="venn-pb">0.35</div><div class="lbl">P(B)</div></div>
+                            <div class="venn-stat"><div class="val" id="venn-pab" style="color:#a855f7;">0.00</div><div class="lbl">P(A∩B)</div></div>
+                            <div class="venn-stat"><div class="val" id="venn-paub" style="color:#10b981;">0.75</div><div class="lbl">P(A∪B)</div></div>
+                        </div>
+                    </div>
+                    <div class="playground-controls">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Event Overlap (Intersection)</label><span id="venn-overlap-val">0%</span></div>
+                            <input type="range" id="venn-slider" min="0" max="100" step="2" value="0" oninput="drawVenn()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 11: CONDITIONAL PROBABILITY + MEDICAL TEST -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Conditional Probability</h2>
+                    <div id="typewriter-slide10" class="typing-container cursor"></div>
+                    <p>The probability of event A occurring <strong>given that B already happened</strong>. Knowing B shrinks your universe.</p>
+                    <div class="math-box">
+                        <span class="label">Conditional Probability Formula:</span>
+                        P(A | B) = P(A ∩ B) / P(B)
+                    </div>
+                    <p><strong>Real-World Example:</strong> If a medical test is 99% accurate, and you test positive, what's the probability you actually have the disease?</p>
+                    <p style="color: #f59e0b; font-weight: bold;">⚠ The Base Rate Fallacy:</p>
+                    <p style="font-size: 16px;">Even a 99% accurate test can have most positives be <strong>false</strong> if the disease is rare. Adjust the sliders to see why!</p>
+                </div>
+                <div class="interactive-panel" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 8px; flex-grow: 1; justify-content: center;">
+                        <!-- Confusion Matrix Visual -->
+                        <p style="font-size: 14px; color: #94a3b8; text-align: center; margin-bottom: 4px;">Population of <strong style="color:#6366f1;">10,000</strong> people:</p>
+                        <div class="confusion-grid">
+                            <div class="confusion-cell confusion-header"></div>
+                            <div class="confusion-cell confusion-header">Actually Sick</div>
+                            <div class="confusion-cell confusion-header">Actually Healthy</div>
+                            <div class="confusion-cell confusion-header">Test +</div>
+                            <div class="confusion-cell tp"><div class="num" id="cm-tp">99</div><div>True Positive</div></div>
+                            <div class="confusion-cell fp"><div class="num" id="cm-fp">500</div><div>False Positive</div></div>
+                            <div class="confusion-cell confusion-header">Test −</div>
+                            <div class="confusion-cell fn"><div class="num" id="cm-fn">1</div><div>False Negative</div></div>
+                            <div class="confusion-cell tn"><div class="num" id="cm-tn">9400</div><div>True Negative</div></div>
+                        </div>
+                        <!-- Result -->
+                        <div class="result-box">
+                            <div class="result-lbl">P(Disease | Tested Positive)</div>
+                            <div class="result-val" id="cond-prob-result">16.5%</div>
+                        </div>
+                    </div>
+                    <div class="playground-controls" style="gap: 8px;">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Disease Prevalence</label><span id="prev-val">1%</span></div>
+                            <input type="range" id="prevalence-slider" min="1" max="50" step="1" value="1" oninput="updateMedicalTest()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Test Sensitivity (True Positive Rate)</label><span id="sens-val">99%</span></div>
+                            <input type="range" id="sensitivity-slider" min="50" max="100" step="1" value="99" oninput="updateMedicalTest()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>Test Specificity (True Negative Rate)</label><span id="spec-val">95%</span></div>
+                            <input type="range" id="specificity-slider" min="50" max="100" step="1" value="95" oninput="updateMedicalTest()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 12: BAYES' THEOREM + SPAM FILTER -->
+        <div class="slide">
+            <div class="split-layout">
+                <div class="text-panel">
+                    <h2>Bayes' Theorem</h2>
+                    <p>Bayes' Theorem lets us <strong>update beliefs</strong> when presented with new evidence. It flips conditional probability around.</p>
+                    <div class="math-box">
+                        <span class="label">Bayes' Theorem:</span>
+                        P(A|B) = [ P(B|A) × P(A) ] / P(B)
+                    </div>
+                    <ul>
+                        <li><strong>P(A):</strong> Prior — initial belief before evidence.</li>
+                        <li><strong>P(B|A):</strong> Likelihood — how likely is the evidence if A is true.</li>
+                        <li><strong>P(B):</strong> Evidence — total probability of observing this evidence.</li>
+                        <li><strong>P(A|B):</strong> Posterior — updated belief after evidence.</li>
+                    </ul>
+                    <p><em>Example: An email contains the word "FREE". Is it spam? Adjust the sliders to tune the Bayesian classifier!</em></p>
+                </div>
+                <div class="interactive-panel" style="padding: 20px;">
+                    <div style="display: flex; flex-direction: column; gap: 10px; flex-grow: 1; justify-content: center;">
+                        <!-- Computation Steps -->
+                        <div class="computation-steps">
+                            <div class="step"><strong>Prior:</strong> P(Spam) = <span id="bayes-prior">0.30</span></div>
+                            <div class="step"><strong>Likelihood:</strong> P("FREE"|Spam) = <span id="bayes-likelihood">0.80</span></div>
+                            <div class="step"><strong>Evidence:</strong> P("FREE") = <span id="bayes-evidence">0.31</span></div>
+                            <div class="step"><strong>Posterior:</strong> P(Spam|"FREE") = <span id="bayes-posterior" style="color: #ec4899; font-size: 18px;">0.774</span></div>
+                        </div>
+                        <!-- Probability Bar -->
+                        <p style="font-size: 13px; color: #64748b; margin: 0; text-align: center;">Probability this email is spam:</p>
+                        <div class="prob-bar-track">
+                            <div class="prob-bar-fill" id="spam-bar" style="width: 77.4%; background: linear-gradient(90deg, #6366f1, #ec4899);">
+                                <span id="spam-bar-pct">77.4%</span>
+                            </div>
+                        </div>
+                        <!-- Result Box -->
+                        <div class="result-box" style="display: flex; justify-content: space-around;">
+                            <div><div class="result-val" id="spam-verdict" style="font-size: 22px; color: #ef4444;">🚫 SPAM</div><div class="result-lbl">Verdict (threshold: 50%)</div></div>
+                            <div><div class="result-val" style="font-size: 22px;" id="spam-confidence">77.4%</div><div class="result-lbl">Confidence</div></div>
+                        </div>
+                    </div>
+                    <div class="playground-controls" style="gap: 8px;">
+                        <div class="slider-group">
+                            <div class="slider-header"><label>P(Spam) — Base Rate</label><span id="spam-prior-val">30%</span></div>
+                            <input type="range" id="spam-prior-slider" min="5" max="80" step="1" value="30" oninput="updateSpamFilter()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>P("FREE" | Spam)</label><span id="free-spam-val">80%</span></div>
+                            <input type="range" id="free-spam-slider" min="10" max="100" step="1" value="80" oninput="updateSpamFilter()">
+                        </div>
+                        <div class="slider-group">
+                            <div class="slider-header"><label>P("FREE" | Not Spam)</label><span id="free-notspam-val">10%</span></div>
+                            <input type="range" id="free-notspam-slider" min="1" max="60" step="1" value="10" oninput="updateSpamFilter()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 13: PROBABILITY DISTRIBUTIONS OVERVIEW -->
+        <div class="slide">
+            <h2>Common Probability Distributions</h2>
+            <div class="grid-3">
+                <div class="card" style="border-top-color: #3b82f6;">
+                    <h3>📊 Bernoulli / Binomial</h3>
+                    <p style="font-size: 15px; color: #94a3b8;"><strong>Binary outcomes:</strong> Success or Failure.</p>
+                    <div class="math-box" style="font-size: 16px; padding: 10px; margin: 8px 0;">
+                        <span class="label">Binomial PMF:</span>
+                        P(X=k) = C(n,k) pᵏ (1−p)ⁿ⁻ᵏ
+                    </div>
+                    <ul>
+                        <li style="font-size: 14px;">Coin flips, pass/fail, click/no-click</li>
+                        <li style="font-size: 14px;">Fixed number of independent trials</li>
+                        <li style="font-size: 14px;"><strong>DS Use:</strong> A/B testing, logistic regression foundations</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top-color: #f59e0b;">
+                    <h3>⚡ Poisson</h3>
+                    <p style="font-size: 15px; color: #94a3b8;"><strong>Count of rare events</strong> in a fixed interval.</p>
+                    <div class="math-box" style="font-size: 16px; padding: 10px; margin: 8px 0;">
+                        <span class="label">Poisson PMF:</span>
+                        P(X=k) = (λᵏ e⁻λ) / k!
+                    </div>
+                    <ul>
+                        <li style="font-size: 14px;">Customer arrivals, server errors/hr</li>
+                        <li style="font-size: 14px;">Events are independent, rate (λ) is constant</li>
+                        <li style="font-size: 14px;"><strong>DS Use:</strong> Anomaly detection, queue optimization</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top-color: #a855f7;">
+                    <h3>🔔 Normal (Gaussian)</h3>
+                    <p style="font-size: 15px; color: #94a3b8;"><strong>The bell curve</strong> — king of distributions.</p>
+                    <div class="math-box" style="font-size: 16px; padding: 10px; margin: 8px 0;">
+                        <span class="label">68-95-99.7 Rule:</span>
+                        68% within ±1σ, 95% within ±2σ
+                    </div>
+                    <ul>
+                        <li style="font-size: 14px;">Heights, test scores, measurement errors</li>
+                        <li style="font-size: 14px;">Central Limit Theorem guarantees its prevalence</li>
+                        <li style="font-size: 14px;"><strong>DS Use:</strong> Z-scores, hypothesis testing, feature scaling</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- SLIDE 14: ENHANCED CHEAT SHEET -->
+        <div class="slide" style="padding: 40px 60px;">
+            <h2>Data Science Statistics & Probability Cheat Sheet</h2>
+            <div class="split-layout" style="flex-direction: column; gap: 10px;">
+                <p>Use this reference framework when profiling a new dataset during EDA:</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Statistical Metric</th>
+                            <th>What it measures</th>
+                            <th>When to trust it</th>
+                            <th>Data Science Application</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Mean</strong></td>
+                            <td>Arithmetic Center</td>
+                            <td>When distribution is symmetrical & clean</td>
+                            <td>Baseline prediction, feature scaling</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Median</strong></td>
+                            <td>Positional Middle</td>
+                            <td>When the data contains heavy outliers</td>
+                            <td>Imputing missing values in skewed columns</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Mode</strong></td>
+                            <td>Highest Frequency</td>
+                            <td>Categorical or multi-modal states</td>
+                            <td>Filling missing string classifications</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Standard Dev.</strong></td>
+                            <td>Data Dispersion / Spread</td>
+                            <td>Always useful alongside the mean</td>
+                            <td>Detecting anomaly thresholds & Z-scores</td>
+                        </tr>
+                        <tr>
+                            <td><strong>IQR</strong></td>
+                            <td>Middle 50% Range</td>
+                            <td>Robust to extreme noise edge limits</td>
+                            <td>Automated cleaning of rogue outliers</td>
+                        </tr>
+                        <tr style="border-left: 3px solid #ec4899;">
+                            <td><strong>Probability</strong></td>
+                            <td>Likelihood of events</td>
+                            <td>When sample space is well-defined</td>
+                            <td>Feature likelihood estimation</td>
+                        </tr>
+                        <tr style="border-left: 3px solid #ec4899;">
+                            <td><strong>Cond. Probability</strong></td>
+                            <td>Event likelihood given evidence</td>
+                            <td>When events are dependent</td>
+                            <td>Naive Bayes classifiers, filtering</td>
+                        </tr>
+                        <tr style="border-left: 3px solid #ec4899;">
+                            <td><strong>Bayes' Theorem</strong></td>
+                            <td>Updated belief with new evidence</td>
+                            <td>When prior knowledge exists</td>
+                            <td>Spam filters, medical diagnosis, ML priors</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- CONTROLS -->
+        <div class="controls">
+            <button class="btn-nav" id="prev-btn" onclick="nav(-1)" disabled>Previous</button>
+            <button class="btn-nav" id="next-btn" onclick="nav(1)">Next</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DECK NAVIGATION MANAGEMENT ---
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        
+        // Define slide typing text lines
+        const typingTexts = {
+            0: "An intuitive journey into Mean, Median, Variance, Probability, and Bayes' Theorem.",
+            1: "How to summarize millions of records down to vital coordinates.",
+            4: "Quantifying risk, variance, and consistency within features.",
+            8: "The mathematical language of uncertainty and prediction.",
+            10: "What changes when you already know something happened?"
+        };
+
+        function nav(direction) {
+            slides[currentSlide].classList.remove('active');
+            currentSlide += direction;
+            slides[currentSlide].classList.add('active');
+            
+            document.getElementById('prev-btn').disabled = currentSlide === 0;
+            document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+            document.getElementById('slide-counter').innerText = (currentSlide + 1) + ' / ' + totalSlides;
+            
+            // Trigger interactive triggers on entering slide
+            handleSlideActivation(currentSlide);
+        }
+
+        // --- TYPING EFFECT ENGINE ---
+        let typingTimeout;
+        function typeWriterEffect(elementId, text, speed = 40) {
+            let i = 0;
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            element.innerText = "";
+            element.classList.add('cursor');
+            
+            function type() {
+                if (i < text.length) {
+                    element.innerText += text.charAt(i);
+                    i++;
+                    typingTimeout = setTimeout(type, speed);
+                } else {
+                    element.classList.remove('cursor');
+                }
+            }
+            type();
+        }
+
+        function handleSlideActivation(slideIdx) {
+            clearTimeout(typingTimeout);
+            
+            // Clean active typewriter containers
+            document.querySelectorAll('.typing-container').forEach(el => el.innerText = "");
+
+            // Fire specific slide effects
+            if (slideIdx === 0) typeWriterEffect("typewriter-slide0", typingTexts[0], 50);
+            if (slideIdx === 1) typeWriterEffect("typewriter-slide1", typingTexts[1], 40);
+            if (slideIdx === 4) typeWriterEffect("typewriter-slide4", typingTexts[4], 40);
+            if (slideIdx === 8) typeWriterEffect("typewriter-slide8", typingTexts[8], 40);
+            if (slideIdx === 10) typeWriterEffect("typewriter-slide10", typingTexts[10], 40);
+            
+            // Render specific charts/canvases if visible
+            if (slideIdx === 2) setTimeout(updateMeanMedianChart, 100);
+            if (slideIdx === 3) setTimeout(() => setModePreset('normal'), 100);
+            if (slideIdx === 5) setTimeout(updateSigmaChart, 100);
+            if (slideIdx === 7) setTimeout(initCorrelationChart, 100);
+            if (slideIdx === 8) setTimeout(initDiceChart, 100);
+            if (slideIdx === 9) setTimeout(drawVenn, 100);
+            if (slideIdx === 10) setTimeout(updateMedicalTest, 100);
+            if (slideIdx === 11) setTimeout(updateSpamFilter, 100);
+        }
+
+        // INITIAL RUN FOR FIRST SLIDE
+        window.onload = () => { handleSlideActivation(0); };
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides - 1) nav(1);
+            if (e.key === 'ArrowLeft' && currentSlide > 0) nav(-1);
+        });
+
+        Chart.defaults.color = '#94a3b8';
+        Chart.defaults.font.family = 'Outfit';
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 1: MEAN & MEDIAN
+        // ============================================================
+        const ctxMeanMedian = document.getElementById('chart-mean-median').getContext('2d');
+        let baseSalaries = [35000, 38000, 40000, 41000, 42000, 45000, 47000, 50000, 55000];
+        
+        let chartMM = new Chart(ctxMeanMedian, {
+            type: 'bar',
+            data: {
+                labels: ['Emp 1', 'Emp 2', 'Emp 3', 'Emp 4', 'Emp 5', 'Emp 6', 'Emp 7', 'Emp 8', 'New Hire'],
+                datasets: [{
+                    label: 'Salary ($)',
+                    data: [...baseSalaries],
+                    backgroundColor: '#334155',
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { min: 0, max: 650000 } },
+                plugins: {
+                    annotation: {}
+                }
+            },
+            plugins: [{
+                id: 'customLines',
+                afterDraw: (chart) => {
+                    const {ctx, chartArea: {top, bottom}, scales: {y}} = chart;
+                    
+                    let dataValues = chart.data.datasets[0].data;
+                    let sum = dataValues.reduce((a,b)=>a+b, 0);
+                    let meanVal = sum / dataValues.length;
+                    
+                    let sorted = [...dataValues].sort((a,b)=>a-b);
+                    let mid = Math.floor(sorted.length/2);
+                    let medianVal = sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+
+                    // Draw Mean Line (Red)
+                    ctx.save();
+                    ctx.strokeStyle = '#ec4899';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([4, 4]);
+                    ctx.beginPath();
+                    ctx.moveTo(chart.chartArea.left, y.getPixelForValue(meanVal));
+                    ctx.lineTo(chart.chartArea.right, y.getPixelForValue(meanVal));
+                    ctx.stroke();
+                    ctx.fillStyle = '#ec4899';
+                    ctx.font = 'bold 12px Outfit';
+                    ctx.fillText('Mean: $' + Math.round(meanVal).toLocaleString(), chart.chartArea.left + 10, y.getPixelForValue(meanVal) - 8);
+
+                    // Draw Median Line (Green)
+                    ctx.strokeStyle = '#10b981';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.moveTo(chart.chartArea.left, y.getPixelForValue(medianVal));
+                    ctx.lineTo(chart.chartArea.right, y.getPixelForValue(medianVal));
+                    ctx.stroke();
+                    ctx.fillStyle = '#10b981';
+                    ctx.font = 'bold 12px Outfit';
+                    ctx.fillText('Median: $' + Math.round(medianVal).toLocaleString(), chart.chartArea.right - 120, y.getPixelForValue(medianVal) - 8);
+                    ctx.restore();
+                }
+            }]
+        });
+
+        function updateMeanMedianChart() {
+            let val = parseInt(document.getElementById('outlier-slider').value);
+            document.getElementById('outlier-val').innerText = '$' + val.toLocaleString();
+            
+            let updatedData = [...baseSalaries];
+            updatedData[updatedData.length - 1] = val;
+            
+            chartMM.data.datasets[0].data = updatedData;
+            chartMM.data.datasets[0].backgroundColor = updatedData.map((v, i) => i === updatedData.length - 1 && v > 100000 ? '#ec4899' : '#6366f1');
+            chartMM.update();
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 2: MODE FREQUENCY
+        // ============================================================
+        const ctxMode = document.getElementById('chart-mode').getContext('2d');
+        let chartMode = new Chart(ctxMode, {
+            type: 'line',
+            data: {
+                labels: ['Rating 1', 'Rating 2', 'Rating 3', 'Rating 4', 'Rating 5'],
+                datasets: [{
+                    label: 'Feedback Frequency count',
+                    data: [4, 15, 6, 5, 4],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.2)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: '#fff',
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { min: 0, max: 25 } }
+            }
+        });
+
+        function setModePreset(type) {
+            if(type === 'normal') {
+                chartMode.data.datasets[0].data = [4, 22, 7, 3, 2];
+                chartMode.data.datasets[0].label = "Unimodal State (Mode = Rating 2)";
+                chartMode.data.datasets[0].borderColor = '#6366f1';
+            } else {
+                chartMode.data.datasets[0].data = [3, 19, 5, 20, 2];
+                chartMode.data.datasets[0].label = "Bimodal State (Modes = Ratings 2 & 4)";
+                chartMode.data.datasets[0].borderColor = '#ec4899';
+            }
+            chartMode.update();
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 3: STANDARD DEVIATION BELL CURVE
+        // ============================================================
+        const ctxSigma = document.getElementById('chart-sigma').getContext('2d');
+        let labelsX = Array.from({length: 81}, (_, i) => (-4 + i * 0.1).toFixed(1));
+        
+        let chartSigma = new Chart(ctxSigma, {
+            type: 'line',
+            data: {
+                labels: labelsX,
+                datasets: [{
+                    label: 'Probability Distribution Density',
+                    data: [],
+                    borderColor: '#a855f7',
+                    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+                    fill: true,
+                    pointRadius: 0,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { min: 0, max: 0.7 } }
+            }
+        });
+
+        function updateSigmaChart() {
+            let sd = parseFloat(document.getElementById('sigma-slider').value);
+            document.getElementById('sigma-val').innerText = sd.toFixed(1);
+            
+            let mean = 0; 
+            let data = [];
+            for (let x = -4; x <= 4; x += 0.1) {
+                let y = (1 / (sd * Math.sqrt(2 * Math.PI))) * Math.exp(-0.5 * Math.pow((x - mean) / sd, 2));
+                data.push(y);
+            }
+            chartSigma.data.datasets[0].data = data;
+            chartSigma.update();
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 4: CORRELATION VS CAUSATION
+        // ============================================================
+        let chartCorrelation = null;
+        function initCorrelationChart() {
+            if(chartCorrelation !== null) return;
+            const ctxCorr = document.getElementById('chart-correlation').getContext('2d');
+            chartCorrelation = new Chart(ctxCorr, {
+                type: 'line',
+                data: {
+                    labels: ['May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                    datasets: [
+                        {
+                            label: 'Ice Cream Sales ($k)',
+                            data: [12, 25, 42, 38, 15],
+                            borderColor: '#3b82f6',
+                            yAxisID: 'y',
+                            tension: 0.2
+                        },
+                        {
+                            label: 'Shark Incident Reports',
+                            data: [2, 5, 9, 8, 3],
+                            borderColor: '#ef4444',
+                            yAxisID: 'y1',
+                            tension: 0.2,
+                            borderDash: [4, 4]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Ice Cream' } },
+                        y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Shark Attacks' } }
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 5: DICE ROLL SIMULATOR
+        // ============================================================
+        let diceRolls = [0, 0, 0, 0, 0, 0];
+        let totalRollCount = 0;
+        let chartDice = null;
+
+        function initDiceChart() {
+            if (chartDice !== null) return;
+            const ctxDice = document.getElementById('chart-dice').getContext('2d');
+            chartDice = new Chart(ctxDice, {
+                type: 'bar',
+                data: {
+                    labels: ['⚀ Face 1', '⚁ Face 2', '⚂ Face 3', '⚃ Face 4', '⚄ Face 5', '⚅ Face 6'],
+                    datasets: [{
+                        label: 'Roll Frequency',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899', '#f43f5e'],
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Frequency' } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                },
+                plugins: [{
+                    id: 'theoreticalLine',
+                    afterDraw: (chart) => {
+                        if (totalRollCount === 0) return;
+                        const {ctx, chartArea, scales: {y}} = chart;
+                        const theoreticalFreq = totalRollCount / 6;
+                        const yPos = y.getPixelForValue(theoreticalFreq);
+                        ctx.save();
+                        ctx.strokeStyle = '#10b981';
+                        ctx.lineWidth = 2;
+                        ctx.setLineDash([6, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(chartArea.left, yPos);
+                        ctx.lineTo(chartArea.right, yPos);
+                        ctx.stroke();
+                        ctx.fillStyle = '#10b981';
+                        ctx.font = 'bold 12px Outfit';
+                        ctx.fillText('Theoretical: ' + Math.round(theoreticalFreq), chartArea.left + 10, yPos - 8);
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        function rollDice(n) {
+            if (!chartDice) initDiceChart();
+            for (let i = 0; i < n; i++) {
+                diceRolls[Math.floor(Math.random() * 6)]++;
+            }
+            totalRollCount += n;
+            chartDice.data.datasets[0].data = [...diceRolls];
+            chartDice.update();
+
+            document.getElementById('total-rolls').innerText = totalRollCount.toLocaleString();
+            
+            // Calculate max deviation from theoretical 16.67%
+            const theoretical = 100 / 6;
+            let maxDev = 0;
+            diceRolls.forEach(count => {
+                const pct = (count / totalRollCount) * 100;
+                const dev = Math.abs(pct - theoretical);
+                if (dev > maxDev) maxDev = dev;
+            });
+            document.getElementById('max-dev').innerText = maxDev.toFixed(2) + '%';
+        }
+
+        function resetDice() {
+            diceRolls = [0, 0, 0, 0, 0, 0];
+            totalRollCount = 0;
+            if (chartDice) {
+                chartDice.data.datasets[0].data = [0, 0, 0, 0, 0, 0];
+                chartDice.update();
+            }
+            document.getElementById('total-rolls').innerText = '0';
+            document.getElementById('max-dev').innerText = '—';
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 6: VENN DIAGRAM (ADDITION RULE)
+        // ============================================================
+        function drawVenn() {
+            const canvas = document.getElementById('venn-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const overlapPct = parseFloat(document.getElementById('venn-slider').value);
+            document.getElementById('venn-overlap-val').innerText = overlapPct + '%';
+
+            ctx.clearRect(0, 0, w, h);
+
+            const r = 85;
+            const maxDist = r * 2.1;
+            const dist = maxDist - (overlapPct / 100) * maxDist;
+
+            const cx = w / 2;
+            const cy = h / 2;
+            const ax = cx - dist / 2;
+            const bx = cx + dist / 2;
+
+            // Glow effect
+            ctx.shadowBlur = 20;
+
+            // Draw Circle A
+            ctx.shadowColor = '#6366f1';
+            ctx.globalAlpha = 0.3;
+            ctx.fillStyle = '#6366f1';
+            ctx.beginPath();
+            ctx.arc(ax, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw Circle B
+            ctx.shadowColor = '#ec4899';
+            ctx.fillStyle = '#ec4899';
+            ctx.beginPath();
+            ctx.arc(bx, cy, r, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = 1;
+
+            // Circle outlines
+            ctx.strokeStyle = '#818cf8';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(ax, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#f472b6';
+            ctx.beginPath();
+            ctx.arc(bx, cy, r, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#e2e8f0';
+            ctx.font = 'bold 18px Outfit';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('A', ax - r * 0.5, cy - r * 0.6);
+            ctx.fillText('B', bx + r * 0.5, cy - r * 0.6);
+
+            if (overlapPct > 8) {
+                ctx.fillStyle = '#a855f7';
+                ctx.font = 'bold 16px Outfit';
+                ctx.fillText('A∩B', cx, cy);
+            }
+
+            // Calculate probabilities
+            const pA = 0.40;
+            const pB = 0.35;
+            const maxIntersection = Math.min(pA, pB);
+            const pIntersection = (overlapPct / 100) * maxIntersection;
+            const pUnion = pA + pB - pIntersection;
+
+            document.getElementById('venn-pa').innerText = pA.toFixed(2);
+            document.getElementById('venn-pb').innerText = pB.toFixed(2);
+            document.getElementById('venn-pab').innerText = pIntersection.toFixed(2);
+            document.getElementById('venn-paub').innerText = pUnion.toFixed(2);
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 7: MEDICAL TEST (CONDITIONAL PROB)
+        // ============================================================
+        function updateMedicalTest() {
+            const prevalence = parseFloat(document.getElementById('prevalence-slider').value) / 100;
+            const sensitivity = parseFloat(document.getElementById('sensitivity-slider').value) / 100;
+            const specificity = parseFloat(document.getElementById('specificity-slider').value) / 100;
+
+            document.getElementById('prev-val').innerText = (prevalence * 100).toFixed(0) + '%';
+            document.getElementById('sens-val').innerText = (sensitivity * 100).toFixed(0) + '%';
+            document.getElementById('spec-val').innerText = (specificity * 100).toFixed(0) + '%';
+
+            const pop = 10000;
+            const sick = Math.round(pop * prevalence);
+            const healthy = pop - sick;
+
+            const tp = Math.round(sick * sensitivity);
+            const fn = sick - tp;
+            const fp = Math.round(healthy * (1 - specificity));
+            const tn = healthy - fp;
+
+            document.getElementById('cm-tp').innerText = tp.toLocaleString();
+            document.getElementById('cm-fp').innerText = fp.toLocaleString();
+            document.getElementById('cm-fn').innerText = fn.toLocaleString();
+            document.getElementById('cm-tn').innerText = tn.toLocaleString();
+
+            // P(Disease | Positive) = TP / (TP + FP)
+            const totalPositive = tp + fp;
+            const pDiseaseGivenPositive = totalPositive > 0 ? (tp / totalPositive) : 0;
+            document.getElementById('cond-prob-result').innerText = (pDiseaseGivenPositive * 100).toFixed(1) + '%';
+
+            // Color the result based on surprise factor
+            const resultEl = document.getElementById('cond-prob-result');
+            if (pDiseaseGivenPositive < 0.5) {
+                resultEl.style.color = '#f59e0b'; // warning - surprisingly low
+            } else {
+                resultEl.style.color = '#10b981'; // good predictive value
+            }
+        }
+
+        // ============================================================
+        //  INTERACTIVE PLAYGROUND 8: SPAM FILTER (BAYES' THEOREM)
+        // ============================================================
+        function updateSpamFilter() {
+            const pSpam = parseFloat(document.getElementById('spam-prior-slider').value) / 100;
+            const pFreeGivenSpam = parseFloat(document.getElementById('free-spam-slider').value) / 100;
+            const pFreeGivenNotSpam = parseFloat(document.getElementById('free-notspam-slider').value) / 100;
+
+            document.getElementById('spam-prior-val').innerText = (pSpam * 100).toFixed(0) + '%';
+            document.getElementById('free-spam-val').innerText = (pFreeGivenSpam * 100).toFixed(0) + '%';
+            document.getElementById('free-notspam-val').innerText = (pFreeGivenNotSpam * 100).toFixed(0) + '%';
+
+            // Bayes' Theorem
+            const pFree = pFreeGivenSpam * pSpam + pFreeGivenNotSpam * (1 - pSpam);
+            const pSpamGivenFree = pFree > 0 ? (pFreeGivenSpam * pSpam) / pFree : 0;
+
+            // Update computation steps
+            document.getElementById('bayes-prior').innerText = pSpam.toFixed(2);
+            document.getElementById('bayes-likelihood').innerText = pFreeGivenSpam.toFixed(2);
+            document.getElementById('bayes-evidence').innerText = pFree.toFixed(3);
+            document.getElementById('bayes-posterior').innerText = pSpamGivenFree.toFixed(3);
+
+            // Update probability bar
+            const pct = (pSpamGivenFree * 100).toFixed(1);
+            const bar = document.getElementById('spam-bar');
+            bar.style.width = pct + '%';
+            document.getElementById('spam-bar-pct').innerText = pct + '%';
+
+            // Update color based on spam probability
+            if (pSpamGivenFree > 0.7) {
+                bar.style.background = 'linear-gradient(90deg, #ef4444, #dc2626)';
+            } else if (pSpamGivenFree > 0.4) {
+                bar.style.background = 'linear-gradient(90deg, #f59e0b, #ef4444)';
+            } else {
+                bar.style.background = 'linear-gradient(90deg, #10b981, #6366f1)';
+            }
+
+            // Update verdict
+            const verdictEl = document.getElementById('spam-verdict');
+            if (pSpamGivenFree >= 0.5) {
+                verdictEl.innerText = '🚫 SPAM';
+                verdictEl.style.color = '#ef4444';
+            } else {
+                verdictEl.innerText = '✅ NOT SPAM';
+                verdictEl.style.color = '#10b981';
+            }
+            document.getElementById('spam-confidence').innerText = pct + '%';
+        }
+    </script>
+</body>
+</html>

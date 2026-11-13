@@ -5,18 +5,11 @@
 
 <br/>
 
-<!-- Animated Wave Banner -->
-<img src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,50:1a1b27,100:00d9ff&height=220&section=header&text=Data%20Analytics%20%26%20Data%20Science%20Notes&fontSize=42&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=Mastering%20the%20Complete%20Data%20Lifecycle%20%7C%20Analytics%2C%20Machine%20Learning%20%26%20Deep%20Learning&descSize=16&descAlignY=55&descColor=58a6ff" width="100%"/>
-
-<br/>
-
 <!-- Badges Row 1: Repository Status -->
 ![GitHub last commit](https://img.shields.io/github/last-commit/JayanGupta/Notes?style=for-the-badge&color=00d9ff&labelColor=0d1117)
 ![GitHub repo size](https://img.shields.io/github/repo-size/JayanGupta/Notes?style=for-the-badge&color=7c3aed&labelColor=0d1117)
 ![GitHub stars](https://img.shields.io/github/stars/JayanGupta/Notes?style=for-the-badge&color=fbbf24&labelColor=0d1117)
 ![GitHub forks](https://img.shields.io/github/forks/JayanGupta/Notes?style=for-the-badge&color=34d399&labelColor=0d1117)
-
-<br/>
 
 <!-- Badges Row 2: Core Data Technologies -->
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
@@ -28,8 +21,6 @@
 ![Excel](https://img.shields.io/badge/Microsoft_Excel-217346?style=for-the-badge&logo=microsoft-excel&logoColor=white)
 ![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
 
-<br/>
-
 <!-- Badges Row 3: Developer & Teaching Tooling -->
 ![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=for-the-badge&logo=jupyter&logoColor=white)
 ![Matplotlib](https://img.shields.io/badge/Matplotlib-11557c?style=for-the-badge&logo=python&logoColor=white)
@@ -37,7 +28,7 @@
 ![Git](https://img.shields.io/badge/Git-F05032?style=for-the-badge&logo=git&logoColor=white)
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)
 
-<br/><br/>
+<br/>
 
 <!-- Profile Views Counter -->
 ![Profile Views](https://komarev.com/ghpvc/?username=JayanGupta&label=Repository+Views&color=00d9ff&style=for-the-badge)
@@ -71,44 +62,6 @@ This repository acts as a **central knowledge base and practical lab manual**. E
 
 <img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%">
 
-## End-to-End Curriculum Architecture
-
-```mermaid
-flowchart TD
-    subgraph DA["Track 1: Data Analytics (19 Days)"]
-        DA_Spreadsheet["Excel Fundamentals & Pivots<br/>(Days 01-02)"] --> DA_SQL["SQL Command & Relational Joins<br/>(Days 03-10: DDL, DQL, Window Functions)"]
-        DA_SQL --> DA_Python["Python for Analytics & Pandas<br/>(Days 11-14: OOP, IMDb Projects)"]
-        DA_Python --> DA_BI["Visualization & Business Intelligence<br/>(Days 15-17: Matplotlib, Power BI, AI Sheets)"]
-        DA_BI --> DA_Career["Interview Prep & Career Framework<br/>(Days 18-19)"]
-    end
-
-    subgraph DS["Track 2: Data Science & ML (20 Days)"]
-        DS_Stats["Statistics & Scikit-Learn Intro<br/>(Days 01-03: Feature Engineering)"] --> DS_Supervised["Supervised Algorithms<br/>(Days 04-09: Regression, Trees, SVM, KNN)"]
-        DS_Supervised --> DS_Projects["End-to-End Projects<br/>(Days 10-12: Car Price, Credit Fraud)"]
-        DS_Projects --> DS_Unsupervised["Unsupervised & Dimensionality<br/>(Days 13-15: K-Means, DBSCAN, PCA)"]
-        DS_Unsupervised --> DS_DL_NLP["NLP & Deep Learning<br/>(Days 16-19: NLTK, MNIST, Fact Checker)"]
-        DS_DL_NLP --> DS_Prep["Technical Interview Prep<br/>(Day 20)"]
-    end
-
-    subgraph Zoo["ML Model Zoo (11 Interactive Notebooks)"]
-        MZ_Reg["Linear & Logistic Regression"]
-        MZ_Tree["Decision Tree, Random Forest, AdaBoost, XGBoost"]
-        MZ_Class["SVM, KNN, Naive Bayes"]
-        MZ_Unsup["K-Means Clustering & PCA"]
-    end
-
-    DA_Career -. "Feeds Core ML Intuition" .-> DS_Stats
-    DS_Supervised -. "Implemented in" .-> Zoo
-    DS_Unsupervised -. "Implemented in" .-> Zoo
-
-    style DA fill:#0d1117,stroke:#00d9ff,stroke-width:2px,color:#ffffff
-    style DS fill:#0d1117,stroke:#7c3aed,stroke-width:2px,color:#ffffff
-    style Zoo fill:#0d1117,stroke:#fbbf24,stroke-width:2px,color:#ffffff
-```
-
----
-
-<img src="https://user-images.githubusercontent.com/73097560/115834477-dbab4500-a447-11eb-908a-139a6edaec5c.gif" width="100%">
 
 ## Track 1: Data Analytics — 19-Day Learning Roadmap
 
